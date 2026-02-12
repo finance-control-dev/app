@@ -260,13 +260,26 @@
         .header-icon-circle {
             width: 40px;
             height: 40px;
-            min-width: 40px;
             border-radius: 50%;
-            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            background: linear-gradient(135deg, #FFD700 0%, #B8860B 100%);
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 2px 12px var(--primary-glow);
+            color: #FFF;
+            /* White icon for contrast */
+            box-shadow: 0 4px 10px rgba(184, 134, 11, 0.4), inset 0 2px 5px rgba(255, 255, 255, 0.4);
+            animation: coin-spin 6s linear infinite;
+            transform-style: preserve-3d;
+        }
+
+        @keyframes coin-spin {
+            0% {
+                transform: rotateY(0deg);
+            }
+
+            100% {
+                transform: rotateY(360deg);
+            }
         }
 
         .header-icon-circle svg {
