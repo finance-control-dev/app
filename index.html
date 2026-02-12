@@ -217,7 +217,8 @@
             padding-left: max(1.25rem, env(safe-area-inset-left));
             padding-right: max(1.25rem, env(safe-area-inset-right));
             display: flex;
-            flex-wrap: wrap;
+            flex-wrap: nowrap;
+            /* Prevent wrapping */
             justify-content: space-between;
             align-items: center;
             gap: 0.5rem;
@@ -227,6 +228,8 @@
             transition: background var(--transition);
             backdrop-filter: blur(24px);
             -webkit-backdrop-filter: blur(24px);
+            overflow: hidden;
+            /* Prevent content from overflowing header bounds */
         }
 
         .light .header {
@@ -272,6 +275,9 @@
             font-weight: 800;
             letter-spacing: -0.3px;
             line-height: 1.2;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .header-new-date {
@@ -1382,6 +1388,17 @@
         .action-btn.delete {
             background: rgba(239, 68, 68, 0.12);
             color: var(--danger-light);
+        }
+
+        .action-btn svg {
+            width: 16px;
+            height: 16px;
+            stroke-width: 2.25;
+            transition: transform var(--transition);
+        }
+
+        .action-btn:hover svg {
+            transform: scale(1.1);
         }
 
         .action-btn.favorite-btn {
@@ -2687,26 +2704,51 @@
 
             .header-new-title {
                 font-size: 1.05rem;
+                max-width: 120px;
+                /* Limit width on very small screens */
             }
 
             .header-new-date {
                 font-size: 0.68rem;
             }
 
-            .btn-save-transaction {
-                padding: 0.85rem;
-                font-size: 0.95rem;
+            .header-new-date #clockDate {
+                display: none;
+                /* Hide date on small mobile to save space */
+            }
+
+            .header-controls {
+                gap: 4px;
+            }
+
+            .pill-toggle {
+                padding: 2px;
+            }
+
+            .pill-toggle-btn {
+                width: 32px;
+                height: 32px;
             }
         }
 
         @media(max-width:360px) {
-            .header-title {
+            .header-new-left {
+                gap: 4px;
+            }
+
+            .header-icon-circle {
+                display: none;
+                /* Hide icon on ultra-small screens */
+            }
+
+            .header-new-title {
                 font-size: 0.88rem;
+                max-width: 90px;
             }
 
             .pill-toggle-btn {
-                width: 30px;
-                height: 30px;
+                width: 28px;
+                height: 28px;
             }
 
             .pill-toggle-btn svg {
@@ -2750,7 +2792,7 @@
                 </svg>
             </div>
             <div class="header-new-info">
-                <h1 class="header-new-title" data-i18n="appTitle">CONTROLE FINANCEIRO       </h1>
+                <h1 class="header-new-title" data-i18n="appTitle">CONTROLE FINANCEIRO </h1>
                 <div class="header-new-date" id="headerNewDate">
                     <span id="clockDate">--/--/----</span> <span style="margin:0 2px;">&#8226;</span> <span
                         id="clockTime">00:00</span>
@@ -3649,7 +3691,22 @@
 
         function updateSearchResults(f) { const l = document.getElementById('searchResultsList'); const c = document.getElementById('searchResultCount'); const tc = document.getElementById('searchTotalsCard'); c.textContent = `${f.length} ${t('transactionsFound')}`; if (f.length === 0) { l.innerHTML = '<div class="empty-state">' + t('noTransactionsFound') + '</div>'; tc.style.display = 'none'; return; } const inc = f.filter(x => x.type === 'income').reduce((s, x) => s + x.value, 0); const exp = f.filter(x => x.type === 'expense').reduce((s, x) => s + x.value, 0); const bal = inc - exp; document.getElementById('searchTotalIncome').textContent = formatCurrency(inc); document.getElementById('searchTotalExpense').textContent = formatCurrency(exp); document.getElementById('searchTotalBalance').textContent = formatCurrency(bal); tc.style.display = 'block'; const bd = {}; f.forEach(x => { if (!bd[x.date]) bd[x.date] = []; bd[x.date].push(x); }); const ds = Object.keys(bd).sort((a, b) => b.localeCompare(a)); l.innerHTML = '<div class="search-results-grouped">' + ds.map(d => `<div class="search-results-date-group"><div class="search-results-date-header">${formatDateForDisplay(d)}</div><div class="search-results-date-list">${bd[d].map(x => renderSearchResultCard(x)).join('')}</div></div>`).join('') + '</div>'; }
 
-        function renderSearchResultCard(tx) { const fc = tx.favorite ? ' favorite-star favorited' : ' favorite-star'; const fi = tx.favorite ? '\u2B50' : '\u2606'; return `<div class="search-result-card"><button class="${fc}" onclick="toggleFavorite(${tx.id});performSearch();" title="${tx.favorite ? 'Desfavoritar' : 'Favoritar'}">${fi}</button><div class="transaction-info"><div class="transaction-description">${escapeHtml(tx.description)}</div><div class="transaction-meta">${getCategoryLabel(tx.category)} \u2022 ${tx.type === 'income' ? t('income') : t('expense')}</div></div><div class="transaction-amount ${tx.type}">${tx.type === 'income' ? '+' : '-'}${formatCurrency(tx.value)}</div><div class="transaction-actions"><button class="action-btn edit" onclick="editTransaction(${tx.id})" title="${t('edit')}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button><button class="action-btn delete" onclick="deleteTransaction(${tx.id})" title="${t('delete')}"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3,6 5,6 21,6"/><path d="m19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2"/></svg></button></div></div>`; }
+        function renderSearchResultCard(tx) {
+            const fc = tx.favorite ? ' favorite-star favorited' : ' favorite-star';
+            const fi = tx.favorite ? `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>` : `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`;
+            return `<div class="search-result-card">
+                <button class="${fc}" onclick="toggleFavorite(${tx.id});performSearch();" title="${tx.favorite ? 'Desfavoritar' : 'Favoritar'}">${fi}</button>
+                <div class="transaction-info">
+                    <div class="transaction-description">${escapeHtml(tx.description)}</div>
+                    <div class="transaction-meta">${getCategoryLabel(tx.category)} \u2022 ${tx.type === 'income' ? t('income') : t('expense')}</div>
+                </div>
+                <div class="transaction-amount ${tx.type}">${tx.type === 'income' ? '+' : '-'}${formatCurrency(tx.value)}</div>
+                <div class="transaction-actions">
+                    <button class="action-btn edit" onclick="editTransaction(${tx.id})" title="${t('edit')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                    <button class="action-btn delete" onclick="deleteTransaction(${tx.id})" title="${t('delete')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+                </div>
+            </div>`;
+        }
 
         function toggleFavorite(id) { const x = transactions.find(t => t.id === id); if (x) { x.favorite = !x.favorite; saveData(); } }
         function clearSearch() { document.getElementById('searchDescription').value = ''; document.getElementById('searchCategory').value = ''; document.getElementById('searchType').value = ''; clearMonthSelection(); document.getElementById('searchYear').value = ''; document.getElementById('searchFavorites').checked = false; performSearch(); }
@@ -3682,7 +3739,31 @@
         function restoreTransaction(id) { var tx = transactions.find(function (x) { return x.id === id; }); var ta = getTrashFromStorage(); var it = ta.find(function (x) { return x.id == id; }); if (!it) return; if (tx) { tx.deleted = false; tx.deletedAt = null; } else { it.deleted = false; it.deletedAt = null; transactions.push(it); } saveTrashToStorage(ta.filter(function (x) { return x.id != id; })); saveData(); updateAllViews(); updateTrashList(); performSearch(); showNotification(t('transactionRestored'), 'success'); }
         function deletePermanently(id) { if (confirm(t('deletePermanentConfirm'))) { transactions = transactions.filter(function (t) { return t.id !== id; }); var ta = getTrashFromStorage().filter(function (t) { return t.id != id; }); saveTrashToStorage(ta); saveData(); updateAllViews(); updateTrashList(); performSearch(); showNotification(t('transactionDeletedPerm'), 'warning'); } }
         function emptyTrash() { const tc = getTrashTransactions().length; if (tc === 0) { showNotification(t('trashEmpty'), 'info'); return; } if (confirm(t('emptyTrashConfirm') + ' ' + tc + ' ' + t('trashEmptyConfirm'))) { transactions = getActiveTransactions(); saveTrashToStorage([]); saveData(); updateAllViews(); updateTrashList(); performSearch(); showNotification(t('trashEmptied'), 'warning'); } }
-        function updateTrashList() { var l = document.getElementById('trashList'); var eb = document.getElementById('emptyTrashBtn'); if (!l) return; var tr = getTrashTransactions(); var s = tr.slice().sort(function (a, b) { return new Date(b.deletedAt || 0) - new Date(a.deletedAt || 0); }); if (eb) eb.style.display = s.length > 0 ? '' : 'none'; if (s.length === 0) { l.innerHTML = '<div class="empty-state">' + t('noTrash') + '</div>'; return; } l.innerHTML = s.map(function (tx) { var dd = tx.deletedAt ? formatDateForDisplay(String(tx.deletedAt).split('T')[0]) : ''; return '<div class="transaction-item">' + '<div class="transaction-info">' + '<div class="transaction-description">' + escapeHtml(tx.description || '') + '</div>' + '<div class="transaction-meta">' + getCategoryLabel(tx.category) + ' \u2022 ' + formatDateForDisplay(tx.date) + (dd ? ' \u2022 ' + (currentLang === 'en' ? 'Deleted on ' : 'Exclu\u00EDda em ') + dd : '') + '</div>' + '</div>' + '<div class="transaction-amount ' + (tx.type || 'expense') + '">' + (tx.type === 'income' ? '+' : '-') + formatCurrency(tx.value) + '</div>' + '<div class="transaction-actions">' + '<button type="button" class="action-btn edit" onclick="restoreTransaction(' + tx.id + ')" title="' + t('restore') + '">\u21BA</button>' + '<button type="button" class="action-btn delete" onclick="deletePermanently(' + tx.id + ')" title="' + t('deletePermanent') + '">&times;</button>' + '</div></div>'; }).join(''); }
+        function updateTrashList() {
+            var l = document.getElementById('trashList');
+            var eb = document.getElementById('emptyTrashBtn');
+            if (!l) return;
+            var tr = getTrashTransactions();
+            var s = tr.slice().sort(function (a, b) { return new Date(b.deletedAt || 0) - new Date(a.deletedAt || 0); });
+            if (eb) eb.style.display = s.length > 0 ? '' : 'none';
+            if (s.length === 0) {
+                l.innerHTML = '<div class="empty-state">' + t('noTrash') + '</div>';
+                return;
+            }
+            l.innerHTML = s.map(function (tx) {
+                var dd = tx.deletedAt ? formatDateForDisplay(String(tx.deletedAt).split('T')[0]) : '';
+                return '<div class="transaction-item">' +
+                    '<div class="transaction-info">' +
+                    '<div class="transaction-description">' + escapeHtml(tx.description || '') + '</div>' +
+                    '<div class="transaction-meta">' + getCategoryLabel(tx.category) + ' \u2022 ' + formatDateForDisplay(tx.date) + (dd ? ' \u2022 ' + (currentLang === 'en' ? 'Deleted on ' : 'Exclu\u00EDda em ') + dd : '') + '</div>' +
+                    '</div>' +
+                    '<div class="transaction-amount ' + (tx.type || 'expense') + '">' + (tx.type === 'income' ? '+' : '-') + formatCurrency(tx.value) + '</div>' +
+                    '<div class="transaction-actions">' +
+                    '<button type="button" class="action-btn edit" onclick="restoreTransaction(' + tx.id + ')" title="' + t('restore') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><polyline points="3 3 3 8 8 8"/></svg></button>' +
+                    '<button type="button" class="action-btn delete" onclick="deletePermanently(' + tx.id + ')" title="' + t('deletePermanent') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>' +
+                    '</div></div>';
+            }).join('');
+        }
 
         function showAddGoalModal() { showModal('addGoalModal'); }
         function addGoal() { const d = document.getElementById('goalDescription').value.trim(); const tg = parseFloat(document.getElementById('goalTarget').value); const c = parseFloat(document.getElementById('goalCurrent').value) || 0; if (!d || !tg || tg <= 0) { showNotification(t('fillGoalFields'), 'error'); return; } if (c > tg) { showNotification(t('currentNotGreater'), 'error'); return; } const g = { id: Date.now(), description: d, target: tg, current: c, order: goals.length, createdAt: new Date().toISOString() }; goals.push(g); saveData(); updateGoalsList(); closeModal('addGoalModal'); document.getElementById('addGoalForm').reset(); showNotification(t('goalAdded'), 'success'); }
@@ -3692,7 +3773,36 @@
         function moveGoal(id, dir) { const i = goals.findIndex(g => g.id === id); const ni = i + dir; if (ni < 0 || ni >= goals.length) return;[goals[i], goals[ni]] = [goals[ni], goals[i]]; goals[i].order = i; goals[ni].order = ni; saveData(); updateGoalsList(); }
 
         function updateTransactionsList() { const l = document.getElementById('transactionsList'); const a = getActiveTransactions(); if (a.length === 0) { l.innerHTML = '<div class="empty-state">' + t('noTransactionsFoundShort') + '</div>'; return; } const s = [...a].sort((a, b) => new Date(b.date) - new Date(a.date)); l.innerHTML = s.map(tx => renderTransactionItem(tx)).join(''); }
-        function updateGoalsList() { const l = document.getElementById('goalsList'); if (goals.length === 0) { l.innerHTML = '<div class="empty-state">' + t('noGoals') + '</div>'; return; } const s = [...goals].sort((a, b) => (a.order || 0) - (b.order || 0)); l.innerHTML = s.map((g, i) => { const p = Math.min((g.current / g.target) * 100, 100); const r = Math.max(g.target - g.current, 0); return `<div class="goal-item"><div class="goal-header"><div class="goal-info"><h3>${escapeHtml(g.description)}</h3><div class="goal-values">${formatCurrency(g.current)} de ${formatCurrency(g.target)}</div></div><div class="goal-actions">${i > 0 ? `<button class="action-btn move-up" onclick="moveGoal(${g.id},-1)" title="Mover para cima">&uarr;</button>` : ''} ${i < s.length - 1 ? `<button class="action-btn move-down" onclick="moveGoal(${g.id},1)" title="Mover para baixo">&darr;</button>` : ''}<button class="action-btn edit" onclick="editGoal(${g.id})" title="${t('edit')}">&#9998;</button><button class="action-btn delete" onclick="deleteGoal(${g.id})" title="${t('delete')}">&times;</button></div></div><div class="goal-progress"><div class="progress-bar"><div class="progress-fill" style="width:${p}%"></div></div><div class="progress-text"><span>${p.toFixed(1)}% conclu\u00EDdo</span><span>Faltam ${formatCurrency(r)}</span></div></div></div>`; }).join(''); }
+        function updateGoalsList() {
+            const l = document.getElementById('goalsList');
+            if (goals.length === 0) {
+                l.innerHTML = '<div class="empty-state">' + t('noGoals') + '</div>';
+                return;
+            }
+            const s = [...goals].sort((a, b) => (a.order || 0) - (b.order || 0));
+            l.innerHTML = s.map((g, i) => {
+                const p = Math.min((g.current / g.target) * 100, 100);
+                const r = Math.max(g.target - g.current, 0);
+                return `<div class="goal-item">
+                    <div class="goal-header">
+                        <div class="goal-info">
+                            <h3>${escapeHtml(g.description)}</h3>
+                            <div class="goal-values">${formatCurrency(g.current)} de ${formatCurrency(g.target)}</div>
+                        </div>
+                        <div class="goal-actions">
+                            ${i > 0 ? `<button class="action-btn move-up" onclick="moveGoal(${g.id},-1)" title="Mover para cima"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="18 15 12 9 6 15"/></svg></button>` : ''}
+                            ${i < s.length - 1 ? `<button class="action-btn move-down" onclick="moveGoal(${g.id},1)" title="Mover para baixo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="6 9 12 15 18 9"/></svg></button>` : ''}
+                            <button class="action-btn edit" onclick="editGoal(${g.id})" title="${t('edit')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                            <button class="action-btn delete" onclick="deleteGoal(${g.id})" title="${t('delete')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+                        </div>
+                    </div>
+                    <div class="goal-progress">
+                        <div class="progress-bar"><div class="progress-fill" style="width:${p}%"></div></div>
+                        <div class="progress-text"><span>${p.toFixed(1)}% conclu\u00EDdo</span><span>Faltam ${formatCurrency(r)}</span></div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
         function updateDailyTransactions() { const sd = document.getElementById('transactionDate').value; const daily = getActiveTransactions().filter(t => t.date === sd); updateSummaryStats('daily', daily); const l = document.getElementById('dailyTransactionsList'); if (daily.length === 0) { l.innerHTML = '<div class="empty-state">' + t('noTransactionsDay') + '</div>'; return; } l.innerHTML = daily.map(tx => renderTransactionItem(tx)).join(''); }
 
         function toggleSummary(type) { const c = document.getElementById(type + 'SummaryContent'); const ic = c.previousElementSibling.querySelector('.expand-icon'); c.classList.toggle('expanded'); ic.classList.toggle('expanded'); }
@@ -3711,7 +3821,21 @@
         function formatCurrency(v) { const f = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v || 0); return f.replace(/\u00A0/g, ''); }
         function escapeHtml(text) { if (text == null || typeof text !== 'string') return ''; const d = document.createElement('div'); d.textContent = text; return d.innerHTML; }
         function formatDateForDisplay(ds) { if (!ds || typeof ds !== 'string') return ''; const p = ds.split('-'); if (p.length !== 3) return ds; return `${p[2]}/${p[1]}/${p[0]}`; }
-        function renderTransactionItem(tx) { const fav = tx.favorite ? '\u2B50' : '\u2606'; return `<div class="transaction-item"><div class="transaction-info"><div class="transaction-description">${escapeHtml(tx.description)}</div><div class="transaction-meta">${categories[tx.category]} \u2022 ${formatDateForDisplay(tx.date)}</div></div><div class="transaction-amount ${tx.type}">${tx.type === 'income' ? '+' : '-'}${formatCurrency(tx.value)}</div><div class="transaction-actions"><button class="action-btn favorite-btn" onclick="toggleFavorite(${tx.id});updateAllViews();performSearch();" title="${tx.favorite ? 'Desfavoritar' : 'Favoritar'}">${fav}</button><button class="action-btn edit" onclick="editTransaction(${tx.id})" title="${t('edit')}">&#9998;</button><button class="action-btn delete" onclick="deleteTransaction(${tx.id})" title="${t('delete')}">&times;</button></div></div>`; }
+        function renderTransactionItem(tx) {
+            const fav = tx.favorite ? `<svg class="favorited" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>` : `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`;
+            return `<div class="transaction-item">
+                <div class="transaction-info">
+                    <div class="transaction-description">${escapeHtml(tx.description)}</div>
+                    <div class="transaction-meta">${categories[tx.category]} \u2022 ${formatDateForDisplay(tx.date)}</div>
+                </div>
+                <div class="transaction-amount ${tx.type}">${tx.type === 'income' ? '+' : '-'}${formatCurrency(tx.value)}</div>
+                <div class="transaction-actions">
+                    <button class="action-btn favorite-btn" onclick="toggleFavorite(${tx.id});updateAllViews();performSearch();" title="${tx.favorite ? 'Desfavoritar' : 'Favoritar'}">${fav}</button>
+                    <button class="action-btn edit" onclick="editTransaction(${tx.id})" title="${t('edit')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
+                    <button class="action-btn delete" onclick="deleteTransaction(${tx.id})" title="${t('delete')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+                </div>
+            </div>`;
+        }
 
         function updateAllViews() { updateTransactionsList(); updateGoalsList(); updateDailyTransactions(); updateDailySummary(); updateWeeklySummary(); updateMonthlySummary(); updateYearlySummary(); updateTrashList(); if (document.getElementById('search') && document.getElementById('search').classList.contains('active')) populateYearSelect(); }
 
