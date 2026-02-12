@@ -2956,6 +2956,62 @@
                 transform: rotate(360deg);
             }
         }
+
+        /* SEGMENTED CONTROL ALTERNATIVO - Slide Style */
+        .segmented-control-container {
+            display: flex;
+            background: #0f172a;
+            padding: 4px;
+            border-radius: 9999px;
+            position: relative;
+            margin-bottom: 24px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+            height: 52px;
+        }
+
+        .segmented-background {
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: calc(50% - 4px);
+            height: calc(100% - 8px);
+            background: #10b981;
+            /* Green default */
+            border-radius: 9999px;
+            transition: transform 0.3s cubic-bezier(0.4, 0.0, 0.2, 1), background-color 0.3s ease;
+            z-index: 1;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .segmented-background.bg-expense {
+            background: #ef4444;
+            /* Red expense */
+        }
+
+        .segmented-btn {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 2;
+            background: transparent;
+            border: none;
+            color: #64748b;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+
+        .segmented-btn.active {
+            color: #ffffff;
+        }
+
+        .segmented-btn:hover:not(.active) {
+            color: #e2e8f0;
+        }
     </style>
 </head>
 
@@ -3286,16 +3342,15 @@
             <div class="card">
                 <h2 class="mb-2" data-i18n="newTransaction">Nova Transacao</h2>
                 <form id="transactionForm">
-                    <!-- Type Toggle -->
-                    <div class="type-toggle-group">
-                        <button type="button" class="type-toggle-btn income-toggle" id="toggleIncome"
+                    <!-- Segmented Control -->
+                    <div class="segmented-control-container">
+                        <div class="segmented-background" id="segmentedBackground"></div>
+                        <button type="button" class="segmented-btn active" id="btnIncome"
                             onclick="setTransactionType('income')">
-                            <span class="type-toggle-radio filled" id="radioIncome"></span>
                             <span data-i18n="gains">Ganho</span>
                         </button>
-                        <button type="button" class="type-toggle-btn expense-toggle inactive" id="toggleExpense"
+                        <button type="button" class="segmented-btn" id="btnExpense"
                             onclick="setTransactionType('expense')">
-                            <span class="type-toggle-radio" id="radioExpense"></span>
                             <span data-i18n="spending">Gasto</span>
                         </button>
                     </div>
@@ -3962,11 +4017,17 @@
                 }
 
                 if (loginOverlay) loginOverlay.style.display = 'none';
-                loadDataFromFirebase();
-                // Check for scheduled backup after login
-                checkScheduledBackup();
+
+                // Carregar dados do usuário específico
+                loadData();
+                updateAllViews();
             } else {
                 currentUser = null;
+
+                // Limpar dados em memória ao fazer logout
+                transactions = [];
+                goals = [];
+
                 const up = document.getElementById('userProfile');
                 if (up) up.style.display = 'none';
 
@@ -3974,6 +4035,9 @@
                 if (splashScreen && splashScreen.classList.contains('hidden')) {
                     if (loginOverlay) loginOverlay.style.display = 'flex';
                 }
+
+                // Atualizar views para mostrar vazio
+                updateAllViews();
             }
         });
 
@@ -4022,14 +4086,127 @@
         function logout() {
             if (confirm("Deseja realmente sair?")) {
                 auth.signOut().then(() => {
+                    // Limpar apenas dados em memória (NÃO apagar localStorage de outros usuários)
                     transactions = [];
                     goals = [];
-                    localStorage.clear();
+                    // REMOVIDO: localStorage.clear(); - preserva dados de outros usuários
                     updateAllViews();
                     showNotification("Você saiu da conta", "info");
                 });
             }
         }
+
+        // ==================== STORAGE ISOLADO POR USUÁRIO ====================
+
+        // Gerar chave específica para o usuário atual
+        function getUserStorageKey(baseKey) {
+            if (!currentUser) return null;
+            return `${baseKey}_${currentUser.uid}`;
+        }
+
+        // Salvar dados do usuário atual no localStorage
+        function saveData() {
+            if (!currentUser) return;
+
+            try {
+                // Transações: salvar apenas do usuário atual
+                const txKey = getUserStorageKey('financialTransactions_v2');
+                const userTransactions = transactions.filter(t => t.userId === currentUser.uid);
+                localStorage.setItem(txKey, JSON.stringify(userTransactions));
+
+                // Goals: salvar apenas do usuário atual
+                const goalsKey = getUserStorageKey('financialGoals');
+                const userGoals = goals.filter(g => g.userId === currentUser.uid);
+                localStorage.setItem(goalsKey, JSON.stringify(userGoals));
+
+                console.log(`Dados salvos para usuário: ${currentUser.uid}`);
+            } catch (e) {
+                console.error("Erro ao salvar dados:", e);
+                showNotification('Erro ao salvar dados!', 'error');
+            }
+        }
+        window.saveData = saveData;
+
+        // Carregar dados do usuário atual do localStorage
+        function loadData() {
+            if (!currentUser) {
+                transactions = [];
+                goals = [];
+                return;
+            }
+
+            try {
+                // Carregar transações do usuário específico
+                const txKey = getUserStorageKey('financialTransactions_v2');
+                const txData = localStorage.getItem(txKey);
+                if (txData) {
+                    const allTransactions = JSON.parse(txData);
+                    // CRITICAL: Filtrar apenas transações do usuário atual
+                    transactions = allTransactions.filter(t => t.userId === currentUser.uid);
+                } else {
+                    transactions = [];
+                }
+
+                // Carregar goals do usuário específico
+                const goalsKey = getUserStorageKey('financialGoals');
+                const goalsData = localStorage.getItem(goalsKey);
+                if (goalsData) {
+                    const allGoals = JSON.parse(goalsData);
+                    goals = allGoals.filter(g => g.userId === currentUser.uid);
+                } else {
+                    goals = [];
+                }
+
+                console.log(`Dados carregados para usuário: ${currentUser.uid}`, {
+                    transactions: transactions.length,
+                    goals: goals.length
+                });
+            } catch (e) {
+                console.error("Erro ao carregar dados:", e);
+                transactions = [];
+                goals = [];
+            }
+        }
+        window.loadData = loadData;
+
+        // Garantir que apenas dados do usuário atual estejam nos arrays
+        function ensureUserDataIsolation() {
+            if (!currentUser) {
+                transactions = [];
+                goals = [];
+                return;
+            }
+
+            // Filtrar forçadamente qualquer transação que não seja do usuário atual
+            transactions = transactions.filter(t => t.userId === currentUser.uid);
+            goals = goals.filter(g => g.userId === currentUser.uid);
+        }
+
+        // Atualizar todas as views e garantir isolamento
+        function updateAllViews() {
+            ensureUserDataIsolation();
+
+            // Atualizar lista de transações se existir
+            if (typeof updateTransactionsList === 'function') {
+                updateTransactionsList();
+            }
+
+            // Atualizar lista de goals se existir
+            if (typeof updateGoalsList === 'function') {
+                updateGoalsList();
+            }
+
+            // Atualizar resumo diário se existir
+            if (typeof updateDailySummary === 'function') {
+                updateDailySummary();
+            }
+
+            // Atualizar daily transactions se existir
+            if (typeof updateDailyTransactions === 'function') {
+                updateDailyTransactions();
+            }
+        }
+        window.updateAllViews = updateAllViews;
         var trashStorageKey = 'financialTrash_v2';
         function getTrashFromStorage() { try { var r = localStorage.getItem(trashStorageKey); return r ? JSON.parse(r) : []; } catch (e) { return []; } }
         function saveTrashToStorage(a) { try { localStorage.setItem(trashStorageKey, JSON.stringify(a)); } catch (e) { } }
@@ -4094,7 +4271,7 @@
             var de = document.getElementById('clockDate');
             if (!te || !de) return;
             var n = new Date();
-            checkScheduledBackup();
+            // REMOVIDO: checkScheduledBackup(); - função não existe mais
             var lang = (typeof currentLang !== 'undefined' ? currentLang : null) || localStorage.getItem('lang') || 'pt-BR';
             var h = n.getHours();
             var m = n.getMinutes();
@@ -4374,15 +4551,52 @@
             return `<div class="transaction-item">
                 <div class="transaction-info">
                     <div class="transaction-description">${escapeHtml(tx.description)}</div>
-                    <div class="transaction-meta">${categories[tx.category]} \u2022 ${formatDateForDisplay(tx.date)}</div>
+                    <div class="transaction-meta">${getCategoryLabel(tx.category)} \u2022 ${formatDateForDisplay(tx.date)}</div>
                 </div>
                 <div class="transaction-amount ${tx.type}">${tx.type === 'income' ? '+' : '-'}${formatCurrency(tx.value)}</div>
                 <div class="transaction-actions">
                     <button class="action-btn favorite-btn" onclick="toggleFavorite(${tx.id});updateAllViews();performSearch();" title="${tx.favorite ? 'Desfavoritar' : 'Favoritar'}">${fav}</button>
                     <button class="action-btn edit" onclick="editTransaction(${tx.id})" title="${t('edit')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
-                    <button class="action-btn delete" onclick="deleteTransaction(${tx.id})" title="${t('delete')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+                    <button class="action-btn delete" onclick="deleteTransaction(${tx.id})" title="${t('delete')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2-2v2"/></svg></button>
                 </div>
             </div>`;
+        }
+
+        // Logic for Transaction Type Toggle
+        let currentTransactionType = 'income';
+
+        function setTransactionType(type) {
+            currentTransactionType = type;
+            const bg = document.getElementById('segmentedBackground');
+            const btnInc = document.getElementById('btnIncome');
+            const btnExp = document.getElementById('btnExpense');
+            const valInput = document.getElementById('transactionValue');
+
+            if (type === 'income') {
+                if (bg) {
+                    bg.style.transform = 'translateX(0)';
+                    bg.classList.remove('bg-expense');
+                }
+                if (btnInc) btnInc.classList.add('active');
+                if (btnExp) btnExp.classList.remove('active');
+                if (valInput) valInput.classList.remove('expense-color');
+            } else {
+                if (bg) {
+                    bg.style.transform = 'translateX(100%)';
+                    bg.classList.add('bg-expense');
+                }
+                if (btnExp) btnExp.classList.add('active');
+                if (btnInc) btnInc.classList.remove('active');
+                if (valInput) valInput.classList.add('expense-color');
+            }
+        }
+        // Initialize default
+        document.addEventListener('DOMContentLoaded', () => {
+            setTransactionType('income');
+        });
+
+        function saveNewTransaction() {
+            addTransaction(currentTransactionType);
         }
 
         function updateAllViews() { updateTransactionsList(); updateGoalsList(); updateDailyTransactions(); updateDailySummary(); updateWeeklySummary(); updateMonthlySummary(); updateYearlySummary(); updateTrashList(); if (document.getElementById('search') && document.getElementById('search').classList.contains('active')) populateYearSelect(); }
@@ -4444,69 +4658,16 @@
             }
         }
 
-        async function saveDataToFirebase() {
-            if (!currentUser) return;
-            try {
-                // Prevent concurrent saves if needed, but Firestore handles this mostly
-                await db.collection('users').doc(currentUser.uid).collection('data').doc('transactions').set({
-                    list: transactions,
-                    updatedAt: new Date().toISOString()
-                });
-                await db.collection('users').doc(currentUser.uid).collection('data').doc('goals').set({
-                    list: goals,
-                    updatedAt: new Date().toISOString()
-                });
-                console.log("Sincronizado com Firestore");
-            } catch (e) {
-                console.error("Erro ao sincronizar com Firestore:", e);
-            }
-        }
+        // REMOVIDO: saveDataToFirebase() antiga
+        // Agora usando localStorage com isolamento por usuário (ver função saveData() acima)
+        // Se precisar de Firestore no futuro, implementar com coleção global 'transactions'
 
-        function checkScheduledBackup() {
-            const now = new Date();
-            const today = now.toISOString().split('T')[0];
-            const currentHour = now.getHours();
-            const lastBackup = localStorage.getItem('lastBackupDate');
+        // REMOVIDO: checkScheduledBackup() e performAutoBackup() - backup agora é manual via exportData()
 
-            // If it's exactly 10 PM (22:00-22:59) and no backup today
-            if (currentHour === 22 && lastBackup !== today) {
-                performAutoBackup(today);
-            }
-            // Also check if we missed today's 10 PM backup (e.g., opened app at 11 PM or next morning)
-            else if (currentHour > 22 && lastBackup !== today) {
-                performAutoBackup(today);
-            }
-        }
-
-        async function performAutoBackup(today) {
-            if (!currentUser) return;
-            try {
-                const backupData = {
-                    transactions: transactions,
-                    goals: goals,
-                    backupDate: new Date().toISOString()
-                };
-                await db.collection('users').doc(currentUser.uid).collection('backups').doc(today).set(backupData);
-                localStorage.setItem('lastBackupDate', today);
-                showNotification("Backup automático realizado", "success");
-            } catch (e) {
-                console.error("Erro no backup:", e);
-            }
-        }
-
-        function saveData() {
-            try {
-                localStorage.setItem('financialTransactions_v2', JSON.stringify(transactions));
-                localStorage.setItem('financialGoals_v2', JSON.stringify(goals));
-                if (currentUser) {
-                    // Start cloud sync without awaiting it here to keep UI responsive
-                    saveDataToFirebase();
-                }
-            } catch (e) {
-                console.error("Erro no saveData local:", e);
-            }
-        }
-        function loadData() { try { const st = localStorage.getItem('financialTransactions_v2'); const sg = localStorage.getItem('financialGoals_v2'); if (st) { transactions = JSON.parse(st); var ta = getTrashFromStorage(); var ti = {}; ta.forEach(function (t) { ti[t.id] = true; }); transactions.forEach(function (t) { var id = t.id; ti[id] = ti[id] || ta.some(function (x) { return x.id == id; }); t.deleted = (t.deleted === true || t.deleted === 'true') || !!ti[id]; if (t.favorite === undefined) t.favorite = false; if (t.category === 'compras') t.category = 'mercado'; if (t.deleted && !ti[id]) { ti[id] = true; ta.push({ id: t.id, type: t.type, date: t.date, value: t.value, category: t.category, description: t.description, deleted: true, deletedAt: t.deletedAt || new Date().toISOString() }); } }); saveTrashToStorage(ta); } if (sg) { goals = JSON.parse(sg); goals.forEach((g, i) => { if (g.order === undefined) g.order = i; }); } applyTheme(); } catch (e) { showNotification(t('loadError'), 'error'); } }
+        // REMOVIDO: função saveData() antiga duplicada
+        // Usar a função saveData() com isolamento por userId (linha ~4040)
+        // REMOVIDO: função loadData() antiga duplicada
+        // Usar a função loadData() com isolamento por userId (linha ~4060)
         function exportData() { try { const d = { transactions: transactions, goals: goals }; const ds = JSON.stringify(d, null, 2); const b = new Blob([ds], { type: 'application/json' }); const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href = u; a.download = `backup-financeiro-${getTodayInBrasiliaISO()}.json`; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(u); showNotification(t('backupExported'), 'success'); } catch (e) { showNotification(t('backupExportError'), 'error'); } }
         function importData(ev) {
             const f = ev.target.files[0];
@@ -4554,8 +4715,8 @@
         function calcEquals() { var de = document.getElementById('calcDisplay'); var s = (de && de.value) ? de.value : calcDisplayStr; if (!s || s === '') return; var nm = String(s).replace(/\u00D7/g, '*').replace(/\u2212/g, '-').trim(); var p = nm.split(/([+\-*/])/); if (p.length < 3) return; var a = parseFloat(p[0]); var op = p[1]; var b = parseFloat(p[2]); if (isNaN(a)) return; if (isNaN(b)) b = 0; var r; if (op === '+') r = a + b; else if (op === '-') r = a - b; else if (op === '*') r = a * b; else if (op === '/') r = b === 0 ? 0 : a / b; else return; r = Math.round(r * 1e10) / 1e10; calcDisplayStr = String(r).length > CALC_MAX_DIGITS ? String(Number(r).toExponential(6)) : String(r); calcPrev = null; calcOp = null; calcUpdateDisplay(); }
 
         /* --- New Transaction Type & Value Logic --- */
-        let currentTransactionType = 'income';
-        function setTransactionType(type) {
+        // let currentTransactionType = 'income'; // DUPLICADO DESATIVADO
+        function setTransactionType_OLD(type) {
             currentTransactionType = type;
             const ti = document.getElementById('toggleIncome');
             const te = document.getElementById('toggleExpense');
@@ -4576,7 +4737,7 @@
                 vd.classList.add('expense-color');
             }
         }
-        function saveNewTransaction() {
+        function saveNewTransaction_OLD() {
             addTransaction(currentTransactionType);
         }
 
