@@ -35,13 +35,13 @@
             --dark-text: #F1F5F9;
             --dark-text-2: #94A3B8;
             --dark-text-3: #64748B;
-            --light-bg: #F0FDF4;
-            --light-surface: #FFFFFF;
-            --light-card: #ECFDF5;
-            --light-border: rgba(0, 0, 0, 0.08);
-            --light-text: #0F172A;
-            --light-text-2: #475569;
-            --light-text-3: #94A3B8;
+            --light-bg: #F4F7FB;
+            --light-surface: rgba(255, 255, 255, 0.8);
+            --light-card: #F1F5F9;
+            --light-border: rgba(255, 255, 255, 0.6);
+            --light-text: #1E293B;
+            --light-text-2: #334155;
+            --light-text-3: #64748B;
             --radius: 20px;
             --radius-sm: 14px;
             --radius-xs: 12px;
@@ -74,6 +74,8 @@
 
         body.light {
             background: var(--light-bg);
+            background-image: linear-gradient(135deg, #F4F7FB 0%, #E2E8F0 100%);
+            background-attachment: fixed;
             color: var(--light-text);
         }
 
@@ -240,9 +242,10 @@
         }
 
         .light .header {
-            background: rgba(255, 255, 255, 0.65);
-            /* More transparent for light mode */
-            border-bottom-color: rgba(0, 0, 0, 0.05);
+            background: rgba(255, 255, 255, 0.75);
+            /* Glass header for light mode */
+            border-bottom-color: rgba(255, 255, 255, 0.5);
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.03);
         }
 
         /* NEW HEADER STYLE */
@@ -830,7 +833,9 @@
         }
 
         .light .side-menu {
-            background: var(--light-surface);
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
         }
 
         .side-menu.active {
@@ -964,6 +969,9 @@
         .light .card {
             background: var(--light-surface);
             border-color: var(--light-border);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
         }
 
         .card:hover {
@@ -1142,9 +1150,11 @@
         .light .form-input,
         .light .form-select,
         .light .form-textarea {
-            background: var(--light-card);
+            background: rgba(241, 245, 249, 0.7);
+            /* Slightly transparent slate */
             color: var(--light-text);
-            border-color: rgba(0, 0, 0, 0.1);
+            border-color: rgba(0, 0, 0, 0.06);
+            font-weight: 500;
         }
 
         .form-input:focus,
