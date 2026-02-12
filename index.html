@@ -2847,84 +2847,92 @@
         /* LOGIN OVERLAY */
         .login-overlay {
             position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(10, 14, 23, 0.98);
+            inset: 0;
+            background: radial-gradient(circle at center, rgba(16, 185, 129, 0.05) 0%, rgba(7, 11, 20, 0.98) 100%);
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 10000;
-            backdrop-filter: blur(12px);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
         }
 
         .login-card {
-            background: var(--card-bg);
-            padding: 2.5rem;
-            border-radius: 24px;
+            background: rgba(26, 34, 54, 0.8);
+            padding: 3rem 2.5rem;
+            border-radius: 32px;
             text-align: center;
-            max-width: 400px;
+            max-width: 420px;
             width: 90%;
-            border: 1px solid var(--border-color);
-            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
-            animation: slideUp 0.5s ease;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            animation: scaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+            backdrop-filter: blur(10px);
         }
 
         .login-logo {
-            width: 80px;
-            height: 80px;
-            background: var(--primary-color);
-            border-radius: 20px;
+            width: 88px;
+            height: 88px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            border-radius: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 1.5rem;
+            margin: 0 auto 2rem;
             color: white;
-            box-shadow: 0 8px 16px rgba(0, 212, 161, 0.3);
+            box-shadow: 0 0 40px var(--primary-glow);
+            animation: pulse-soft 2s infinite ease-in-out;
         }
 
         .login-title {
-            font-size: 1.5rem;
-            margin-bottom: 0.5rem;
-            color: var(--text-primary);
+            font-size: 1.75rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            margin-bottom: 0.75rem;
+            color: var(--dark-text);
         }
 
         .login-subtitle {
-            font-size: 0.95rem;
-            color: var(--text-secondary);
-            margin-bottom: 2rem;
-            line-height: 1.5;
+            font-size: 1rem;
+            color: var(--dark-text-2);
+            margin-bottom: 2.5rem;
+            line-height: 1.6;
         }
 
         .google-login-btn {
             width: 100%;
-            padding: 0.85rem;
-            border-radius: 12px;
-            border: 1px solid var(--border-color);
+            padding: 1rem;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
             background: white;
-            color: #3c4043;
+            color: #1f2937;
             font-size: 1rem;
-            font-weight: 500;
+            font-weight: 700;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px;
+            gap: 14px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
         }
 
         .google-login-btn:hover {
-            background: #f8f9fa;
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            background: #f9fafb;
+            transform: translateY(-2px) scale(1.02);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            border-color: var(--primary);
+        }
+
+        .google-login-btn:active {
+            transform: translateY(0) scale(0.98);
         }
 
         .login-loader {
-            width: 32px;
-            height: 32px;
-            border: 3px solid rgba(0, 212, 161, 0.1);
-            border-top-color: var(--primary-color);
+            width: 36px;
+            height: 36px;
+            border: 3px solid rgba(16, 185, 129, 0.1);
+            border-top-color: var(--primary);
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin: 0 auto;
@@ -3656,10 +3664,6 @@
                     <button class="backup-btn backup-btn-clear" onclick="clearAllData()">
                         <div class="backup-btn-icon">&#128465;</div><span data-i18n="clearAll">Limpar Tudo</span>
                     </button>
-                    <button class="backup-btn backup-btn-sync" onclick="manualCloudSync()">
-                        <div class="backup-btn-icon">&#9729;</div><span data-i18n="manualSync">Sincronizar na
-                            nuvem</span>
-                    </button>
                 </div>
                 <input type="file" id="importFile" accept=".json" style="display:none;" onchange="importData(event)">
             </div>
@@ -4164,10 +4168,66 @@
 
         function setCurrentDates() { const ti = getTodayInBrasiliaISO(); const td = new Date(ti + 'T00:00:00Z'); const y = td.getUTCFullYear(); const m = String(td.getUTCMonth() + 1).padStart(2, '0'); document.getElementById('transactionDate').value = ti; document.getElementById('dailySummaryDate').value = ti; document.getElementById('monthlySummaryDate').value = `${y}-${m}`; document.getElementById('yearlySummaryDate').value = y; const wi = document.getElementById('weeklySummaryDate'); const d = new Date(ti); d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7)); const ys = new Date(Date.UTC(d.getUTCFullYear(), 0, 1)); const wn = Math.ceil((((d - ys) / 86400000) + 1) / 7); wi.value = `${y}-W${String(wn).padStart(2, '0')}`; }
 
-        function addTransaction(type) { const d = document.getElementById('transactionDate').value; const v = parseFloat(document.getElementById('transactionValue').value); const c = document.getElementById('transactionCategory').value; const desc = document.getElementById('transactionDescription').value.trim(); const f = document.getElementById('transactionFavorite').checked; if (!d || !v || v <= 0 || !c || !desc) { showNotification(t('fillAllFields'), 'error'); return; } const tx = { id: Date.now(), type: type, date: d, value: v, category: c, description: desc, favorite: !!f, createdAt: new Date().toISOString() }; transactions.push(tx); saveData(); clearTransactionForm(); updateAllViews(); performSearch(); showNotification(t('transactionAdded'), 'success'); }
+        function addTransaction(type) {
+            if (!currentUser) {
+                showNotification("Faça login para salvar", "error");
+                return;
+            }
+            const d = document.getElementById('transactionDate').value;
+            const v = parseFloat(document.getElementById('transactionValue').value);
+            const c = document.getElementById('transactionCategory').value;
+            const desc = document.getElementById('transactionDescription').value.trim();
+            const f = document.getElementById('transactionFavorite').checked;
+            if (!d || !v || v <= 0 || !c || !desc) {
+                showNotification(t('fillAllFields'), 'error');
+                return;
+            }
+            const tx = {
+                id: Date.now(),
+                userId: currentUser.uid,
+                type: type,
+                date: d,
+                value: v,
+                category: c,
+                description: desc,
+                favorite: !!f,
+                createdAt: new Date().toISOString()
+            };
+            transactions.push(tx);
+            saveData();
+            clearTransactionForm();
+            updateAllViews();
+            performSearch();
+            showNotification(t('transactionAdded'), 'success');
+        }
         function clearTransactionForm() { document.getElementById('transactionValue').value = ''; document.getElementById('transactionCategory').value = ''; document.getElementById('transactionDescription').value = ''; document.getElementById('transactionDate').value = getTodayInBrasiliaISO(); document.getElementById('transactionFavorite').checked = false; setTransactionType('income'); if (typeof updateDateDisplayText === 'function') updateDateDisplayText(); }
         function editTransaction(id) { const tx = transactions.find(t => t.id === id); if (!tx) return; editingTransactionId = id; document.getElementById('editTransactionDate').value = tx.date; document.getElementById('editTransactionValue').value = tx.value; document.getElementById('editTransactionCategory').value = tx.category; document.getElementById('editTransactionDescription').value = tx.description; document.getElementById('editTransactionFavorite').checked = !!tx.favorite; showModal('editTransactionModal'); }
-        function saveTransactionEdit() { const d = document.getElementById('editTransactionDate').value; const v = parseFloat(document.getElementById('editTransactionValue').value); const c = document.getElementById('editTransactionCategory').value; const desc = document.getElementById('editTransactionDescription').value.trim(); const f = document.getElementById('editTransactionFavorite').checked; if (!d || !v || v <= 0 || !c || !desc) { showNotification(t('fillAllFields'), 'error'); return; } const i = transactions.findIndex(t => t.id === editingTransactionId); if (i !== -1) { transactions[i].date = d; transactions[i].value = v; transactions[i].category = c; transactions[i].favorite = !!f; transactions[i].description = desc; saveData(); updateAllViews(); performSearch(); closeModal('editTransactionModal'); showNotification(t('transactionEdited'), 'success'); } }
+        function saveTransactionEdit() {
+            const d = document.getElementById('editTransactionDate').value;
+            const v = parseFloat(document.getElementById('editTransactionValue').value);
+            const c = document.getElementById('editTransactionCategory').value;
+            const desc = document.getElementById('editTransactionDescription').value.trim();
+            const f = document.getElementById('editTransactionFavorite').checked;
+            if (!d || !v || v <= 0 || !c || !desc) {
+                showNotification(t('fillAllFields'), 'error');
+                return;
+            }
+            const i = transactions.findIndex(t => t.id === editingTransactionId);
+            if (i !== -1) {
+                transactions[i].date = d;
+                transactions[i].value = v;
+                transactions[i].category = c;
+                transactions[i].favorite = !!f;
+                transactions[i].description = desc;
+                // Ensure userId is present upon edit if it wasn't there before
+                if (currentUser) transactions[i].userId = currentUser.uid;
+                saveData();
+                updateAllViews();
+                performSearch();
+                closeModal('editTransactionModal');
+                showNotification(t('transactionEdited'), 'success');
+            }
+        }
         function deleteTransaction(id) { if (confirm(t('moveToTrash'))) { var tx = transactions.find(function (t) { return t.id === id; }); if (tx) { tx.deleted = true; tx.deletedAt = new Date().toISOString(); var ta = getTrashFromStorage(); var cp = { id: tx.id, type: tx.type, date: tx.date, value: tx.value, category: tx.category, description: tx.description, deleted: true, deletedAt: tx.deletedAt }; var ex = ta.some(function (t) { return t.id == id; }); if (!ex) { ta.push(cp); saveTrashToStorage(ta); } saveData(); updateAllViews(); updateTrashList(); performSearch(); showNotification(t('movedToTrash'), 'success'); } } }
         function restoreTransaction(id) { var tx = transactions.find(function (x) { return x.id === id; }); var ta = getTrashFromStorage(); var it = ta.find(function (x) { return x.id == id; }); if (!it) return; if (tx) { tx.deleted = false; tx.deletedAt = null; } else { it.deleted = false; it.deletedAt = null; transactions.push(it); } saveTrashToStorage(ta.filter(function (x) { return x.id != id; })); saveData(); updateAllViews(); updateTrashList(); performSearch(); showNotification(t('transactionRestored'), 'success'); }
         function deletePermanently(id) { if (confirm(t('deletePermanentConfirm'))) { transactions = transactions.filter(function (t) { return t.id !== id; }); var ta = getTrashFromStorage().filter(function (t) { return t.id != id; }); saveTrashToStorage(ta); saveData(); updateAllViews(); updateTrashList(); performSearch(); showNotification(t('transactionDeletedPerm'), 'warning'); } }
@@ -4199,9 +4259,64 @@
         }
 
         function showAddGoalModal() { showModal('addGoalModal'); }
-        function addGoal() { const d = document.getElementById('goalDescription').value.trim(); const tg = parseFloat(document.getElementById('goalTarget').value); const c = parseFloat(document.getElementById('goalCurrent').value) || 0; if (!d || !tg || tg <= 0) { showNotification(t('fillGoalFields'), 'error'); return; } if (c > tg) { showNotification(t('currentNotGreater'), 'error'); return; } const g = { id: Date.now(), description: d, target: tg, current: c, order: goals.length, createdAt: new Date().toISOString() }; goals.push(g); saveData(); updateGoalsList(); closeModal('addGoalModal'); document.getElementById('addGoalForm').reset(); showNotification(t('goalAdded'), 'success'); }
+        function addGoal() {
+            if (!currentUser) {
+                showNotification("Faça login para salvar", "error");
+                return;
+            }
+            const d = document.getElementById('goalDescription').value.trim();
+            const tg = parseFloat(document.getElementById('goalTarget').value);
+            const c = parseFloat(document.getElementById('goalCurrent').value) || 0;
+            if (!d || !tg || tg <= 0) {
+                showNotification(t('fillGoalFields'), 'error');
+                return;
+            }
+            if (c > tg) {
+                showNotification(t('currentNotGreater'), 'error');
+                return;
+            }
+            const g = {
+                id: Date.now(),
+                userId: currentUser.uid,
+                description: d,
+                target: tg,
+                current: c,
+                order: goals.length,
+                createdAt: new Date().toISOString()
+            };
+            goals.push(g);
+            saveData();
+            updateGoalsList();
+            closeModal('addGoalModal');
+            document.getElementById('addGoalForm').reset();
+            showNotification(t('goalAdded'), 'success');
+        }
         function editGoal(id) { const g = goals.find(g => g.id === id); if (!g) return; editingGoalId = id; document.getElementById('editGoalDescription').value = g.description; document.getElementById('editGoalTarget').value = g.target; document.getElementById('editGoalCurrent').value = g.current; showModal('editGoalModal'); }
-        function saveGoalEdit() { const d = document.getElementById('editGoalDescription').value.trim(); const tg = parseFloat(document.getElementById('editGoalTarget').value); const c = parseFloat(document.getElementById('editGoalCurrent').value) || 0; if (!d || !tg || tg <= 0) { showNotification(t('fillGoalCorrect'), 'error'); return; } if (c > tg) { showNotification(t('currentNotGreater'), 'error'); return; } const i = goals.findIndex(g => g.id === editingGoalId); if (i !== -1) { goals[i].description = d; goals[i].target = tg; goals[i].current = c; saveData(); updateGoalsList(); closeModal('editGoalModal'); showNotification(t('goalEdited'), 'success'); } }
+        function saveGoalEdit() {
+            const d = document.getElementById('editGoalDescription').value.trim();
+            const tg = parseFloat(document.getElementById('editGoalTarget').value);
+            const c = parseFloat(document.getElementById('editGoalCurrent').value) || 0;
+            if (!d || !tg || tg <= 0) {
+                showNotification(t('fillGoalCorrect'), 'error');
+                return;
+            }
+            if (c > tg) {
+                showNotification(t('currentNotGreater'), 'error');
+                return;
+            }
+            const i = goals.findIndex(g => g.id === editingGoalId);
+            if (i !== -1) {
+                goals[i].description = d;
+                goals[i].target = tg;
+                goals[i].current = c;
+                // Ensure userId is present upon edit
+                if (currentUser) goals[i].userId = currentUser.uid;
+                saveData();
+                updateGoalsList();
+                closeModal('editGoalModal');
+                showNotification(t('goalEdited'), 'success');
+            }
+        }
         function deleteGoal(id) { if (confirm(t('deleteGoalConfirm'))) { goals = goals.filter(g => g.id !== id); goals.forEach((g, i) => { g.order = i; }); saveData(); updateGoalsList(); showNotification(t('goalDeleted'), 'success'); } }
         function moveGoal(id, dir) { const i = goals.findIndex(g => g.id === id); const ni = i + dir; if (ni < 0 || ni >= goals.length) return;[goals[i], goals[ni]] = [goals[ni], goals[i]]; goals[i].order = i; goals[ni].order = ni; saveData(); updateGoalsList(); }
 
@@ -4393,7 +4508,35 @@
         }
         function loadData() { try { const st = localStorage.getItem('financialTransactions_v2'); const sg = localStorage.getItem('financialGoals_v2'); if (st) { transactions = JSON.parse(st); var ta = getTrashFromStorage(); var ti = {}; ta.forEach(function (t) { ti[t.id] = true; }); transactions.forEach(function (t) { var id = t.id; ti[id] = ti[id] || ta.some(function (x) { return x.id == id; }); t.deleted = (t.deleted === true || t.deleted === 'true') || !!ti[id]; if (t.favorite === undefined) t.favorite = false; if (t.category === 'compras') t.category = 'mercado'; if (t.deleted && !ti[id]) { ti[id] = true; ta.push({ id: t.id, type: t.type, date: t.date, value: t.value, category: t.category, description: t.description, deleted: true, deletedAt: t.deletedAt || new Date().toISOString() }); } }); saveTrashToStorage(ta); } if (sg) { goals = JSON.parse(sg); goals.forEach((g, i) => { if (g.order === undefined) g.order = i; }); } applyTheme(); } catch (e) { showNotification(t('loadError'), 'error'); } }
         function exportData() { try { const d = { transactions: transactions, goals: goals }; const ds = JSON.stringify(d, null, 2); const b = new Blob([ds], { type: 'application/json' }); const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href = u; a.download = `backup-financeiro-${getTodayInBrasiliaISO()}.json`; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(u); showNotification(t('backupExported'), 'success'); } catch (e) { showNotification(t('backupExportError'), 'error'); } }
-        function importData(ev) { const f = ev.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = function (e) { try { const d = JSON.parse(e.target.result); if (!d || !Array.isArray(d.transactions)) throw new Error('Invalid format'); if (confirm(t('importConfirm'))) { transactions = d.transactions; goals = Array.isArray(d.goals) ? d.goals : []; saveData(); updateAllViews(); performSearch(); showNotification(t('importSuccess'), 'success'); } } catch (err) { showNotification('Erro ao importar: ' + err.message, 'error'); } finally { ev.target.value = ''; } }; r.readAsText(f); }
+        function importData(ev) {
+            const f = ev.target.files[0];
+            if (!f) return;
+            const r = new FileReader();
+            r.onload = function (e) {
+                try {
+                    const d = JSON.parse(e.target.result);
+                    if (!d || !Array.isArray(d.transactions)) throw new Error('Invalid format');
+                    if (confirm(t('importConfirm'))) {
+                        // Stamp all imported records with current userId for security
+                        if (currentUser) {
+                            d.transactions = d.transactions.map(t => ({ ...t, userId: currentUser.uid }));
+                            d.goals = (d.goals || []).map(g => ({ ...g, userId: currentUser.uid }));
+                        }
+                        transactions = d.transactions;
+                        goals = Array.isArray(d.goals) ? d.goals : [];
+                        saveData();
+                        updateAllViews();
+                        performSearch();
+                        showNotification(t('importSuccess'), 'success');
+                    }
+                } catch (err) {
+                    showNotification('Erro ao importar: ' + err.message, 'error');
+                } finally {
+                    ev.target.value = '';
+                }
+            };
+            r.readAsText(f);
+        }
         function clearAllData() { if (confirm(t('clearConfirm'))) { transactions = []; goals = []; saveData(); updateAllViews(); performSearch(); showNotification(t('allDataCleared'), 'warning'); } }
 
         function setChartType(type) { currentChartType = type; document.querySelectorAll('.chart-type-btn').forEach(btn => { btn.classList.toggle('active', btn.dataset.type === type); }); updateChart(); }
