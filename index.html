@@ -2502,6 +2502,75 @@
                 text-align: center;
             }
 
+            /* USER PROFILE STYLES */
+            .user-profile {
+                padding: 1.75rem 1.25rem;
+                margin-bottom: 0.5rem;
+                border-bottom: 1px solid var(--dark-border);
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                text-align: center;
+                gap: 12px;
+                background: linear-gradient(to bottom, rgba(255, 255, 255, 0.03), transparent);
+            }
+
+            .light .user-profile {
+                background: linear-gradient(to bottom, rgba(0, 0, 0, 0.02), transparent);
+                border-bottom-color: var(--light-border);
+            }
+
+            .user-avatar-wrapper {
+                position: relative;
+                padding: 3px;
+                background: linear-gradient(135deg, var(--primary), var(--primary-light));
+                border-radius: 50%;
+                box-shadow: 0 4px 15px var(--primary-glow);
+            }
+
+            .user-avatar {
+                width: 64px;
+                height: 64px;
+                border-radius: 50%;
+                border: 2px solid var(--dark-card);
+                object-fit: cover;
+                background: var(--dark-card);
+                display: block;
+            }
+
+            .light .user-avatar {
+                border-color: var(--light-card);
+            }
+
+            .user-info {
+                display: flex;
+                flex-direction: column;
+                min-width: 0;
+                width: 100%;
+            }
+
+            .user-name {
+                font-size: 1.1rem;
+                font-weight: 700;
+                color: var(--dark-text);
+                margin-bottom: 2px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .light .user-name {
+                color: var(--light-text);
+            }
+
+            .user-email {
+                font-size: 0.75rem;
+                color: var(--dark-text-3);
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
             #emptyTrashBtn {
                 padding: 0.6rem 0.85rem;
                 font-size: 0.92rem;
@@ -2717,8 +2786,8 @@
             }
 
             .header-new-date #clockDate {
-                display: none;
-                /* Hide date on small mobile to save space */
+                display: inline;
+                /* Show date on mobile as requested */
             }
 
             .header-controls {
@@ -2986,6 +3055,16 @@
                     <line x1="6" y1="6" x2="18" y2="18" />
                 </svg>
             </button>
+        </div>
+        <!-- User Profile Section -->
+        <div id="userProfile" class="user-profile" style="display: none;">
+            <div class="user-avatar-wrapper">
+                <img id="userAvatar" class="user-avatar" src="" alt="Avatar">
+            </div>
+            <div class="user-info">
+                <span id="userName" class="user-name">Usuário</span>
+                <span id="userEmail" class="user-email">email@exemplo.com</span>
+            </div>
         </div>
         <div class="menu-items">
             <button class="menu-item active" onclick="showTab('new-transaction', this)">
@@ -3850,12 +3929,29 @@
             if (user) {
                 currentUser = user;
                 console.log("Usuário logado:", user.displayName, user.email);
+
+                // Update Menu Profile
+                const up = document.getElementById('userProfile');
+                const ua = document.getElementById('userAvatar');
+                const un = document.getElementById('userName');
+                const ue = document.getElementById('userEmail');
+
+                if (up && ua && un && ue) {
+                    ua.src = user.photoURL || 'https://www.gravatar.com/avatar/00000000000000000000000000000000?d=mp&f=y';
+                    un.textContent = user.displayName || 'Usuário';
+                    ue.textContent = user.email || '';
+                    up.style.display = 'flex';
+                }
+
                 if (loginOverlay) loginOverlay.style.display = 'none';
                 loadDataFromFirebase();
                 // Check for scheduled backup after login
                 checkScheduledBackup();
             } else {
                 currentUser = null;
+                const up = document.getElementById('userProfile');
+                if (up) up.style.display = 'none';
+
                 // Only show login if splash is hidden
                 if (splashScreen && splashScreen.classList.contains('hidden')) {
                     if (loginOverlay) loginOverlay.style.display = 'flex';
