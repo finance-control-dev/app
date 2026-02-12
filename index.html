@@ -2847,92 +2847,84 @@
         /* LOGIN OVERLAY */
         .login-overlay {
             position: fixed;
-            inset: 0;
-            background: radial-gradient(circle at center, rgba(16, 185, 129, 0.05) 0%, rgba(7, 11, 20, 0.98) 100%);
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 14, 23, 0.98);
             display: flex;
             align-items: center;
             justify-content: center;
             z-index: 10000;
-            backdrop-filter: blur(20px);
-            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(12px);
         }
 
         .login-card {
-            background: rgba(26, 34, 54, 0.8);
-            padding: 3rem 2.5rem;
-            border-radius: 32px;
+            background: var(--card-bg);
+            padding: 2.5rem;
+            border-radius: 24px;
             text-align: center;
-            max-width: 420px;
+            max-width: 400px;
             width: 90%;
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
-            animation: scaleIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-            backdrop-filter: blur(10px);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            animation: slideUp 0.5s ease;
         }
 
         .login-logo {
-            width: 88px;
-            height: 88px;
-            background: linear-gradient(135deg, var(--primary), var(--primary-light));
-            border-radius: 24px;
+            width: 80px;
+            height: 80px;
+            background: var(--primary-color);
+            border-radius: 20px;
             display: flex;
             align-items: center;
             justify-content: center;
-            margin: 0 auto 2rem;
+            margin: 0 auto 1.5rem;
             color: white;
-            box-shadow: 0 0 40px var(--primary-glow);
-            animation: pulse-soft 2s infinite ease-in-out;
+            box-shadow: 0 8px 16px rgba(0, 212, 161, 0.3);
         }
 
         .login-title {
-            font-size: 1.75rem;
-            font-weight: 800;
-            letter-spacing: -0.5px;
-            margin-bottom: 0.75rem;
-            color: var(--dark-text);
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
         }
 
         .login-subtitle {
-            font-size: 1rem;
-            color: var(--dark-text-2);
-            margin-bottom: 2.5rem;
-            line-height: 1.6;
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            line-height: 1.5;
         }
 
         .google-login-btn {
             width: 100%;
-            padding: 1rem;
-            border-radius: 16px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 0.85rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
             background: white;
-            color: #1f2937;
+            color: #3c4043;
             font-size: 1rem;
-            font-weight: 700;
+            font-weight: 500;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 14px;
+            gap: 12px;
             cursor: pointer;
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            transition: all 0.3s ease;
         }
 
         .google-login-btn:hover {
-            background: #f9fafb;
-            transform: translateY(-2px) scale(1.02);
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-            border-color: var(--primary);
-        }
-
-        .google-login-btn:active {
-            transform: translateY(0) scale(0.98);
+            background: #f8f9fa;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
 
         .login-loader {
-            width: 36px;
-            height: 36px;
-            border: 3px solid rgba(16, 185, 129, 0.1);
-            border-top-color: var(--primary);
+            width: 32px;
+            height: 32px;
+            border: 3px solid rgba(0, 212, 161, 0.1);
+            border-top-color: var(--primary-color);
             border-radius: 50%;
             animation: spin 1s linear infinite;
             margin: 0 auto;
@@ -4391,7 +4383,10 @@
             try {
                 localStorage.setItem('financialTransactions_v2', JSON.stringify(transactions));
                 localStorage.setItem('financialGoals_v2', JSON.stringify(goals));
-                // Cloud sync is now handled individually in add/edit/delete functions
+                if (currentUser) {
+                    // Start cloud sync without awaiting it here to keep UI responsive
+                    saveDataToFirebase();
+                }
             } catch (e) {
                 console.error("Erro no saveData local:", e);
             }
