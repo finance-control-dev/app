@@ -4254,40 +4254,48 @@
         function closeModal(id) { document.getElementById(id).classList.remove('active'); }
         function showNotification(msg, type = 'info') { const n = document.getElementById('notifications'); const el = document.createElement('div'); el.className = `notification ${type}`; el.textContent = msg; n.appendChild(el); setTimeout(() => { el.remove(); }, 4000); }
 
+        let isSyncingFromRemote = false;
         async function loadDataFromFirebase() {
             if (!currentUser) return;
             try {
                 // Real-time synchronization for transactions
                 db.collection('users').doc(currentUser.uid).collection('data').doc('transactions')
                     .onSnapshot((doc) => {
-                        if (doc.exists) {
-                            transactions = doc.data().list || [];
-                            updateAllViews();
-                            performSearch();
+                        if (doc.exists && !doc.metadata.hasPendingWrites) {
+                            const remoteList = doc.data().list || [];
+                            // Deep check if really changed
+                            if (JSON.stringify(remoteList) !== JSON.stringify(transactions)) {
+                                console.log("Atualizando transações via remote sync");
+                                transactions = remoteList;
+                                localStorage.setItem('financialTransactions_v2', JSON.stringify(transactions));
+                                updateAllViews();
+                                performSearch();
+                            }
                         }
                     });
 
                 // Real-time synchronization for goals
                 db.collection('users').doc(currentUser.uid).collection('data').doc('goals')
                     .onSnapshot((doc) => {
-                        if (doc.exists) {
-                            goals = doc.data().list || [];
-                            updateAllViews();
+                        if (doc.exists && !doc.metadata.hasPendingWrites) {
+                            const remoteList = doc.data().list || [];
+                            if (JSON.stringify(remoteList) !== JSON.stringify(goals)) {
+                                console.log("Atualizando metas via remote sync");
+                                goals = remoteList;
+                                localStorage.setItem('financialGoals_v2', JSON.stringify(goals));
+                                updateAllViews();
+                            }
                         }
                     });
-
-                showNotification("Dados sincronizados", "success");
             } catch (e) {
-                console.error("Erro ao carregar:", e);
-                showNotification("Erro ao carregar da nuvem", "error");
-                loadData(); // fallback to local
+                console.error("Erro ao configurar listeners Firebase:", e);
             }
         }
 
         async function saveDataToFirebase() {
             if (!currentUser) return;
             try {
-                // Save to Firestore
+                // Prevent concurrent saves if needed, but Firestore handles this mostly
                 await db.collection('users').doc(currentUser.uid).collection('data').doc('transactions').set({
                     list: transactions,
                     updatedAt: new Date().toISOString()
@@ -4296,12 +4304,9 @@
                     list: goals,
                     updatedAt: new Date().toISOString()
                 });
-
-                // Keep local cache
-                saveData();
+                console.log("Sincronizado com Firestore");
             } catch (e) {
-                console.error("Erro ao salvar:", e);
-                showNotification("Erro ao salvar na nuvem", "error");
+                console.error("Erro ao sincronizar com Firestore:", e);
             }
         }
 
@@ -4342,10 +4347,11 @@
                 localStorage.setItem('financialTransactions_v2', JSON.stringify(transactions));
                 localStorage.setItem('financialGoals_v2', JSON.stringify(goals));
                 if (currentUser) {
+                    // Start cloud sync without awaiting it here to keep UI responsive
                     saveDataToFirebase();
                 }
             } catch (e) {
-                showNotification(t('saveError'), 'error');
+                console.error("Erro no saveData local:", e);
             }
         }
         function loadData() { try { const st = localStorage.getItem('financialTransactions_v2'); const sg = localStorage.getItem('financialGoals_v2'); if (st) { transactions = JSON.parse(st); var ta = getTrashFromStorage(); var ti = {}; ta.forEach(function (t) { ti[t.id] = true; }); transactions.forEach(function (t) { var id = t.id; ti[id] = ti[id] || ta.some(function (x) { return x.id == id; }); t.deleted = (t.deleted === true || t.deleted === 'true') || !!ti[id]; if (t.favorite === undefined) t.favorite = false; if (t.category === 'compras') t.category = 'mercado'; if (t.deleted && !ti[id]) { ti[id] = true; ta.push({ id: t.id, type: t.type, date: t.date, value: t.value, category: t.category, description: t.description, deleted: true, deletedAt: t.deletedAt || new Date().toISOString() }); } }); saveTrashToStorage(ta); } if (sg) { goals = JSON.parse(sg); goals.forEach((g, i) => { if (g.order === undefined) g.order = i; }); } applyTheme(); } catch (e) { showNotification(t('loadError'), 'error'); } }
