@@ -11,6 +11,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
         rel="stylesheet">
+    <!-- Firebase SDKs (v10 compat) -->
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <style>
         :root {
             --primary: #10B981;
@@ -2760,6 +2764,111 @@
                 font-size: 0.65rem;
             }
         }
+
+        /* LOGIN OVERLAY */
+        .login-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(10, 14, 23, 0.98);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            backdrop-filter: blur(12px);
+        }
+
+        .login-card {
+            background: var(--card-bg);
+            padding: 2.5rem;
+            border-radius: 24px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            animation: slideUp 0.5s ease;
+        }
+
+        .login-logo {
+            width: 80px;
+            height: 80px;
+            background: var(--primary-color);
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem;
+            color: white;
+            box-shadow: 0 8px 16px rgba(0, 212, 161, 0.3);
+        }
+
+        .login-title {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .login-subtitle {
+            font-size: 0.95rem;
+            color: var(--text-secondary);
+            margin-bottom: 2rem;
+            line-height: 1.5;
+        }
+
+        .google-login-btn {
+            width: 100%;
+            padding: 0.85rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background: white;
+            color: #3c4043;
+            font-size: 1rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .google-login-btn:hover {
+            background: #f8f9fa;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        .login-loader {
+            width: 32px;
+            height: 32px;
+            border: 3px solid rgba(0, 212, 161, 0.1);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+            display: none;
+        }
+
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
     </style>
 </head>
 
@@ -2774,6 +2883,37 @@
         <h1 class="splash-title">Controle Financeiro</h1>
         <p class="splash-subtitle">Gerencie suas finanças de forma inteligente</p>
         <div class="splash-loader"></div>
+    </div>
+
+    <!-- Login Screen -->
+    <div class="login-overlay" id="loginOverlay" style="display:none;">
+        <div class="login-card">
+            <div class="login-logo">
+                <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                </svg>
+            </div>
+            <h2 class="login-title">Bem-vindo ao Finanças</h2>
+            <p class="login-subtitle">Acesse sua conta para sincronizar seus dados</p>
+            <button class="google-login-btn" id="googleLoginBtn" onclick="loginWithGoogle()">
+                <svg viewBox="0 0 48 48" width="24" height="24">
+                    <path fill="#EA4335"
+                        d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z">
+                    </path>
+                    <path fill="#4285F4"
+                        d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z">
+                    </path>
+                    <path fill="#FBBC05"
+                        d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z">
+                    </path>
+                    <path fill="#34A853"
+                        d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z">
+                    </path>
+                </svg>
+                <span>Entrar com Google</span>
+            </button>
+            <div class="login-loader" id="loginLoader" style="display:none;"></div>
+        </div>
     </div>
 
     <!-- Header -->
@@ -2912,6 +3052,14 @@
                     <line x1="12" y1="15" x2="12" y2="3" />
                 </svg>
                 <span data-i18n="menuBackup">Backup</span>
+            </button>
+            <button class="menu-item" onclick="logout()" style="margin-top: auto; color: var(--danger);">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                    <polyline points="16 17 21 12 16 7" />
+                    <line x1="21" y1="12" x2="9" y2="12" />
+                </svg>
+                <span data-i18n="logout">Sair</span>
             </button>
         </div>
     </nav>
@@ -3650,7 +3798,124 @@
     <div class="notifications" id="notifications"></div>
 
     <script>
+        // Firebase Configuration (Placeholder - User needs to fill this)
+        const firebaseConfig = {
+            apiKey: "AIzaSyAk_IhHTEBGrqucA6bADbFDTbTd2sN2yvk",
+            authDomain: "financial-control-467b0.firebaseapp.com",
+            projectId: "financial-control-467b0",
+            storageBucket: "financial-control-467b0.firebasestorage.app",
+            messagingSenderId: "543373005822",
+            appId: "1:543373005822:web:a3ea667011ea86657226af"
+        };
+
+        // Initialize Firebase
+        try {
+            console.log("Inicializando Firebase...");
+            if (window.location.protocol === 'file:') {
+                console.warn("AVISO: Usar o protocolo 'file://' pode impedir o funcionamento correto do login com Google (Pop-ups). Recomenda-se usar um servidor local (ex: Live Server).");
+            }
+            firebase.initializeApp(firebaseConfig);
+            console.log("Firebase inicializado com sucesso.");
+        } catch (e) {
+            console.error("Erro ao inicializar Firebase:", e);
+        }
+
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        const googleProvider = new firebase.auth.GoogleAuthProvider();
+        googleProvider.setCustomParameters({ prompt: 'select_account' });
+
+        // Handle redirect result
+        auth.getRedirectResult().then((result) => {
+            if (result.user) {
+                console.log("Login via redirect bem-sucedido:", result.user.displayName);
+            }
+        }).catch((error) => {
+            console.error("Erro no resultado do redirect:", error);
+            showNotification("Erro na autenticação: " + error.message, "error");
+        });
+
+        console.log("Auth e Firestore configurados.");
+
+        let currentUser = null;
         let transactions = []; let goals = []; let editingTransactionId = null; let editingGoalId = null; let lastSearchResults = []; let financeChartInstance = null; let currentChartType = 'pie';
+        let lastBackupDate = localStorage.getItem('lastBackupDate') || '';
+
+        // Auth State Listener
+        auth.onAuthStateChanged((user) => {
+            console.log("Estado de autenticação alterado:", user ? "Logado" : "Deslogado");
+            const loginOverlay = document.getElementById('loginOverlay');
+            const splashScreen = document.getElementById('splashScreen');
+
+            if (user) {
+                currentUser = user;
+                console.log("Usuário logado:", user.displayName, user.email);
+                if (loginOverlay) loginOverlay.style.display = 'none';
+                loadDataFromFirebase();
+                // Check for scheduled backup after login
+                checkScheduledBackup();
+            } else {
+                currentUser = null;
+                // Only show login if splash is hidden
+                if (splashScreen && splashScreen.classList.contains('hidden')) {
+                    if (loginOverlay) loginOverlay.style.display = 'flex';
+                }
+            }
+        });
+
+        function loginWithGoogle() {
+            console.log("Tentativa de login iniciada...");
+            const btn = document.getElementById('googleLoginBtn');
+            const loader = document.getElementById('loginLoader');
+
+            if (!auth || !googleProvider) {
+                console.error("Firebase Auth não está configurado corretamente.");
+                showNotification("Erro interno de configuração", "error");
+                return;
+            }
+
+            btn.style.display = 'none';
+            loader.style.display = 'block';
+
+            // Primeiro tentamos o Popup
+            auth.signInWithPopup(googleProvider).then((result) => {
+                console.log("Login realizado com sucesso (Popup) para:", result.user.displayName);
+                loader.style.display = 'none';
+                btn.style.display = 'flex';
+            }).catch((error) => {
+                console.error("Erro detalhado no login (Popup):", error);
+
+                // Se o popup falhar ou for bloqueado, tentamos o Redirect como fallback
+                if (error.code === 'auth/popup-blocked' || error.code === 'auth/cancelled-popup-request') {
+                    console.log("Popup bloqueado ou falhou. Tentando Redirect...");
+                    auth.signInWithRedirect(googleProvider);
+                    return;
+                }
+
+                let errorMsg = "Erro ao entrar com Google";
+                if (error.code === 'auth/unauthorized-domain') {
+                    errorMsg = "Domínio não autorizado. Adicione 'localhost' no Firebase Console.";
+                } else if (error.code === 'auth/popup-closed-by-user') {
+                    errorMsg = "Janela de login fechada pelo usuário";
+                }
+
+                showNotification(errorMsg, "error");
+                btn.style.display = 'flex';
+                loader.style.display = 'none';
+            });
+        }
+
+        function logout() {
+            if (confirm("Deseja realmente sair?")) {
+                auth.signOut().then(() => {
+                    transactions = [];
+                    goals = [];
+                    localStorage.clear();
+                    updateAllViews();
+                    showNotification("Você saiu da conta", "info");
+                });
+            }
+        }
         var trashStorageKey = 'financialTrash_v2';
         function getTrashFromStorage() { try { var r = localStorage.getItem(trashStorageKey); return r ? JSON.parse(r) : []; } catch (e) { return []; } }
         function saveTrashToStorage(a) { try { localStorage.setItem(trashStorageKey, JSON.stringify(a)); } catch (e) { } }
@@ -3662,7 +3927,7 @@
         function getCategoryLabel(cat) { const lang = currentLang || localStorage.getItem('lang') || 'pt-BR'; return lang === 'en' ? (categoriesEn[cat] || categories[cat]) : (categories[cat] || cat); }
         const categoriesEn = { 'alimentacao': '\u{1F37D}\uFE0F Food', 'mercado': '\u{1F6D2} Groceries', 'combustivel': '\u26FD Fuel', 'manutencao_veiculo': '\u{1F527} Vehicle Maintenance', 'transporte': '\u{1F697} Transport', 'moradia': '\u{1F3E0} Housing', 'saude': '\u{1F3E5} Health', 'educacao': '\u{1F4DA} Education', 'lazer': '\u{1F3AE} Entertainment', 'salario': '\u{1F4BC} Salary', 'freelance': '\u{1F4BB} Freelance', 'investimentos': '\u{1F4C8} Investments', 'outros': '\u{1F4E6} Other' };
 
-        const i18n = { 'pt-BR': { pageTitle: 'Controle Financeiro Aprimorado', appTitle: 'Finan\u00E7as', saveTransaction: 'Salvar Transa\u00E7\u00E3o', placeholderDescShort: 'No que voc\u00EA est\u00E1 pensando?', menuNewTransaction: 'Nova Transa\u00E7\u00E3o', menuTransactions: 'Transa\u00E7\u00F5es', menuSearch: 'Buscar', menuCharts: 'Gr\u00E1fico', menuSummaries: 'Resumos', menuGoals: 'Metas', menuTrash: 'Lixeira', menuBackup: 'Backup', menu: 'Menu', allTransactions: 'Todas as Transa\u00E7\u00F5es', searchTransactions: 'Buscar Transa\u00E7\u00F5es', searchByName: 'Buscar por nome/descri\u00E7\u00E3o', category: 'Categoria', type: 'Tipo', monthYear: 'M\u00EAs/Ano', allCategories: 'Todas as categorias', allTypes: 'Todos os tipos', income: 'Receita', expense: 'Despesa', favoritesOnly: 'Apenas favoritas', search: 'Buscar', clearFilters: 'Limpar Filtros', exportResults: 'Exportar Resultados', searchResults: 'Resultados da Busca', transactionsFound: 'transa\u00E7\u00F5es encontradas', searchIncome: 'Receitas na Busca', searchExpense: 'Despesas na Busca', searchBalance: 'Saldo da Busca', noTransactionsFound: 'Nenhuma transa\u00E7\u00E3o encontrada com os filtros aplicados', newTransaction: 'Nova Transa\u00E7\u00E3o', date: 'Data', value: 'Valor (R$)', description: 'Descri\u00E7\u00E3o', selectCategory: 'Selecione uma categoria', placeholderDesc: 'Descreva a transa\u00E7\u00E3o...', favoriteTransaction: 'Favoritar esta transa\u00E7\u00E3o', clear: 'Limpar', gains: 'Ganhos', spending: 'Gastos', balance: 'Saldo', dailyTransactions: 'Transa\u00E7\u00F5es do Dia Selecionado', chartsTitle: 'Gr\u00E1ficos de Receitas e Despesas', period: 'Per\u00EDodo', month: 'M\u00EAs', week: 'Semana', year: 'Ano', monthSpecific: 'M\u00EAs espec\u00EDfico', weekSpecific: 'Semana espec\u00EDfica', yearSpecific: 'Ano espec\u00EDfico', last3Months: '\u00DAltimos 3 meses', last6Months: '\u00DAltimos 6 meses', view: 'Visualizar', incomeExpense: 'Receitas e Despesas', expenseOnly: 'Apenas Despesas', incomeOnly: 'Apenas Receitas', chartType: 'Tipo de gr\u00E1fico', pie: 'Pizza', bar: 'Barras', dailySummary: 'Resumo Di\u00E1rio', weeklySummary: 'Resumo Semanal', monthlySummary: 'Resumo Mensal', yearlySummary: 'Resumo Anual', selectDay: 'Selecionar Dia', selectWeek: 'Selecionar Semana', selectMonth: 'Selecionar M\u00EAs', selectYear: 'Selecionar Ano', allMonths: 'Todos os meses', financialGoals: 'Metas Financeiras', newGoal: 'Nova Meta', emptyTrash: 'Esvaziar lixeira', trashInfo: 'Transa\u00E7\u00F5es exclu\u00EDdas podem ser restauradas ou removidas permanentemente.', backupExport: 'Backup e Exporta\u00E7\u00E3o', exportJson: 'Exportar JSON', importJson: 'Importar JSON', exportExcel: 'Exportar Excel', clearAll: 'Limpar Tudo', editTransaction: 'Editar Transa\u00E7\u00E3o', save: 'Salvar', cancel: 'Cancelar', addGoal: 'Nova Meta', goalDescription: 'Descri\u00E7\u00E3o da Meta', goalTarget: 'Valor da Meta (R$)', goalCurrent: 'Valor Atual (R$)', saveGoal: 'Salvar Meta', editGoal: 'Editar Meta', exportToExcel: 'Exportar para Excel', allRecords: 'Todos os registros', onlyIncome: 'Apenas ganhos', onlyExpense: 'Apenas gastos', calculator: 'Calculadora', edit: 'Editar', delete: 'Excluir', deletePermanent: 'Excluir permanentemente', moveToTrash: 'Mover esta transa\u00E7\u00E3o para a lixeira?', movedToTrash: 'Transa\u00E7\u00E3o movida para a lixeira.', deletePermanentConfirm: 'Excluir permanentemente? Esta a\u00E7\u00E3o n\u00E3o pode ser desfeita.', trashEmpty: 'A lixeira j\u00E1 est\u00E1 vazia.', emptyTrashConfirm: 'Excluir permanentemente as', trashEmptyConfirm: 'transa\u00E7\u00E3o(\u00F5es) da lixeira? Esta a\u00E7\u00E3o n\u00E3o pode ser desfeita.', trashEmptied: 'Lixeira esvaziada.', noTrash: 'Nenhuma transa\u00E7\u00E3o na lixeira', fillGoalFields: 'Por favor, preencha os campos da meta!', currentNotGreater: 'O valor atual n\u00E3o pode ser maior que a meta!', goalAdded: 'Meta adicionada!', goalEdited: 'Meta editada!', deleteGoalConfirm: 'Tem certeza que deseja excluir esta meta?', goalDeleted: 'Meta exclu\u00EDda!', noGoals: 'Nenhuma meta cadastrada', restore: 'Restaurar', saveError: 'Erro ao salvar dados!', goalPlaceholder: 'Ex: Comprar um carro', noExport: 'Nenhuma transa\u00E7\u00E3o para exportar!', fillAllFields: 'Por favor, preencha todos os campos!', transactionAdded: 'Transa\u00E7\u00E3o adicionada com sucesso!', transactionEdited: 'Transa\u00E7\u00E3o editada!', transactionRestored: 'Transa\u00E7\u00E3o restaurada!', transactionDeletedPerm: 'Transa\u00E7\u00E3o exclu\u00EDda permanentemente.', noTransactionsPeriod: 'Nenhuma transa\u00E7\u00E3o para este per\u00EDodo', noTransactionsDay: 'Nenhuma transa\u00E7\u00E3o para este dia', noTransactionsFilters: 'Nenhuma transa\u00E7\u00E3o encontrada com os filtros!', exportSuccess: 'Exportado para Excel com sucesso!', exportError: 'Erro ao exportar para Excel!', importConfirm: 'Importar este arquivo ir\u00E1 substituir todos os dados atuais. Deseja continuar?', importSuccess: 'Dados importados com sucesso!', clearConfirm: '\u26A0\uFE0F ATEN\u00C7\u00C3O: Esta a\u00E7\u00E3o ir\u00E1 apagar TODOS os dados. Deseja continuar?', allDataCleared: 'Todos os dados foram apagados!', backupExported: 'Backup JSON exportado!', backupExportError: 'Erro ao exportar o backup!', loadError: 'Erro ao carregar dados!', fillGoalCorrect: 'Preencha os campos corretamente!', noTransactionsFoundShort: 'Nenhuma transa\u00E7\u00E3o encontrada' }, 'en': { pageTitle: 'Financial Control - Enhanced', appTitle: 'Finances', saveTransaction: 'Save Transaction', placeholderDescShort: 'What are you thinking about?', menuNewTransaction: 'New Transaction', menuTransactions: 'Transactions', menuSearch: 'Search', menuCharts: 'Charts', menuSummaries: 'Summaries', menuGoals: 'Goals', menuTrash: 'Trash', menuBackup: 'Backup', menu: 'Menu', allTransactions: 'All Transactions', searchTransactions: 'Search Transactions', searchByName: 'Search by name/description', category: 'Category', type: 'Type', monthYear: 'Month/Year', allCategories: 'All categories', allTypes: 'All types', income: 'Income', expense: 'Expense', favoritesOnly: 'Favorites only', search: 'Search', clearFilters: 'Clear Filters', exportResults: 'Export Results', searchResults: 'Search Results', transactionsFound: 'transactions found', searchIncome: 'Search Income', searchExpense: 'Search Expense', searchBalance: 'Search Balance', noTransactionsFound: 'No transactions found with the applied filters', newTransaction: 'New Transaction', date: 'Date', value: 'Value ($)', description: 'Description', selectCategory: 'Select a category', placeholderDesc: 'Describe the transaction...', favoriteTransaction: 'Favorite this transaction', clear: 'Clear', gains: 'Gains', spending: 'Spending', balance: 'Balance', dailyTransactions: 'Selected Day Transactions', chartsTitle: 'Income and Expense Charts', period: 'Period', month: 'Month', week: 'Week', year: 'Year', monthSpecific: 'Specific month', weekSpecific: 'Specific week', yearSpecific: 'Specific year', last3Months: 'Last 3 months', last6Months: 'Last 6 months', view: 'View', incomeExpense: 'Income and Expenses', expenseOnly: 'Expenses only', incomeOnly: 'Income only', chartType: 'Chart type', pie: 'Pie', bar: 'Bar', dailySummary: 'Daily Summary', weeklySummary: 'Weekly Summary', monthlySummary: 'Monthly Summary', yearlySummary: 'Yearly Summary', selectDay: 'Select Day', selectWeek: 'Select Week', selectMonth: 'Select Month', selectYear: 'Select Year', allMonths: 'All months', financialGoals: 'Financial Goals', newGoal: 'New Goal', emptyTrash: 'Empty Trash', trashInfo: 'Deleted transactions can be restored or permanently removed.', backupExport: 'Backup and Export', exportJson: 'Export JSON', importJson: 'Import JSON', exportExcel: 'Export Excel', clearAll: 'Clear All', editTransaction: 'Edit Transaction', save: 'Save', cancel: 'Cancel', addGoal: 'New Goal', goalDescription: 'Goal Description', goalTarget: 'Goal Value ($)', goalCurrent: 'Current Value ($)', saveGoal: 'Save Goal', editGoal: 'Edit Goal', exportToExcel: 'Export to Excel', allRecords: 'All records', onlyIncome: 'Income only', onlyExpense: 'Expenses only', calculator: 'Calculator', edit: 'Edit', delete: 'Delete', deletePermanent: 'Delete permanently', moveToTrash: 'Move this transaction to trash?', movedToTrash: 'Transaction moved to trash.', deletePermanentConfirm: 'Delete permanently? This action cannot be undone.', trashEmpty: 'Trash is already empty.', emptyTrashConfirm: 'Permanently delete the', trashEmptyConfirm: 'transaction(s) from trash? This action cannot be undone.', trashEmptied: 'Trash emptied.', noTrash: 'No transactions in trash', fillGoalFields: 'Please fill in the goal fields!', currentNotGreater: 'Current value cannot be greater than the goal!', goalAdded: 'Goal added!', goalEdited: 'Goal edited!', deleteGoalConfirm: 'Are you sure you want to delete this goal?', goalDeleted: 'Goal deleted!', noGoals: 'No goals registered', restore: 'Restore', saveError: 'Error saving data!', goalPlaceholder: 'E.g.: Buy a car', noExport: 'No transactions to export!', fillAllFields: 'Please fill in all fields!', transactionAdded: 'Transaction added successfully!', transactionEdited: 'Transaction edited!', transactionRestored: 'Transaction restored!', transactionDeletedPerm: 'Transaction permanently deleted.', noTransactionsPeriod: 'No transactions for this period', noTransactionsDay: 'No transactions for this day', noTransactionsFilters: 'No transactions found with the filters!', exportSuccess: 'Exported to Excel successfully!', exportError: 'Error exporting to Excel!', importConfirm: 'Importing this file will replace all current data. Continue?', importSuccess: 'Data imported successfully!', clearConfirm: '\u26A0\uFE0F WARNING: This will delete ALL data. Continue?', allDataCleared: 'All data has been cleared!', backupExported: 'JSON backup exported!', backupExportError: 'Error exporting backup!', loadError: 'Error loading data!', fillGoalCorrect: 'Fill in the fields correctly!', noTransactionsFoundShort: 'No transactions found' } };
+        const i18n = { 'pt-BR': { logout: 'Sair', pageTitle: 'Controle Financeiro Aprimorado', appTitle: 'Finan\u00E7as', saveTransaction: 'Salvar Transa\u00E7\u00E3o', placeholderDescShort: 'No que voc\u00EA est\u00E1 pensando?', menuNewTransaction: 'Nova Transa\u00E7\u00E3o', menuTransactions: 'Transa\u00E7\u00F5es', menuSearch: 'Buscar', menuCharts: 'Gr\u00E1fico', menuSummaries: 'Resumos', menuGoals: 'Metas', menuTrash: 'Lixeira', menuBackup: 'Backup', menu: 'Menu', allTransactions: 'Todas as Transa\u00E7\u00F5es', searchTransactions: 'Buscar Transa\u00E7\u00F5es', searchByName: 'Buscar por nome/descri\u00E7\u00E3o', category: 'Categoria', type: 'Tipo', monthYear: 'M\u00EAs/Ano', allCategories: 'Todas as categorias', allTypes: 'Todos os tipos', income: 'Receita', expense: 'Despesa', favoritesOnly: 'Apenas favoritas', search: 'Buscar', clearFilters: 'Limpar Filtros', exportResults: 'Exportar Resultados', searchResults: 'Resultados da Busca', transactionsFound: 'transa\u00E7\u00F5es encontradas', searchIncome: 'Receitas na Busca', searchExpense: 'Despesas na Busca', searchBalance: 'Saldo da Busca', noTransactionsFound: 'Nenhuma transa\u00E7\u00E3o encontrada com os filtros aplicados', newTransaction: 'Nova Transa\u00E7\u00E3o', date: 'Data', value: 'Valor (R$)', description: 'Descri\u00E7\u00E3o', selectCategory: 'Selecione uma categoria', placeholderDesc: 'Descreva a transa\u00E7\u00E3o...', favoriteTransaction: 'Favoritar esta transa\u00E7\u00E3o', clear: 'Limpar', gains: 'Ganhos', spending: 'Gastos', balance: 'Saldo', dailyTransactions: 'Transa\u00E7\u00F5es do Dia Selecionado', chartsTitle: 'Gr\u00E1ficos de Receitas e Despesas', period: 'Per\u00EDodo', month: 'M\u00EAs', week: 'Semana', year: 'Ano', monthSpecific: 'M\u00EAs espec\u00EDfico', weekSpecific: 'Semana espec\u00EDfica', yearSpecific: 'Ano espec\u00EDfico', last3Months: '\u00DAltimos 3 meses', last6Months: '\u00DAltimos 6 meses', view: 'Visualizar', incomeExpense: 'Receitas e Despesas', expenseOnly: 'Apenas Despesas', incomeOnly: 'Apenas Receitas', chartType: 'Tipo de gr\u00E1fico', pie: 'Pizza', bar: 'Barras', dailySummary: 'Resumo Di\u00E1rio', weeklySummary: 'Resumo Semanal', monthlySummary: 'Resumo Mensal', yearlySummary: 'Resumo Anual', selectDay: 'Selecionar Dia', selectWeek: 'Selecionar Semana', selectMonth: 'Selecionar M\u00EAs', selectYear: 'Selecionar Ano', allMonths: 'Todos os meses', financialGoals: 'Metas Financeiras', newGoal: 'Nova Meta', emptyTrash: 'Esvaziar lixeira', trashInfo: 'Transa\u00E7\u00F5es exclu\u00EDdas podem ser restauradas ou removidas permanentemente.', backupExport: 'Backup e Exporta\u00E7\u00E3o', exportJson: 'Exportar JSON', importJson: 'Importar JSON', exportExcel: 'Exportar Excel', clearAll: 'Limpar Tudo', editTransaction: 'Editar Transa\u00E7\u00E3o', save: 'Salvar', cancel: 'Cancelar', addGoal: 'Nova Meta', goalDescription: 'Descri\u00E7\u00E3o da Meta', goalTarget: 'Valor da Meta (R$)', goalCurrent: 'Valor Atual (R$)', saveGoal: 'Salvar Meta', editGoal: 'Editar Meta', exportToExcel: 'Exportar para Excel', allRecords: 'Todos os registros', onlyIncome: 'Apenas ganhos', onlyExpense: 'Apenas gastos', calculator: 'Calculadora', edit: 'Editar', delete: 'Excluir', deletePermanent: 'Excluir permanentemente', moveToTrash: 'Mover esta transa\u00E7\u00E3o para a lixeira?', movedToTrash: 'Transa\u00E7\u00E3o movida para a lixeira.', deletePermanentConfirm: 'Excluir permanentemente? Esta a\u00E7\u00E3o n\u00E3o pode ser desfeita.', trashEmpty: 'A lixeira j\u00E1 est\u00E1 vazia.', emptyTrashConfirm: 'Excluir permanentemente as', trashEmptyConfirm: 'transa\u00E7\u00E3o(\u00F5es) da lixeira? Esta a\u00E7\u00E3o n\u00E3o pode ser desfeita.', trashEmptied: 'Lixeira esvaziada.', noTrash: 'Nenhuma transa\u00E7\u00E3o na lixeira', fillGoalFields: 'Por favor, preencha os campos da meta!', currentNotGreater: 'O valor atual n\u00E3o pode ser maior que a meta!', goalAdded: 'Meta adicionada!', goalEdited: 'Meta editada!', deleteGoalConfirm: 'Tem certeza que deseja excluir esta meta?', goalDeleted: 'Meta exclu\u00EDda!', noGoals: 'Nenhuma meta cadastrada', restore: 'Restaurar', saveError: 'Erro ao salvar dados!', goalPlaceholder: 'Ex: Comprar um carro', noExport: 'Nenhuma transa\u00E7\u00E3o para exportar!', fillAllFields: 'Por favor, preencha todos os campos!', transactionAdded: 'Transa\u00E7\u00E3o adicionada com sucesso!', transactionEdited: 'Transa\u00E7\u00E3o editada!', transactionRestored: 'Transa\u00E7\u00E3o restaurada!', transactionDeletedPerm: 'Transa\u00E7\u00E3o exclu\u00EDda permanentemente.', noTransactionsPeriod: 'Nenhuma transa\u00E7\u00E3o para este per\u00EDodo', noTransactionsDay: 'Nenhuma transa\u00E7\u00E3o para este dia', noTransactionsFilters: 'Nenhuma transa\u00E7\u00E3o encontrada com os filtros!', exportSuccess: 'Exportado para Excel com sucesso!', exportError: 'Erro ao exportar para Excel!', importConfirm: 'Importar este arquivo ir\u00E1 substituir todos os dados atuais. Deseja continuar?', importSuccess: 'Dados importados com sucesso!', clearConfirm: '\u26A0\uFE0F ATEN\u00C7\u00C3O: Esta a\u00E7\u00E3o ir\u00E1 apagar TODOS os dados. Deseja continuar?', allDataCleared: 'Todos os dados foram apagados!', backupExported: 'Backup JSON exportado!', backupExportError: 'Erro ao exportar o backup!', loadError: 'Erro ao carregar dados!', fillGoalCorrect: 'Preencha os campos corretamente!', noTransactionsFoundShort: 'Nenhuma transa\u00E7\u00E3o encontrada' }, 'en': { pageTitle: 'Financial Control - Enhanced', appTitle: 'Finances', saveTransaction: 'Save Transaction', placeholderDescShort: 'What are you thinking about?', menuNewTransaction: 'New Transaction', menuTransactions: 'Transactions', menuSearch: 'Search', menuCharts: 'Charts', menuSummaries: 'Summaries', menuGoals: 'Goals', menuTrash: 'Trash', menuBackup: 'Backup', menu: 'Menu', allTransactions: 'All Transactions', searchTransactions: 'Search Transactions', searchByName: 'Search by name/description', category: 'Category', type: 'Type', monthYear: 'Month/Year', allCategories: 'All categories', allTypes: 'All types', income: 'Income', expense: 'Expense', favoritesOnly: 'Favorites only', search: 'Search', clearFilters: 'Clear Filters', exportResults: 'Export Results', searchResults: 'Search Results', transactionsFound: 'transactions found', searchIncome: 'Search Income', searchExpense: 'Search Expense', searchBalance: 'Search Balance', noTransactionsFound: 'No transactions found with the applied filters', newTransaction: 'New Transaction', date: 'Date', value: 'Value ($)', description: 'Description', selectCategory: 'Select a category', placeholderDesc: 'Describe the transaction...', favoriteTransaction: 'Favorite this transaction', clear: 'Clear', gains: 'Gains', spending: 'Spending', balance: 'Balance', dailyTransactions: 'Selected Day Transactions', chartsTitle: 'Income and Expense Charts', period: 'Period', month: 'Month', week: 'Week', year: 'Year', monthSpecific: 'Specific month', weekSpecific: 'Specific week', yearSpecific: 'Specific year', last3Months: 'Last 3 months', last6Months: 'Last 6 months', view: 'View', incomeExpense: 'Income and Expenses', expenseOnly: 'Expenses only', incomeOnly: 'Income only', chartType: 'Chart type', logout: 'Logout', pie: 'Pie', bar: 'Bar', dailySummary: 'Daily Summary', weeklySummary: 'Weekly Summary', monthlySummary: 'Monthly Summary', yearlySummary: 'Yearly Summary', selectDay: 'Select Day', selectWeek: 'Select Week', selectMonth: 'Select Month', selectYear: 'Select Year', allMonths: 'All months', financialGoals: 'Financial Goals', newGoal: 'New Goal', emptyTrash: 'Empty Trash', trashInfo: 'Deleted transactions can be restored or permanently removed.', backupExport: 'Backup and Export', exportJson: 'Export JSON', importJson: 'Import JSON', exportExcel: 'Export Excel', clearAll: 'Clear All', editTransaction: 'Edit Transaction', save: 'Save', cancel: 'Cancel', addGoal: 'New Goal', goalDescription: 'Goal Description', goalTarget: 'Goal Value ($)', goalCurrent: 'Current Value ($)', saveGoal: 'Save Goal', editGoal: 'Edit Goal', exportToExcel: 'Export to Excel', allRecords: 'All records', onlyIncome: 'Income only', onlyExpense: 'Expenses only', calculator: 'Calculator', edit: 'Edit', delete: 'Delete', deletePermanent: 'Delete permanently', moveToTrash: 'Move this transaction to trash?', movedToTrash: 'Transaction moved to trash.', deletePermanentConfirm: 'Delete permanently? This action cannot be undone.', trashEmpty: 'Trash is already empty.', emptyTrashConfirm: 'Permanently delete the', trashEmptyConfirm: 'transaction(s) from trash? This action cannot be undone.', trashEmptied: 'Trash emptied.', noTrash: 'No transactions in trash', fillGoalFields: 'Please fill in the goal fields!', currentNotGreater: 'Current value cannot be greater than the goal!', goalAdded: 'Goal added!', goalEdited: 'Goal edited!', deleteGoalConfirm: 'Are you sure you want to delete this goal?', goalDeleted: 'Goal deleted!', noGoals: 'No goals registered', restore: 'Restore', saveError: 'Error saving data!', goalPlaceholder: 'E.g.: Buy a car', noExport: 'No transactions to export!', fillAllFields: 'Please fill in all fields!', transactionAdded: 'Transaction added successfully!', transactionEdited: 'Transaction edited!', transactionRestored: 'Transaction restored!', transactionDeletedPerm: 'Transaction permanently deleted.', noTransactionsPeriod: 'No transactions for this period', noTransactionsDay: 'No transactions for this day', noTransactionsFilters: 'No transactions found with the filters!', exportSuccess: 'Exported to Excel successfully!', exportError: 'Error exporting to Excel!', importConfirm: 'Importing this file will replace all current data. Continue?', importSuccess: 'Data imported successfully!', clearConfirm: '\u26A0\uFE0F WARNING: This will delete ALL data. Continue?', allDataCleared: 'All data has been cleared!', backupExported: 'JSON backup exported!', backupExportError: 'Error exporting backup!', loadError: 'Error loading data!', fillGoalCorrect: 'Fill in the fields correctly!', noTransactionsFoundShort: 'No transactions found' } };
 
         let currentLang = localStorage.getItem('lang') || 'pt-BR';
         function setLanguage(lang) { currentLang = lang; localStorage.setItem('lang', lang); document.getElementById('langPt').classList.toggle('active', lang === 'pt-BR'); document.getElementById('langEn').classList.toggle('active', lang === 'en'); applyTranslations(lang); updateClock(); }
@@ -3671,7 +3936,30 @@
 
         let clockIntervalId = null;
         function startClock() { updateClock(); if (clockIntervalId) clearInterval(clockIntervalId); clockIntervalId = setInterval(updateClock, 1000); }
-        document.addEventListener('DOMContentLoaded', function () { startClock(); setTimeout(function () { var s = document.getElementById('splashScreen'); if (s) s.classList.add('hidden'); updateClock(); }, 1500); loadData(); setCurrentDates(); if (typeof updateDateDisplayText === 'function') updateDateDisplayText(); populateYearSelect(); initializeMonthPicker(); updateAllViews(); updateTrashList(); performSearch(); var savedLang = localStorage.getItem('lang') || 'pt-BR'; setLanguage(savedLang); startClock(); setTimeout(updateClock, 200); setTimeout(updateClock, 1000); });
+        document.addEventListener('DOMContentLoaded', function () {
+            applyTheme();
+            var savedLang = localStorage.getItem('lang') || 'pt-BR';
+            setLanguage(savedLang);
+            startClock();
+            setTimeout(function () {
+                var s = document.getElementById('splashScreen');
+                if (s) {
+                    s.classList.add('hidden');
+                    // After splash, if no user, show login overlay
+                    if (!currentUser) {
+                        document.getElementById('loginOverlay').style.display = 'flex';
+                    }
+                }
+                updateClock();
+            }, 1500);
+            setCurrentDates();
+            if (typeof updateDateDisplayText === 'function') updateDateDisplayText();
+            populateYearSelect();
+            initializeMonthPicker();
+            updateAllViews();
+            updateTrashList();
+            performSearch();
+        });
         window.addEventListener('load', updateClock);
         document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') { updateClock(); startClock(); } });
 
@@ -3679,7 +3967,34 @@
         function setThemeDark() { document.body.classList.remove('light'); document.body.classList.add('dark'); localStorage.setItem('theme', 'dark'); updateThemeButtons(); }
         function setThemeLight() { document.body.classList.remove('dark'); document.body.classList.add('light'); localStorage.setItem('theme', 'light'); updateThemeButtons(); }
         function updateThemeButtons() { var d = document.getElementById('themeDark'); var l = document.getElementById('themeLight'); if (!d || !l) return; if (document.body.classList.contains('dark')) { d.classList.add('active'); l.classList.remove('active'); } else { d.classList.remove('active'); l.classList.add('active'); } }
-        function updateClock() { var te = document.getElementById('clockTime'); var de = document.getElementById('clockDate'); if (!te || !de) return; var n = new Date(); var lang = (typeof currentLang !== 'undefined' ? currentLang : null) || localStorage.getItem('lang') || 'pt-BR'; var h = n.getHours(); var m = n.getMinutes(); var s = n.getSeconds(); var d = n.getDate(); var mo = n.getMonth(); var y = n.getFullYear(); var mS = m < 10 ? '0' + m : '' + m; var sS = s < 10 ? '0' + s : '' + s; var hS = h < 10 ? '0' + h : '' + h; var monthNamesPt = ['Janeiro', 'Fevereiro', 'Marco', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro']; var monthNamesEn = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December']; if (lang === 'en') { var ap = h >= 12 ? 'PM' : 'AM'; var h12 = h % 12 || 12; te.textContent = h12 + ':' + mS; de.textContent = monthNamesEn[mo] + ' ' + d + ', ' + y; } else { te.textContent = hS + ':' + mS; de.textContent = d + ' de ' + monthNamesPt[mo] + ', ' + y; } }
+        function updateClock() {
+            var te = document.getElementById('clockTime');
+            var de = document.getElementById('clockDate');
+            if (!te || !de) return;
+            var n = new Date();
+            checkScheduledBackup();
+            var lang = (typeof currentLang !== 'undefined' ? currentLang : null) || localStorage.getItem('lang') || 'pt-BR';
+            var h = n.getHours();
+            var m = n.getMinutes();
+            var s = n.getSeconds();
+            var d = n.getDate();
+            var mo = n.getMonth();
+            var y = n.getFullYear();
+            var mS = m < 10 ? '0' + m : '' + m;
+            var sS = s < 10 ? '0' + s : '' + s;
+            var hS = h < 10 ? '0' + h : '' + h;
+            var monthNamesPt = ['Janeiro', 'Fevereiro', 'Marco', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+            var monthNamesEn = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+            if (lang === 'en') {
+                var ap = h >= 12 ? 'PM' : 'AM';
+                var h12 = h % 12 || 12;
+                te.textContent = h12 + ':' + mS;
+                de.textContent = monthNamesEn[mo] + ' ' + d + ', ' + y;
+            } else {
+                te.textContent = hS + ':' + mS;
+                de.textContent = d + ' de ' + monthNamesPt[mo] + ', ' + y;
+            }
+        }
         function applyTheme() { const st = localStorage.getItem('theme') || 'dark'; const b = document.body; if (st === 'light') { b.classList.remove('dark'); b.classList.add('light'); } else { b.classList.remove('light'); b.classList.add('dark'); } updateThemeButtons(); }
 
         function toggleMenu() { document.getElementById('menuOverlay').classList.add('active'); document.getElementById('sideMenu').classList.add('active'); }
@@ -3843,7 +4158,100 @@
         function closeModal(id) { document.getElementById(id).classList.remove('active'); }
         function showNotification(msg, type = 'info') { const n = document.getElementById('notifications'); const el = document.createElement('div'); el.className = `notification ${type}`; el.textContent = msg; n.appendChild(el); setTimeout(() => { el.remove(); }, 4000); }
 
-        function saveData() { try { localStorage.setItem('financialTransactions_v2', JSON.stringify(transactions)); localStorage.setItem('financialGoals_v2', JSON.stringify(goals)); } catch (e) { showNotification(t('saveError'), 'error'); } }
+        async function loadDataFromFirebase() {
+            if (!currentUser) return;
+            try {
+                // Real-time synchronization for transactions
+                db.collection('users').doc(currentUser.uid).collection('data').doc('transactions')
+                    .onSnapshot((doc) => {
+                        if (doc.exists) {
+                            transactions = doc.data().list || [];
+                            updateAllViews();
+                            performSearch();
+                        }
+                    });
+
+                // Real-time synchronization for goals
+                db.collection('users').doc(currentUser.uid).collection('data').doc('goals')
+                    .onSnapshot((doc) => {
+                        if (doc.exists) {
+                            goals = doc.data().list || [];
+                            updateAllViews();
+                        }
+                    });
+
+                showNotification("Dados sincronizados", "success");
+            } catch (e) {
+                console.error("Erro ao carregar:", e);
+                showNotification("Erro ao carregar da nuvem", "error");
+                loadData(); // fallback to local
+            }
+        }
+
+        async function saveDataToFirebase() {
+            if (!currentUser) return;
+            try {
+                // Save to Firestore
+                await db.collection('users').doc(currentUser.uid).collection('data').doc('transactions').set({
+                    list: transactions,
+                    updatedAt: new Date().toISOString()
+                });
+                await db.collection('users').doc(currentUser.uid).collection('data').doc('goals').set({
+                    list: goals,
+                    updatedAt: new Date().toISOString()
+                });
+
+                // Keep local cache
+                saveData();
+            } catch (e) {
+                console.error("Erro ao salvar:", e);
+                showNotification("Erro ao salvar na nuvem", "error");
+            }
+        }
+
+        function checkScheduledBackup() {
+            const now = new Date();
+            const today = now.toISOString().split('T')[0];
+            const currentHour = now.getHours();
+            const lastBackup = localStorage.getItem('lastBackupDate');
+
+            // If it's exactly 10 PM (22:00-22:59) and no backup today
+            if (currentHour === 22 && lastBackup !== today) {
+                performAutoBackup(today);
+            }
+            // Also check if we missed today's 10 PM backup (e.g., opened app at 11 PM or next morning)
+            else if (currentHour > 22 && lastBackup !== today) {
+                performAutoBackup(today);
+            }
+        }
+
+        async function performAutoBackup(today) {
+            if (!currentUser) return;
+            try {
+                const backupData = {
+                    transactions: transactions,
+                    goals: goals,
+                    backupDate: new Date().toISOString()
+                };
+                await db.collection('users').doc(currentUser.uid).collection('backups').doc(today).set(backupData);
+                localStorage.setItem('lastBackupDate', today);
+                showNotification("Backup automático realizado", "success");
+            } catch (e) {
+                console.error("Erro no backup:", e);
+            }
+        }
+
+        function saveData() {
+            try {
+                localStorage.setItem('financialTransactions_v2', JSON.stringify(transactions));
+                localStorage.setItem('financialGoals_v2', JSON.stringify(goals));
+                if (currentUser) {
+                    saveDataToFirebase();
+                }
+            } catch (e) {
+                showNotification(t('saveError'), 'error');
+            }
+        }
         function loadData() { try { const st = localStorage.getItem('financialTransactions_v2'); const sg = localStorage.getItem('financialGoals_v2'); if (st) { transactions = JSON.parse(st); var ta = getTrashFromStorage(); var ti = {}; ta.forEach(function (t) { ti[t.id] = true; }); transactions.forEach(function (t) { var id = t.id; ti[id] = ti[id] || ta.some(function (x) { return x.id == id; }); t.deleted = (t.deleted === true || t.deleted === 'true') || !!ti[id]; if (t.favorite === undefined) t.favorite = false; if (t.category === 'compras') t.category = 'mercado'; if (t.deleted && !ti[id]) { ti[id] = true; ta.push({ id: t.id, type: t.type, date: t.date, value: t.value, category: t.category, description: t.description, deleted: true, deletedAt: t.deletedAt || new Date().toISOString() }); } }); saveTrashToStorage(ta); } if (sg) { goals = JSON.parse(sg); goals.forEach((g, i) => { if (g.order === undefined) g.order = i; }); } applyTheme(); } catch (e) { showNotification(t('loadError'), 'error'); } }
         function exportData() { try { const d = { transactions: transactions, goals: goals }; const ds = JSON.stringify(d, null, 2); const b = new Blob([ds], { type: 'application/json' }); const u = URL.createObjectURL(b); const a = document.createElement('a'); a.href = u; a.download = `backup-financeiro-${getTodayInBrasiliaISO()}.json`; document.body.appendChild(a); a.click(); document.body.removeChild(a); URL.revokeObjectURL(u); showNotification(t('backupExported'), 'success'); } catch (e) { showNotification(t('backupExportError'), 'error'); } }
         function importData(ev) { const f = ev.target.files[0]; if (!f) return; const r = new FileReader(); r.onload = function (e) { try { const d = JSON.parse(e.target.result); if (!d || !Array.isArray(d.transactions)) throw new Error('Invalid format'); if (confirm(t('importConfirm'))) { transactions = d.transactions; goals = Array.isArray(d.goals) ? d.goals : []; saveData(); updateAllViews(); performSearch(); showNotification(t('importSuccess'), 'success'); } } catch (err) { showNotification('Erro ao importar: ' + err.message, 'error'); } finally { ev.target.value = ''; } }; r.readAsText(f); }
