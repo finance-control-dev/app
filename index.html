@@ -11,6 +11,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
         rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#0F172A">
+    <link rel="apple-touch-icon" href="https://placehold.co/192x192/0F172A/FFD700/png?text=$">
     <!-- Firebase SDKs (v10 compat) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
@@ -260,26 +263,13 @@
         .header-icon-circle {
             width: 40px;
             height: 40px;
+            min-width: 40px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #FFD700 0%, #B8860B 100%);
+            background: linear-gradient(135deg, var(--primary), var(--primary-light));
             display: flex;
             align-items: center;
             justify-content: center;
-            color: #FFF;
-            /* White icon for contrast */
-            box-shadow: 0 4px 10px rgba(184, 134, 11, 0.4), inset 0 2px 5px rgba(255, 255, 255, 0.4);
-            animation: coin-spin 6s linear infinite;
-            transform-style: preserve-3d;
-        }
-
-        @keyframes coin-spin {
-            0% {
-                transform: rotateY(0deg);
-            }
-
-            100% {
-                transform: rotateY(360deg);
-            }
+            box-shadow: 0 2px 12px var(--primary-glow);
         }
 
         .header-icon-circle svg {
@@ -4944,6 +4934,19 @@
         document.addEventListener('click', e => { if (e.target.classList.contains('modal-overlay')) { const mid = e.target.id; if (mid === 'monthPickerModal') closeMonthPickerModal(); else closeModal(mid); } });
         function previousDay() { const di = document.getElementById('transactionDate'); const cd = new Date(di.value + 'T00:00:00Z'); cd.setUTCDate(cd.getUTCDate() - 1); di.value = cd.toISOString().split('T')[0]; updateDailyTransactions(); }
         function nextDay() { const di = document.getElementById('transactionDate'); const cd = new Date(di.value + 'T00:00:00Z'); cd.setUTCDate(cd.getUTCDate() + 1); di.value = cd.toISOString().split('T')[0]; updateDailyTransactions(); }
+    </script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('sw.js')
+                    .then(registration => {
+                        console.log('ServiceWorker registered with scope:', registration.scope);
+                    })
+                    .catch(err => {
+                        console.log('ServiceWorker registration failed:', err);
+                    });
+            });
+        }
     </script>
 </body>
 
