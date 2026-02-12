@@ -4142,13 +4142,121 @@
 
         function setCurrentDates() { const ti = getTodayInBrasiliaISO(); const td = new Date(ti + 'T00:00:00Z'); const y = td.getUTCFullYear(); const m = String(td.getUTCMonth() + 1).padStart(2, '0'); document.getElementById('transactionDate').value = ti; document.getElementById('dailySummaryDate').value = ti; document.getElementById('monthlySummaryDate').value = `${y}-${m}`; document.getElementById('yearlySummaryDate').value = y; const wi = document.getElementById('weeklySummaryDate'); const d = new Date(ti); d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7)); const ys = new Date(Date.UTC(d.getUTCFullYear(), 0, 1)); const wn = Math.ceil((((d - ys) / 86400000) + 1) / 7); wi.value = `${y}-W${String(wn).padStart(2, '0')}`; }
 
-        function addTransaction(type) { const d = document.getElementById('transactionDate').value; const v = parseFloat(document.getElementById('transactionValue').value); const c = document.getElementById('transactionCategory').value; const desc = document.getElementById('transactionDescription').value.trim(); const f = document.getElementById('transactionFavorite').checked; if (!d || !v || v <= 0 || !c || !desc) { showNotification(t('fillAllFields'), 'error'); return; } const tx = { id: Date.now(), type: type, date: d, value: v, category: c, description: desc, favorite: !!f, createdAt: new Date().toISOString() }; transactions.push(tx); saveData(); clearTransactionForm(); updateAllViews(); performSearch(); showNotification(t('transactionAdded'), 'success'); }
+        async function addTransaction(type) {
+            if (!currentUser) {
+                showNotification("Usuário não autenticado", "error");
+                return;
+            }
+            const dStr = document.getElementById('transactionDate').value;
+            const v = parseFloat(document.getElementById('transactionValue').value);
+            const c = document.getElementById('transactionCategory').value;
+            const desc = document.getElementById('transactionDescription').value.trim();
+            const f = document.getElementById('transactionFavorite').checked;
+
+            if (!dStr || !v || v <= 0 || !c || !desc) {
+                showNotification(t('fillAllFields'), 'error');
+                return;
+            }
+
+            // Map UI type to Firestore type (PT)
+            const tipoPT = type === 'income' ? 'ganho' : 'gasto';
+
+            const txData = {
+                userId: currentUser.uid,
+                valor: v,
+                tipo: tipoPT,
+                descricao: desc,
+                data: dStr,
+                categoria: c,
+                favorita: !!f,
+                excluido: false,
+                criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+            };
+
+            try {
+                await db.collection('transacoes').add(txData);
+                clearTransactionForm();
+                // updateAllViews() and performSearch() will be triggered by onSnapshot
+                showNotification(t('transactionAdded'), 'success');
+            } catch (error) {
+                console.error("Erro ao adicionar transação:", error);
+                showNotification("Erro ao salvar no Firestore", "error");
+            }
+        }
         function clearTransactionForm() { document.getElementById('transactionValue').value = ''; document.getElementById('transactionCategory').value = ''; document.getElementById('transactionDescription').value = ''; document.getElementById('transactionDate').value = getTodayInBrasiliaISO(); document.getElementById('transactionFavorite').checked = false; setTransactionType('income'); if (typeof updateDateDisplayText === 'function') updateDateDisplayText(); }
         function editTransaction(id) { const tx = transactions.find(t => t.id === id); if (!tx) return; editingTransactionId = id; document.getElementById('editTransactionDate').value = tx.date; document.getElementById('editTransactionValue').value = tx.value; document.getElementById('editTransactionCategory').value = tx.category; document.getElementById('editTransactionDescription').value = tx.description; document.getElementById('editTransactionFavorite').checked = !!tx.favorite; showModal('editTransactionModal'); }
-        function saveTransactionEdit() { const d = document.getElementById('editTransactionDate').value; const v = parseFloat(document.getElementById('editTransactionValue').value); const c = document.getElementById('editTransactionCategory').value; const desc = document.getElementById('editTransactionDescription').value.trim(); const f = document.getElementById('editTransactionFavorite').checked; if (!d || !v || v <= 0 || !c || !desc) { showNotification(t('fillAllFields'), 'error'); return; } const i = transactions.findIndex(t => t.id === editingTransactionId); if (i !== -1) { transactions[i].date = d; transactions[i].value = v; transactions[i].category = c; transactions[i].favorite = !!f; transactions[i].description = desc; saveData(); updateAllViews(); performSearch(); closeModal('editTransactionModal'); showNotification(t('transactionEdited'), 'success'); } }
-        function deleteTransaction(id) { if (confirm(t('moveToTrash'))) { var tx = transactions.find(function (t) { return t.id === id; }); if (tx) { tx.deleted = true; tx.deletedAt = new Date().toISOString(); var ta = getTrashFromStorage(); var cp = { id: tx.id, type: tx.type, date: tx.date, value: tx.value, category: tx.category, description: tx.description, deleted: true, deletedAt: tx.deletedAt }; var ex = ta.some(function (t) { return t.id == id; }); if (!ex) { ta.push(cp); saveTrashToStorage(ta); } saveData(); updateAllViews(); updateTrashList(); performSearch(); showNotification(t('movedToTrash'), 'success'); } } }
-        function restoreTransaction(id) { var tx = transactions.find(function (x) { return x.id === id; }); var ta = getTrashFromStorage(); var it = ta.find(function (x) { return x.id == id; }); if (!it) return; if (tx) { tx.deleted = false; tx.deletedAt = null; } else { it.deleted = false; it.deletedAt = null; transactions.push(it); } saveTrashToStorage(ta.filter(function (x) { return x.id != id; })); saveData(); updateAllViews(); updateTrashList(); performSearch(); showNotification(t('transactionRestored'), 'success'); }
-        function deletePermanently(id) { if (confirm(t('deletePermanentConfirm'))) { transactions = transactions.filter(function (t) { return t.id !== id; }); var ta = getTrashFromStorage().filter(function (t) { return t.id != id; }); saveTrashToStorage(ta); saveData(); updateAllViews(); updateTrashList(); performSearch(); showNotification(t('transactionDeletedPerm'), 'warning'); } }
+        async function saveTransactionEdit() {
+            if (!currentUser) return;
+            const dStr = document.getElementById('editTransactionDate').value;
+            const v = parseFloat(document.getElementById('editTransactionValue').value);
+            const c = document.getElementById('editTransactionCategory').value;
+            const desc = document.getElementById('editTransactionDescription').value.trim();
+            const f = document.getElementById('editTransactionFavorite').checked;
+
+            if (!dStr || !v || v <= 0 || !c || !desc) {
+                showNotification(t('fillAllFields'), 'error');
+                return;
+            }
+
+            try {
+                await db.collection('transacoes').doc(editingTransactionId).update({
+                    valor: v,
+                    descricao: desc,
+                    data: dStr,
+                    categoria: c,
+                    favorita: !!f,
+                    atualizadoEm: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                closeModal('editTransactionModal');
+                showNotification(t('transactionEdited'), 'success');
+            } catch (error) {
+                console.error("Erro ao editar transação:", error);
+                showNotification("Erro ao atualizar no Firestore", "error");
+            }
+        }
+
+        async function deleteTransaction(id) {
+            if (!currentUser) return;
+            if (confirm(t('moveToTrash'))) {
+                try {
+                    await db.collection('transacoes').doc(id).update({
+                        excluido: true,
+                        excluidoEm: new Date().toISOString()
+                    });
+                    showNotification(t('movedToTrash'), 'success');
+                } catch (error) {
+                    console.error("Erro ao mover para lixeira:", error);
+                    showNotification("Erro ao atualizar status no Firestore", "error");
+                }
+            }
+        }
+
+        async function restoreTransaction(id) {
+            if (!currentUser) return;
+            try {
+                await db.collection('transacoes').doc(id).update({
+                    excluido: false,
+                    excluidoEm: null
+                });
+                showNotification(t('transactionRestored'), 'success');
+            } catch (error) {
+                console.error("Erro ao restaurar transação:", error);
+                showNotification("Erro ao restaurar no Firestore", "error");
+            }
+        }
+
+        async function deletePermanently(id) {
+            if (!currentUser) return;
+            if (confirm(t('deletePermanentConfirm'))) {
+                try {
+                    await db.collection('transacoes').doc(id).delete();
+                    showNotification(t('transactionDeletedPerm'), 'warning');
+                } catch (error) {
+                    console.error("Erro ao excluir permanentemente:", error);
+                    showNotification("Erro ao excluir no Firestore", "error");
+                }
+            }
+        }
         function emptyTrash() { const tc = getTrashTransactions().length; if (tc === 0) { showNotification(t('trashEmpty'), 'info'); return; } if (confirm(t('emptyTrashConfirm') + ' ' + tc + ' ' + t('trashEmptyConfirm'))) { transactions = getActiveTransactions(); saveTrashToStorage([]); saveData(); updateAllViews(); updateTrashList(); performSearch(); showNotification(t('trashEmptied'), 'warning'); } }
         function updateTrashList() {
             var l = document.getElementById('trashList');
@@ -4177,11 +4285,102 @@
         }
 
         function showAddGoalModal() { showModal('addGoalModal'); }
-        function addGoal() { const d = document.getElementById('goalDescription').value.trim(); const tg = parseFloat(document.getElementById('goalTarget').value); const c = parseFloat(document.getElementById('goalCurrent').value) || 0; if (!d || !tg || tg <= 0) { showNotification(t('fillGoalFields'), 'error'); return; } if (c > tg) { showNotification(t('currentNotGreater'), 'error'); return; } const g = { id: Date.now(), description: d, target: tg, current: c, order: goals.length, createdAt: new Date().toISOString() }; goals.push(g); saveData(); updateGoalsList(); closeModal('addGoalModal'); document.getElementById('addGoalForm').reset(); showNotification(t('goalAdded'), 'success'); }
-        function editGoal(id) { const g = goals.find(g => g.id === id); if (!g) return; editingGoalId = id; document.getElementById('editGoalDescription').value = g.description; document.getElementById('editGoalTarget').value = g.target; document.getElementById('editGoalCurrent').value = g.current; showModal('editGoalModal'); }
-        function saveGoalEdit() { const d = document.getElementById('editGoalDescription').value.trim(); const tg = parseFloat(document.getElementById('editGoalTarget').value); const c = parseFloat(document.getElementById('editGoalCurrent').value) || 0; if (!d || !tg || tg <= 0) { showNotification(t('fillGoalCorrect'), 'error'); return; } if (c > tg) { showNotification(t('currentNotGreater'), 'error'); return; } const i = goals.findIndex(g => g.id === editingGoalId); if (i !== -1) { goals[i].description = d; goals[i].target = tg; goals[i].current = c; saveData(); updateGoalsList(); closeModal('editGoalModal'); showNotification(t('goalEdited'), 'success'); } }
-        function deleteGoal(id) { if (confirm(t('deleteGoalConfirm'))) { goals = goals.filter(g => g.id !== id); goals.forEach((g, i) => { g.order = i; }); saveData(); updateGoalsList(); showNotification(t('goalDeleted'), 'success'); } }
-        function moveGoal(id, dir) { const i = goals.findIndex(g => g.id === id); const ni = i + dir; if (ni < 0 || ni >= goals.length) return;[goals[i], goals[ni]] = [goals[ni], goals[i]]; goals[i].order = i; goals[ni].order = ni; saveData(); updateGoalsList(); }
+        async function addGoal() {
+            if (!currentUser) return;
+            const dStr = document.getElementById('goalDescription').value.trim();
+            const tg = parseFloat(document.getElementById('goalTarget').value);
+            const c = parseFloat(document.getElementById('goalCurrent').value) || 0;
+
+            if (!dStr || !tg || tg <= 0) {
+                showNotification(t('fillGoalFields'), 'error');
+                return;
+            }
+            if (c > tg) {
+                showNotification(t('currentNotGreater'), 'error');
+                return;
+            }
+
+            try {
+                await db.collection('metas').add({
+                    userId: currentUser.uid,
+                    descricao: dStr,
+                    valorMeta: tg,
+                    valorAtual: c,
+                    ordem: goals.length,
+                    criadoEm: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                closeModal('addGoalModal');
+                document.getElementById('addGoalForm').reset();
+                showNotification(t('goalAdded'), 'success');
+            } catch (error) {
+                console.error("Erro ao adicionar meta:", error);
+                showNotification("Erro ao salvar meta no Firestore", "error");
+            }
+        }
+
+        async function saveGoalEdit() {
+            if (!currentUser) return;
+            const dStr = document.getElementById('editGoalDescription').value.trim();
+            const tg = parseFloat(document.getElementById('editGoalTarget').value);
+            const c = parseFloat(document.getElementById('editGoalCurrent').value) || 0;
+
+            if (!dStr || !tg || tg <= 0) {
+                showNotification(t('fillGoalCorrect'), 'error');
+                return;
+            }
+            if (c > tg) {
+                showNotification(t('currentNotGreater'), 'error');
+                return;
+            }
+
+            try {
+                await db.collection('metas').doc(editingGoalId).update({
+                    descricao: dStr,
+                    valorMeta: tg,
+                    valorAtual: c,
+                    atualizadoEm: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                closeModal('editGoalModal');
+                showNotification(t('goalEdited'), 'success');
+            } catch (error) {
+                console.error("Erro ao editar meta:", error);
+                showNotification("Erro ao atualizar meta no Firestore", "error");
+            }
+        }
+
+        async function deleteGoal(id) {
+            if (!currentUser) return;
+            if (confirm(t('deleteGoalConfirm'))) {
+                try {
+                    await db.collection('metas').doc(id).delete();
+                    showNotification(t('goalDeleted'), 'success');
+                } catch (error) {
+                    console.error("Erro ao excluir meta:", error);
+                    showNotification("Erro ao excluir no Firestore", "error");
+                }
+            }
+        }
+
+        async function moveGoal(id, dir) {
+            if (!currentUser) return;
+            const i = goals.findIndex(g => g.id === id);
+            const ni = i + dir;
+            if (ni < 0 || ni >= goals.length) return;
+
+            const g1 = goals[i];
+            const g2 = goals[ni];
+
+            try {
+                const batch = db.batch();
+                batch.update(db.collection('metas').doc(g1.id), { ordem: ni });
+                batch.update(db.collection('metas').doc(g2.id), { ordem: i });
+                await batch.commit();
+            } catch (error) {
+                console.error("Erro ao reordenar metas:", error);
+            }
+        }
+        drum
+        drum
 
         function updateTransactionsList() { const l = document.getElementById('transactionsList'); const a = getActiveTransactions(); if (a.length === 0) { l.innerHTML = '<div class="empty-state">' + t('noTransactionsFoundShort') + '</div>'; return; } const s = [...a].sort((a, b) => new Date(b.date) - new Date(a.date)); l.innerHTML = s.map(tx => renderTransactionItem(tx)).join(''); }
         function updateGoalsList() {
@@ -4255,60 +4454,77 @@
         function showNotification(msg, type = 'info') { const n = document.getElementById('notifications'); const el = document.createElement('div'); el.className = `notification ${type}`; el.textContent = msg; n.appendChild(el); setTimeout(() => { el.remove(); }, 4000); }
 
         let isSyncingFromRemote = false;
+        let unsubscribeTransactions = null;
+        let unsubscribeGoals = null;
+
         async function loadDataFromFirebase() {
             if (!currentUser) return;
             try {
-                // Real-time synchronization for transactions
-                db.collection('users').doc(currentUser.uid).collection('data').doc('transactions')
-                    .onSnapshot((doc) => {
-                        if (doc.exists && !doc.metadata.hasPendingWrites) {
-                            const remoteList = doc.data().list || [];
-                            // Deep check if really changed
-                            if (JSON.stringify(remoteList) !== JSON.stringify(transactions)) {
-                                console.log("Atualizando transações via remote sync");
-                                transactions = remoteList;
-                                localStorage.setItem('financialTransactions_v2', JSON.stringify(transactions));
-                                updateAllViews();
-                                performSearch();
-                            }
+                // TRANSACTIONS Sync (Filtered by userId)
+                if (unsubscribeTransactions) unsubscribeTransactions();
+                unsubscribeTransactions = db.collection('transacoes')
+                    .where('userId', '==', currentUser.uid)
+                    .onSnapshot((snapshot) => {
+                        const remoteTransactions = snapshot.docs.map(doc => {
+                            const d = doc.data();
+                            return {
+                                id: doc.id,
+                                value: d.valor,
+                                type: d.tipo === 'ganho' ? 'income' : 'expense',
+                                description: d.descricao,
+                                date: d.data,
+                                category: d.category || d.categoria || 'outros',
+                                favorite: !!d.favorita,
+                                deleted: !!d.excluido,
+                                createdAt: d.criadoEm
+                            };
+                        });
+
+                        // Sync with local state only if data actually changed
+                        if (JSON.stringify(remoteTransactions) !== JSON.stringify(transactions)) {
+                            transactions = remoteTransactions;
+                            localStorage.setItem('financialTransactions_v2', JSON.stringify(transactions));
+                            updateAllViews();
+                            performSearch();
+                        }
+                    }, (error) => {
+                        console.error("Erro no onSnapshot de transações:", error);
+                        if (error.code === 'permission-denied') {
+                            showNotification("Erro de permissão no Firestore. Verifique as regras de segurança.", "error");
                         }
                     });
 
-                // Real-time synchronization for goals
-                db.collection('users').doc(currentUser.uid).collection('data').doc('goals')
-                    .onSnapshot((doc) => {
-                        if (doc.exists && !doc.metadata.hasPendingWrites) {
-                            const remoteList = doc.data().list || [];
-                            if (JSON.stringify(remoteList) !== JSON.stringify(goals)) {
-                                console.log("Atualizando metas via remote sync");
-                                goals = remoteList;
-                                localStorage.setItem('financialGoals_v2', JSON.stringify(goals));
-                                updateAllViews();
-                            }
+                // GOALS Sync (Filtered by userId)
+                if (unsubscribeGoals) unsubscribeGoals();
+                unsubscribeGoals = db.collection('metas')
+                    .where('userId', '==', currentUser.uid)
+                    .onSnapshot((snapshot) => {
+                        const remoteGoals = snapshot.docs.map(doc => {
+                            const d = doc.data();
+                            return {
+                                id: doc.id,
+                                description: d.descricao || '',
+                                target: d.valorMeta || d.target || 0,
+                                current: d.valorAtual || d.current || 0,
+                                order: d.ordem || 0,
+                                createdAt: d.criadoEm
+                            };
+                        });
+
+                        if (JSON.stringify(remoteGoals) !== JSON.stringify(goals)) {
+                            goals = remoteGoals;
+                            localStorage.setItem('financialGoals_v2', JSON.stringify(goals));
+                            updateAllViews();
                         }
+                    }, (error) => {
+                        console.error("Erro no onSnapshot de metas:", error);
                     });
             } catch (e) {
                 console.error("Erro ao configurar listeners Firebase:", e);
             }
         }
 
-        async function saveDataToFirebase() {
-            if (!currentUser) return;
-            try {
-                // Prevent concurrent saves if needed, but Firestore handles this mostly
-                await db.collection('users').doc(currentUser.uid).collection('data').doc('transactions').set({
-                    list: transactions,
-                    updatedAt: new Date().toISOString()
-                });
-                await db.collection('users').doc(currentUser.uid).collection('data').doc('goals').set({
-                    list: goals,
-                    updatedAt: new Date().toISOString()
-                });
-                console.log("Sincronizado com Firestore");
-            } catch (e) {
-                console.error("Erro ao sincronizar com Firestore:", e);
-            }
-        }
+        // saveDataToFirebase legacy removed - now using individual document persistence
 
         function checkScheduledBackup() {
             const now = new Date();
