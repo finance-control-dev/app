@@ -724,79 +724,51 @@
         .header-controls {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 12px;
             flex-shrink: 0;
         }
 
-        /* Pill Toggle Shared Style */
-        .pill-toggle {
-            display: flex;
-            align-items: center;
-            border-radius: 50px;
-            overflow: hidden;
-            background: rgba(255, 255, 255, 0.06);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            padding: 3px;
-            gap: 2px;
-        }
-
-        .light .pill-toggle {
-            background: rgba(0, 0, 0, 0.05);
-            border-color: rgba(0, 0, 0, 0.1);
-        }
-
-        .pill-toggle-btn {
+        .icon-toggle-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            width: 34px;
-            height: 34px;
-            border-radius: 50%;
-            border: none;
-            background: transparent;
-            color: rgba(255, 255, 255, 0.35);
-            cursor: pointer;
             transition: all var(--transition);
-            font-family: inherit;
-            padding: 0;
+            color: var(--dark-text);
+            position: relative;
+            overflow: hidden;
         }
 
-        .light .pill-toggle-btn {
-            color: rgba(0, 0, 0, 0.3);
+        .icon-toggle-btn:hover {
+            background: rgba(255, 255, 255, 0.1);
         }
 
-        .pill-toggle-btn svg {
-            width: 16px;
-            height: 16px;
+        .light .icon-toggle-btn {
+            color: var(--light-text);
         }
 
-        .pill-toggle-btn.active {
-            background: var(--primary);
-            color: white;
-            box-shadow: 0 2px 10px var(--primary-glow);
+        .light .icon-toggle-btn:hover {
+            background: rgba(0, 0, 0, 0.05);
         }
 
-        .light .pill-toggle-btn.active {
-            background: var(--primary);
-            color: white;
-            box-shadow: 0 2px 10px var(--primary-glow);
+        .icon-toggle-btn svg {
+            width: 20px;
+            height: 20px;
+            transition: transform 0.3s ease;
         }
 
-        .pill-toggle-btn:hover:not(.active) {
-            color: rgba(255, 255, 255, 0.6);
+        .icon-toggle-btn:active svg {
+            transform: scale(0.9);
         }
 
-        .light .pill-toggle-btn:hover:not(.active) {
-            color: rgba(0, 0, 0, 0.55);
-        }
 
-        /* Lang pill text style */
-        .pill-toggle-btn.lang-pill {
-            font-size: 0.72rem;
-            font-weight: 700;
-            letter-spacing: 0.3px;
-            text-transform: uppercase;
-        }
+
+
 
         /* SIDE MENU */
         .menu-overlay {
@@ -3116,36 +3088,22 @@
             </div>
         </div>
         <div class="header-controls">
-            <!-- Language Pill Toggle -->
-            <div class="pill-toggle">
-                <button type="button" class="pill-toggle-btn lang-pill active" id="langPt"
-                    onclick="setLanguage('pt-BR')" title="Portugues">PT</button>
-                <button type="button" class="pill-toggle-btn lang-pill" id="langEn" onclick="setLanguage('en')"
-                    title="English">EN</button>
-            </div>
-            <!-- Theme Pill Toggle -->
-            <div class="pill-toggle">
-                <button type="button" class="pill-toggle-btn active" id="themeDark" onclick="setThemeDark()"
-                    title="Modo Escuro">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-                    </svg>
-                </button>
-                <button type="button" class="pill-toggle-btn" id="themeLight" onclick="setThemeLight()"
-                    title="Modo Claro">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <circle cx="12" cy="12" r="5" />
-                        <line x1="12" y1="1" x2="12" y2="3" />
-                        <line x1="12" y1="21" x2="12" y2="23" />
-                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
-                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
-                        <line x1="1" y1="12" x2="3" y2="12" />
-                        <line x1="21" y1="12" x2="23" y2="12" />
-                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
-                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
-                    </svg>
-                </button>
-            </div>
+            <!-- Language Toggle -->
+            <button type="button" class="icon-toggle-btn" id="langToggleBtn" onclick="toggleLanguage()"
+                title="Mudar Idioma">
+                <!-- Icon will be set by JS -->
+                <img src="https://flagcdn.com/w40/br.png" alt="Brazil Flag"
+                    style="width: 24px; height: 18px; border-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.3);">
+            </button>
+
+            <!-- Theme Toggle -->
+            <button type="button" class="icon-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()"
+                title="Alternar Tema">
+                <!-- Icon will be set by JS -->
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                </svg>
+            </button>
         </div>
     </header>
 
@@ -4221,7 +4179,36 @@
         };
 
         let currentLang = localStorage.getItem('lang') || 'pt-BR';
-        function setLanguage(lang) { currentLang = lang; localStorage.setItem('lang', lang); document.getElementById('langPt').classList.toggle('active', lang === 'pt-BR'); document.getElementById('langEn').classList.toggle('active', lang === 'en'); applyTranslations(lang); updateClock(); }
+
+        function toggleLanguage() {
+            if (currentLang === 'pt-BR') {
+                setLanguage('en');
+            } else {
+                setLanguage('pt-BR');
+            }
+        }
+
+        function setLanguage(lang) {
+            currentLang = lang;
+            localStorage.setItem('lang', lang);
+
+            // Update Single Button Icon: Show CURRENT language flag
+            const btn = document.getElementById('langToggleBtn');
+            if (btn) {
+                if (lang === 'pt-BR') {
+                    // Current is PT, show Brazil flag
+                    btn.innerHTML = '<img src="https://flagcdn.com/w40/br.png" alt="Brazil Flag" style="width: 24px; height: 18px; border-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.3);">';
+                    btn.title = "Idioma: Português";
+                } else {
+                    // Current is EN, show USA flag
+                    btn.innerHTML = '<img src="https://flagcdn.com/w40/us.png" alt="USA Flag" style="width: 24px; height: 18px; border-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.3);">';
+                    btn.title = "Language: English";
+                }
+            }
+
+            applyTranslations(lang);
+            updateClock();
+        }
         function t(key) { const lang = currentLang || localStorage.getItem('lang') || 'pt-BR'; return (i18n[lang] && i18n[lang][key]) ? i18n[lang][key] : key; }
         function applyTranslations(lang) { document.querySelectorAll('[data-i18n]').forEach(el => { const key = el.getAttribute('data-i18n'); if (i18n[lang] && i18n[lang][key]) el.textContent = i18n[lang][key]; }); document.querySelectorAll('[data-i18n-placeholder]').forEach(el => { const key = el.getAttribute('data-i18n-placeholder'); if (i18n[lang] && i18n[lang][key]) el.placeholder = i18n[lang][key]; }); document.querySelectorAll('[data-i18n-title]').forEach(el => { const key = el.getAttribute('data-i18n-title'); if (i18n[lang] && i18n[lang][key]) el.title = i18n[lang][key]; }); document.querySelectorAll('option[data-i18n]').forEach(el => { const key = el.getAttribute('data-i18n'); if (i18n[lang] && i18n[lang][key]) el.textContent = i18n[lang][key]; }); document.querySelectorAll('select#searchCategory option[value],select#transactionCategory option[value],select#editTransactionCategory option[value],select#exportCategory option[value]').forEach(opt => { if (opt.value && categoryOrder.includes(opt.value)) opt.textContent = getCategoryLabel(opt.value); }); document.title = i18n[lang] && i18n[lang].pageTitle ? i18n[lang].pageTitle : 'Controle Financeiro'; populateYearSelect(); updateMonthPickerButtonText(); updateAllViews(); updateTrashList(); performSearch(); }
 
@@ -4254,10 +4241,47 @@
         window.addEventListener('load', updateClock);
         document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') { updateClock(); startClock(); } });
 
-        function toggleTheme() { if (document.body.classList.contains('dark')) { setThemeLight(); } else { setThemeDark(); } }
-        function setThemeDark() { document.body.classList.remove('light'); document.body.classList.add('dark'); localStorage.setItem('theme', 'dark'); updateThemeButtons(); }
-        function setThemeLight() { document.body.classList.remove('dark'); document.body.classList.add('light'); localStorage.setItem('theme', 'light'); updateThemeButtons(); }
-        function updateThemeButtons() { var d = document.getElementById('themeDark'); var l = document.getElementById('themeLight'); if (!d || !l) return; if (document.body.classList.contains('dark')) { d.classList.add('active'); l.classList.remove('active'); } else { d.classList.remove('active'); l.classList.add('active'); } }
+        function toggleTheme() {
+            if (document.body.classList.contains('dark')) {
+                setThemeLight();
+            } else {
+                setThemeDark();
+            }
+        }
+
+        function setThemeDark() {
+            document.body.classList.remove('light');
+            document.body.classList.add('dark');
+            localStorage.setItem('theme', 'dark');
+            updateThemeButtons();
+            const chart = Chart.getChart("financeChart");
+            if (chart) updateChart();
+        }
+
+        function setThemeLight() {
+            document.body.classList.remove('dark');
+            document.body.classList.add('light');
+            localStorage.setItem('theme', 'light');
+            updateThemeButtons();
+            const chart = Chart.getChart("financeChart");
+            if (chart) updateChart();
+        }
+
+        function updateThemeButtons() {
+            const btn = document.getElementById('themeToggleBtn');
+            if (!btn) return;
+
+            if (document.body.classList.contains('dark')) {
+                // Dark Mode: Show Moon Icon (indicating current state is dark) OR Sun icon to switch?
+                // Request: "moon icon when dark mode active"
+                btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" /></svg>';
+                btn.title = "Alternar para Modo Claro";
+            } else {
+                // Light Mode: Show Sun Icon
+                btn.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5" /><line x1="12" y1="1" x2="12" y2="3" /><line x1="12" y1="21" x2="12" y2="23" /><line x1="4.22" y1="4.22" x2="5.64" y2="5.64" /><line x1="18.36" y1="18.36" x2="19.78" y2="19.78" /><line x1="1" y1="12" x2="3" y2="12" /><line x1="21" y1="12" x2="23" y2="12" /><line x1="4.22" y1="19.78" x2="5.64" y2="18.36" /><line x1="18.36" y1="5.64" x2="19.78" y2="4.22" /></svg>';
+                btn.title = "Alternar para Modo Escuro";
+            }
+        }
         function updateClock() {
             var te = document.getElementById('clockTime');
             var de = document.getElementById('clockDate');
@@ -4286,7 +4310,18 @@
                 de.textContent = d + ' de ' + monthNamesPt[mo] + ', ' + y;
             }
         }
-        function applyTheme() { const st = localStorage.getItem('theme') || 'dark'; const b = document.body; if (st === 'light') { b.classList.remove('dark'); b.classList.add('light'); } else { b.classList.remove('light'); b.classList.add('dark'); } updateThemeButtons(); }
+        function applyTheme() {
+            const st = localStorage.getItem('theme') || 'dark';
+            const b = document.body;
+            if (st === 'light') {
+                b.classList.remove('dark');
+                b.classList.add('light');
+            } else {
+                b.classList.remove('light');
+                b.classList.add('dark');
+            }
+            updateThemeButtons();
+        }
 
         function toggleMenu() { document.getElementById('menuOverlay').classList.add('active'); document.getElementById('sideMenu').classList.add('active'); }
         function closeMenu() { document.getElementById('menuOverlay').classList.remove('active'); document.getElementById('sideMenu').classList.remove('active'); }
