@@ -3021,11 +3021,11 @@
             color: #ffffff;
         }
 
-        /* --- DESKTOP CENTERED LAYOUT (MOBILE VIEW) --- */
+        /* --- RESPONSIVE DASHBOARD LAYOUT --- */
 
         /* Custom Scrollbars */
         ::-webkit-scrollbar {
-            width: 6px;
+            width: 8px;
         }
 
         ::-webkit-scrollbar-track {
@@ -3033,118 +3033,179 @@
         }
 
         ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.15);
             border-radius: 10px;
         }
 
         ::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.3);
+            background: rgba(255, 255, 255, 0.25);
         }
 
-        /* Body Reset & Centering */
+        /* Body Reset */
         body {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
             margin: 0;
             font-family: 'Inter', sans-serif;
-            background-attachment: scroll !important;
-            /* Override fixed attachment */
+            background-attachment: fixed !important;
+            overflow-x: hidden;
+            /* Prevent horizontal scroll */
         }
 
-        /* Override Theme Backgrounds for Body to be the Desktop Wallpaper */
+        /* Override Theme Backgrounds for Body */
         body.dark,
         body.light {
-            background: radial-gradient(circle at center, #1e293b 0%, #020617 100%) !important;
+            background: radial-gradient(circle at top right, #1e293b 0%, #020617 100%) !important;
         }
 
-        /* App Container - The "Phone" Screen */
+        /* App Container */
         #app-container {
             width: 100%;
-            height: 100vh;
-            height: 100dvh;
+            min-height: 100vh;
             position: relative;
             display: flex;
             flex-direction: column;
-            overflow: hidden;
-            transition: background 0.5s ease;
-            background: var(--dark-bg);
-            /* Default dark bg */
+            background: transparent;
+            /* Let body bg show through */
         }
 
-        .light #app-container {
-            background: var(--light-bg);
-        }
+        /* --- DESKTOP DASHBOARD (Min-width 768px) --- */
+        @media (min-width: 768px) {
 
-        /* Desktop Media Query - The "Phone Frame" */
-        @media (min-width: 500px) {
-            #app-container {
-                max-width: 400px;
-                height: 85vh;
-                max-height: 850px;
-                border-radius: 36px;
-                box-shadow:
-                    0 0 0 8px rgba(30, 41, 59, 0.5),
-                    0 0 0 9px rgba(255, 255, 255, 0.05),
-                    0 20px 50px -10px rgba(0, 0, 0, 0.8);
-                border: 1px solid rgba(255, 255, 255, 0.05);
-            }
-
-            /* Round bottom corners of full-width bottom elements */
+            /* Sidebar Navigation */
             .side-menu {
-                border-top-left-radius: 36px;
-                border-bottom-left-radius: 36px;
+                transform: translateX(0) !important;
+                /* Always visible */
+                visibility: visible !important;
+                width: 260px;
+                top: 0;
+                bottom: 0;
+                left: 0;
+                border-right: 1px solid rgba(255, 255, 255, 0.05);
+                background: rgba(15, 23, 42, 0.6);
+                /* Glass effect sidebar */
+                backdrop-filter: blur(10px);
+                z-index: 50;
+                position: fixed !important;
+                /* Fixed on screen */
+                border-radius: 0 !important;
+                /* Remove mobile radius */
+            }
+
+            .light .side-menu {
+                background: rgba(255, 255, 255, 0.7);
+                border-right: 1px solid rgba(0, 0, 0, 0.05);
+            }
+
+            .menu-overlay {
+                display: none !important;
+            }
+
+            /* Hide overlay */
+            .header .menu-button {
+                display: none !important;
+            }
+
+            /* Hide hamburger */
+            .menu-close {
+                display: none !important;
+            }
+
+            /* Hide close button */
+
+            /* Header Adjustment */
+            .header {
+                left: 260px;
+                width: calc(100% - 260px);
+                padding: 1rem 2rem;
+                backdrop-filter: blur(10px);
+                background: rgba(15, 23, 42, 0.4);
+                border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            }
+
+            .light .header {
+                background: rgba(255, 255, 255, 0.4);
+                border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            }
+
+            /* Main Content Adjustment */
+            .main-content {
+                margin-left: 260px;
+                padding: 90px 2rem 2rem 2rem;
+                /* More breathing room */
+                width: auto;
+                max-width: 1400px;
+                /* Sensible max width for ultra-wide */
+            }
+
+            /* Dashboard Grid Layout */
+            .stats-grid {
+                grid-template-columns: repeat(3, 1fr) !important;
+                gap: 1.5rem;
+            }
+
+            .stat-card {
+                padding: 1.5rem;
+            }
+
+            .stat-value {
+                font-size: 1.8rem;
+            }
+
+            /* Charts & Lists */
+            .chart-container-wrapper {
+                max-height: 400px;
+            }
+
+            .card {
+                padding: 1.5rem 2rem;
+            }
+
+            /* Recent Transactions List - Grid on large screens? */
+            /* Maybe keep list but make it wider */
+            .transaction-item {
+                padding: 1rem 1.5rem;
+                display: grid;
+                grid-template-columns: 1fr auto auto;
+                /* Info, Amount, Actions */
+                align-items: center;
+            }
+
+            .transaction-info {
+                flex: unset;
+            }
+
+            .transaction-amount {
+                text-align: right;
+                margin-right: 2rem;
+            }
+
+            .transaction-actions {
+                justify-content: flex-end;
+            }
+
+            /* Floating Calc - Bottom Right */
+            .floating-calc-btn {
+                right: 2rem;
+                bottom: 2rem;
             }
         }
 
-        /* Fix Positioning for Mobile Elements */
-        /* Ensure they are absolute relative to #app-container, not fixed to window */
-        .splash-screen,
-        .login-overlay,
-        .header,
-        .menu-overlay,
-        .side-menu,
-        .modal-overlay,
-        .notifications,
-        .floating-calc-btn,
-        .calc-overlay {
-            position: absolute !important;
-        }
+        /* Basic Mobile Adjustments (Default < 768px behavior inherited) */
+        /* Ensure content scrolls on mobile */
+        @media (max-width: 767px) {
+            .main-content {
+                padding-bottom: 80px;
+                padding-top: 70px;
+            }
 
-        /* Specific Adjustments */
-        .header {
-            top: 0;
-            width: 100%;
-            z-index: 100;
-        }
+            /* Header and Sidebar behave normally (mobile) */
+            .header {
+                width: 100%;
+                left: 0;
+            }
 
-        .splash-screen,
-        .login-overlay {
-            border-radius: inherit;
-            z-index: 9999;
-        }
-
-        .modal-overlay {
-            border-radius: inherit;
-            z-index: 1000;
-        }
-
-        /* Ensure content area scrolls */
-        .main-content {
-            flex: 1;
-            overflow-y: auto;
-            overflow-x: hidden;
-            padding-top: 70px;
-            /* Space for header */
-            padding-bottom: 80px;
-            /* Space for FABs */
-            width: 100%;
-        }
-
-        /* Hide body scrollbar */
-        body::-webkit-scrollbar {
-            display: none;
+            .side-menu {
+                position: fixed !important;
+            }
         }
     </style>
 </head>
