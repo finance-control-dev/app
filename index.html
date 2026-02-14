@@ -13,7 +13,7 @@
         rel="stylesheet">
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0F172A">
-    <link rel="apple-touch-icon" href="https://placehold.co/192x192/0F172A/FFD700/png?text=$">
+    <link rel="apple-touch-icon" href="icon.png">
     <!-- Firebase SDKs (v10 compat) -->
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
@@ -3020,220 +3020,521 @@
         .light .segmented-btn.active {
             color: #ffffff;
         }
+
+        /* --- DESKTOP CENTERED LAYOUT (MOBILE VIEW) --- */
+
+        /* Custom Scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Body Reset & Centering */
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            font-family: 'Inter', sans-serif;
+            background-attachment: scroll !important;
+            /* Override fixed attachment */
+        }
+
+        /* Override Theme Backgrounds for Body to be the Desktop Wallpaper */
+        body.dark,
+        body.light {
+            background: radial-gradient(circle at center, #1e293b 0%, #020617 100%) !important;
+        }
+
+        /* App Container - The "Phone" Screen */
+        #app-container {
+            width: 100%;
+            height: 100vh;
+            height: 100dvh;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: background 0.5s ease;
+            background: var(--dark-bg);
+            /* Default dark bg */
+        }
+
+        .light #app-container {
+            background: var(--light-bg);
+        }
+
+        /* Desktop Media Query - The "Phone Frame" */
+        @media (min-width: 500px) {
+            #app-container {
+                max-width: 400px;
+                height: 85vh;
+                max-height: 850px;
+                border-radius: 36px;
+                box-shadow:
+                    0 0 0 8px rgba(30, 41, 59, 0.5),
+                    0 0 0 9px rgba(255, 255, 255, 0.05),
+                    0 20px 50px -10px rgba(0, 0, 0, 0.8);
+                border: 1px solid rgba(255, 255, 255, 0.05);
+            }
+
+            /* Round bottom corners of full-width bottom elements */
+            .side-menu {
+                border-top-left-radius: 36px;
+                border-bottom-left-radius: 36px;
+            }
+        }
+
+        /* Fix Positioning for Mobile Elements */
+        /* Ensure they are absolute relative to #app-container, not fixed to window */
+        .splash-screen,
+        .login-overlay,
+        .header,
+        .menu-overlay,
+        .side-menu,
+        .modal-overlay,
+        .notifications,
+        .floating-calc-btn,
+        .calc-overlay {
+            position: absolute !important;
+        }
+
+        /* Specific Adjustments */
+        .header {
+            top: 0;
+            width: 100%;
+            z-index: 100;
+        }
+
+        .splash-screen,
+        .login-overlay {
+            border-radius: inherit;
+            z-index: 9999;
+        }
+
+        .modal-overlay {
+            border-radius: inherit;
+            z-index: 1000;
+        }
+
+        /* Ensure content area scrolls */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding-top: 70px;
+            /* Space for header */
+            padding-bottom: 80px;
+            /* Space for FABs */
+            width: 100%;
+        }
+
+        /* Hide body scrollbar */
+        body::-webkit-scrollbar {
+            display: none;
+        }
     </style>
 </head>
 
 <body class="dark">
-    <!-- Splash Screen -->
-    <div class="splash-screen" id="splashScreen">
-        <div class="splash-logo">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-            </svg>
-        </div>
-        <h1 class="splash-title">Controle Financeiro</h1>
-        <p class="splash-subtitle">Gerencie suas finanças de forma inteligente</p>
-        <div class="splash-loader"></div>
-    </div>
-
-    <!-- Login Screen -->
-    <div class="login-overlay" id="loginOverlay" style="display:none;">
-        <div class="login-card">
-            <div class="login-logo">
-                <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+    <div id="app-container">
+        <!-- Splash Screen -->
+        <div class="splash-screen" id="splashScreen">
+            <div class="splash-logo">
+                <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
                 </svg>
             </div>
-            <h2 class="login-title">Bem-vindo ao Finanças</h2>
-            <p class="login-subtitle">Acesse sua conta para sincronizar seus dados</p>
-            <button class="google-login-btn" id="googleLoginBtn" onclick="loginWithGoogle()">
-                <svg viewBox="0 0 48 48" width="24" height="24">
-                    <path fill="#EA4335"
-                        d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z">
-                    </path>
-                    <path fill="#4285F4"
-                        d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z">
-                    </path>
-                    <path fill="#FBBC05"
-                        d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z">
-                    </path>
-                    <path fill="#34A853"
-                        d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z">
-                    </path>
-                </svg>
-                <span>Entrar com Google</span>
-            </button>
-            <div class="login-loader" id="loginLoader" style="display:none;"></div>
+            <h1 class="splash-title">Controle Financeiro</h1>
+            <p class="splash-subtitle">Gerencie suas finanças de forma inteligente</p>
+            <div class="splash-loader"></div>
         </div>
-    </div>
 
-    <!-- Header -->
-    <header class="header">
-        <div class="header-new-left">
-            <button class="menu-button" onclick="toggleMenu()" style="margin-right:4px;">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="3" y1="6" x2="21" y2="6" />
-                    <line x1="3" y1="12" x2="21" y2="12" />
-                    <line x1="3" y1="18" x2="21" y2="18" />
-                </svg>
-            </button>
-            <div class="header-icon-circle">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                </svg>
+        <!-- Login Screen -->
+        <div class="login-overlay" id="loginOverlay" style="display:none;">
+            <div class="login-card">
+                <div class="login-logo">
+                    <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                    </svg>
+                </div>
+                <h2 class="login-title">Bem-vindo ao Finanças</h2>
+                <p class="login-subtitle">Acesse sua conta para sincronizar seus dados</p>
+                <button class="google-login-btn" id="googleLoginBtn" onclick="loginWithGoogle()">
+                    <svg viewBox="0 0 48 48" width="24" height="24">
+                        <path fill="#EA4335"
+                            d="M24 9.5c3.54 0 6.71 1.22 9.21 3.6l6.85-6.85C35.9 2.38 30.47 0 24 0 14.62 0 6.51 5.38 2.56 13.22l7.98 6.19C12.43 13.72 17.74 9.5 24 9.5z">
+                        </path>
+                        <path fill="#4285F4"
+                            d="M46.98 24.55c0-1.57-.15-3.09-.38-4.55H24v9.02h12.94c-.58 2.96-2.26 5.48-4.78 7.18l7.73 6c4.51-4.18 7.09-10.36 7.09-17.65z">
+                        </path>
+                        <path fill="#FBBC05"
+                            d="M10.53 28.59c-.48-1.45-.76-2.99-.76-4.59s.27-3.14.76-4.59l-7.98-6.19C.92 16.46 0 20.12 0 24c0 3.88.92 7.54 2.56 10.78l7.97-6.19z">
+                        </path>
+                        <path fill="#34A853"
+                            d="M24 48c6.48 0 11.93-2.13 15.89-5.81l-7.73-6c-2.15 1.45-4.92 2.3-8.16 2.3-6.26 0-11.57-4.22-13.47-9.91l-7.98 6.19C6.51 42.62 14.62 48 24 48z">
+                        </path>
+                    </svg>
+                    <span>Entrar com Google</span>
+                </button>
+                <div class="login-loader" id="loginLoader" style="display:none;"></div>
             </div>
-            <div class="header-new-info">
-                <h1 class="header-new-title" data-i18n="appTitle">CONTROLE FINANCEIRO </h1>
-                <div class="header-new-date" id="headerNewDate">
-                    <span id="clockDate">--/--/----</span> <span style="margin:0 2px;">&#8226;</span> <span
-                        id="clockTime">00:00</span>
+        </div>
+
+        <!-- Header -->
+        <header class="header">
+            <div class="header-new-left">
+                <button class="menu-button" onclick="toggleMenu()" style="margin-right:4px;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="3" y1="6" x2="21" y2="6" />
+                        <line x1="3" y1="12" x2="21" y2="12" />
+                        <line x1="3" y1="18" x2="21" y2="18" />
+                    </svg>
+                </button>
+                <div class="header-icon-circle">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                    </svg>
+                </div>
+                <div class="header-new-info">
+                    <h1 class="header-new-title" data-i18n="appTitle">CONTROLE FINANCEIRO </h1>
+                    <div class="header-new-date" id="headerNewDate">
+                        <span id="clockDate">--/--/----</span> <span style="margin:0 2px;">&#8226;</span> <span
+                            id="clockTime">00:00</span>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="header-controls">
-            <!-- Language Toggle -->
-            <button type="button" class="icon-toggle-btn" id="langToggleBtn" onclick="toggleLanguage()"
-                title="Mudar Idioma">
-                <!-- Icon will be set by JS -->
-                <img src="https://flagcdn.com/w40/br.png" alt="Brazil Flag"
-                    style="width: 24px; height: 18px; border-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.3);">
-            </button>
+            <div class="header-controls">
+                <!-- Language Toggle -->
+                <button type="button" class="icon-toggle-btn" id="langToggleBtn" onclick="toggleLanguage()"
+                    title="Mudar Idioma">
+                    <!-- Icon will be set by JS -->
+                    <img src="https://flagcdn.com/w40/br.png" alt="Brazil Flag"
+                        style="width: 24px; height: 18px; border-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.3);">
+                </button>
 
-            <!-- Theme Toggle -->
-            <button type="button" class="icon-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()"
-                title="Alternar Tema">
-                <!-- Icon will be set by JS -->
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
-                </svg>
-            </button>
-        </div>
-    </header>
-
-    <!-- Menu Overlay -->
-    <div class="menu-overlay" id="menuOverlay" onclick="closeMenu()"></div>
-
-    <!-- Side Menu -->
-    <nav class="side-menu" id="sideMenu">
-        <div class="menu-header">
-            <h2 data-i18n="menu">Menu</h2>
-            <button class="menu-close" onclick="closeMenu()">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="18" y1="6" x2="6" y2="18" />
-                    <line x1="6" y1="6" x2="18" y2="18" />
-                </svg>
-            </button>
-        </div>
-        <!-- User Profile Section -->
-        <div id="userProfile" class="user-profile" style="display: none;">
-            <div class="user-avatar-wrapper">
-                <img id="userAvatar" class="user-avatar" src="" alt="Avatar">
+                <!-- Theme Toggle -->
+                <button type="button" class="icon-toggle-btn" id="themeToggleBtn" onclick="toggleTheme()"
+                    title="Alternar Tema">
+                    <!-- Icon will be set by JS -->
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+                    </svg>
+                </button>
             </div>
-            <div class="user-info">
-                <span id="userName" class="user-name">Usuário</span>
-                <span id="userEmail" class="user-email">email@exemplo.com</span>
-            </div>
-        </div>
-        <div class="menu-items">
-            <button class="menu-item active" onclick="showTab('new-transaction', this)">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="12" y1="8" x2="12" y2="16" />
-                    <line x1="8" y1="12" x2="16" y2="12" />
-                </svg>
-                <span data-i18n="menuNewTransaction">Nova Transacao</span>
-            </button>
-            <button class="menu-item" onclick="showTab('transactions', this)">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                    <polyline points="14,2 14,8 20,8" />
-                    <line x1="16" y1="13" x2="8" y2="13" />
-                    <line x1="16" y1="17" x2="8" y2="17" />
-                </svg>
-                <span data-i18n="menuTransactions">Transacoes</span>
-            </button>
-            <button class="menu-item" onclick="showTab('search', this)">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="11" cy="11" r="8" />
-                    <path d="m21 21-4.35-4.35" />
-                </svg>
-                <span data-i18n="menuSearch">Buscar</span>
-            </button>
-            <button class="menu-item" onclick="showTab('charts', this)">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="18" y1="20" x2="18" y2="10" />
-                    <line x1="12" y1="20" x2="12" y2="4" />
-                    <line x1="6" y1="20" x2="6" y2="14" />
-                </svg>
-                <span data-i18n="menuCharts">Grafico</span>
-            </button>
-            <button class="menu-item" onclick="showTab('summaries', this)">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                    <polyline points="14,2 14,8 20,8" />
-                    <line x1="16" y1="13" x2="8" y2="13" />
-                    <line x1="16" y1="17" x2="8" y2="17" />
-                </svg>
-                <span data-i18n="menuSummaries">Resumos</span>
-            </button>
-            <button class="menu-item" onclick="showTab('goals', this)">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10" />
-                    <polygon points="10,8 16,12 10,16 10,8" />
-                </svg>
-                <span data-i18n="menuGoals">Metas</span>
-            </button>
-            <button class="menu-item" onclick="showTab('trash', this)">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="3,6 5,6 21,6" />
-                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                    <line x1="10" y1="11" x2="10" y2="17" />
-                    <line x1="14" y1="11" x2="14" y2="17" />
-                </svg>
-                <span data-i18n="menuTrash">Lixeira</span>
-            </button>
-            <button class="menu-item" onclick="showTab('backup', this)">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                    <polyline points="7,10 12,15 17,10" />
-                    <line x1="12" y1="15" x2="12" y2="3" />
-                </svg>
-                <span data-i18n="menuBackup">Backup</span>
-            </button>
-            <button class="menu-item" onclick="logout()" style="margin-top: auto; color: var(--danger);">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-                    <polyline points="16 17 21 12 16 7" />
-                    <line x1="21" y1="12" x2="9" y2="12" />
-                </svg>
-                <span data-i18n="logout">Sair</span>
-            </button>
-        </div>
-    </nav>
+        </header>
 
-    <!-- Main Content -->
-    <main class="main-content">
-        <!-- Transactions Tab -->
-        <div id="transactions" class="tab-content">
-            <div class="card">
-                <h2 class="mb-2" data-i18n="allTransactions">Todas as Transacoes</h2>
-                <div id="transactionsList"></div>
-            </div>
-        </div>
+        <!-- Menu Overlay -->
+        <div class="menu-overlay" id="menuOverlay" onclick="closeMenu()"></div>
 
-        <!-- Search Tab -->
-        <div id="search" class="tab-content">
-            <div class="card">
-                <h2 class="mb-2" data-i18n="searchTransactions">Buscar Transacoes</h2>
-                <div class="search-section">
-                    <div class="search-filters">
-                        <div class="form-group"><label class="form-label" data-i18n="searchByName">Buscar por
-                                nome/descricao</label><input type="text" id="searchDescription" class="form-input"
-                                data-i18n-placeholder="placeholderDesc" placeholder="Digite a descricao..."
-                                oninput="performSearch()"></div>
-                        <div class="form-group"><label class="form-label" data-i18n="category">Categoria</label>
-                            <select id="searchCategory" class="form-select" onchange="performSearch()">
-                                <option value="" data-i18n="allCategories">Todas as categorias</option>
+        <!-- Side Menu -->
+        <nav class="side-menu" id="sideMenu">
+            <div class="menu-header">
+                <h2 data-i18n="menu">Menu</h2>
+                <button class="menu-close" onclick="closeMenu()">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="6" x2="6" y2="18" />
+                        <line x1="6" y1="6" x2="18" y2="18" />
+                    </svg>
+                </button>
+            </div>
+            <!-- User Profile Section -->
+            <div id="userProfile" class="user-profile" style="display: none;">
+                <div class="user-avatar-wrapper">
+                    <img id="userAvatar" class="user-avatar" src="" alt="Avatar">
+                </div>
+                <div class="user-info">
+                    <span id="userName" class="user-name">Usuário</span>
+                    <span id="userEmail" class="user-email">email@exemplo.com</span>
+                </div>
+            </div>
+            <div class="menu-items">
+                <button class="menu-item active" onclick="showTab('new-transaction', this)">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <line x1="12" y1="8" x2="12" y2="16" />
+                        <line x1="8" y1="12" x2="16" y2="12" />
+                    </svg>
+                    <span data-i18n="menuNewTransaction">Nova Transacao</span>
+                </button>
+                <button class="menu-item" onclick="showTab('transactions', this)">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                        <polyline points="14,2 14,8 20,8" />
+                        <line x1="16" y1="13" x2="8" y2="13" />
+                        <line x1="16" y1="17" x2="8" y2="17" />
+                    </svg>
+                    <span data-i18n="menuTransactions">Transacoes</span>
+                </button>
+                <button class="menu-item" onclick="showTab('search', this)">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="11" cy="11" r="8" />
+                        <path d="m21 21-4.35-4.35" />
+                    </svg>
+                    <span data-i18n="menuSearch">Buscar</span>
+                </button>
+                <button class="menu-item" onclick="showTab('charts', this)">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <line x1="18" y1="20" x2="18" y2="10" />
+                        <line x1="12" y1="20" x2="12" y2="4" />
+                        <line x1="6" y1="20" x2="6" y2="14" />
+                    </svg>
+                    <span data-i18n="menuCharts">Grafico</span>
+                </button>
+                <button class="menu-item" onclick="showTab('summaries', this)">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                        <polyline points="14,2 14,8 20,8" />
+                        <line x1="16" y1="13" x2="8" y2="13" />
+                        <line x1="16" y1="17" x2="8" y2="17" />
+                    </svg>
+                    <span data-i18n="menuSummaries">Resumos</span>
+                </button>
+                <button class="menu-item" onclick="showTab('goals', this)">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10" />
+                        <polygon points="10,8 16,12 10,16 10,8" />
+                    </svg>
+                    <span data-i18n="menuGoals">Metas</span>
+                </button>
+                <button class="menu-item" onclick="showTab('trash', this)">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <polyline points="3,6 5,6 21,6" />
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                        <line x1="10" y1="11" x2="10" y2="17" />
+                        <line x1="14" y1="11" x2="14" y2="17" />
+                    </svg>
+                    <span data-i18n="menuTrash">Lixeira</span>
+                </button>
+                <button class="menu-item" onclick="showTab('backup', this)">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                        <polyline points="7,10 12,15 17,10" />
+                        <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                    <span data-i18n="menuBackup">Backup</span>
+                </button>
+                <button class="menu-item" onclick="logout()" style="margin-top: auto; color: var(--danger);">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                        <polyline points="16 17 21 12 16 7" />
+                        <line x1="21" y1="12" x2="9" y2="12" />
+                    </svg>
+                    <span data-i18n="logout">Sair</span>
+                </button>
+            </div>
+        </nav>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Transactions Tab -->
+            <div id="transactions" class="tab-content">
+                <div class="card">
+                    <h2 class="mb-2" data-i18n="allTransactions">Todas as Transacoes</h2>
+                    <div id="transactionsList"></div>
+                </div>
+            </div>
+
+            <!-- Search Tab -->
+            <div id="search" class="tab-content">
+                <div class="card">
+                    <h2 class="mb-2" data-i18n="searchTransactions">Buscar Transacoes</h2>
+                    <div class="search-section">
+                        <div class="search-filters">
+                            <div class="form-group"><label class="form-label" data-i18n="searchByName">Buscar por
+                                    nome/descricao</label><input type="text" id="searchDescription" class="form-input"
+                                    data-i18n-placeholder="placeholderDesc" placeholder="Digite a descricao..."
+                                    oninput="performSearch()"></div>
+                            <div class="form-group"><label class="form-label" data-i18n="category">Categoria</label>
+                                <select id="searchCategory" class="form-select" onchange="performSearch()">
+                                    <option value="" data-i18n="allCategories">Todas as categorias</option>
+                                    <option value="alimentacao">&#127869; Alimentacao</option>
+                                    <option value="mercado">&#128722; Mercado</option>
+                                    <option value="combustivel">&#9981; Combustivel</option>
+                                    <option value="manutencao_veiculo">&#128295; Manutencao Veiculo</option>
+                                    <option value="transporte">&#128663; Transporte</option>
+                                    <option value="moradia">&#127968; Moradia</option>
+                                    <option value="saude">&#127973; Saude</option>
+                                    <option value="educacao">&#128218; Educacao</option>
+                                    <option value="lazer">&#127918; Lazer</option>
+                                    <option value="salario">&#128188; Salario</option>
+                                    <option value="freelance">&#128187; Freelance</option>
+                                    <option value="investimentos">&#128200; Investimentos</option>
+                                    <option value="outros">&#128230; Outros</option>
+                                </select>
+                            </div>
+                            <div class="form-group"><label class="form-label" data-i18n="type">Tipo</label>
+                                <select id="searchType" class="form-select" onchange="performSearch()">
+                                    <option value="" data-i18n="allTypes">Todos os tipos</option>
+                                    <option value="income" data-i18n="income">Receita</option>
+                                    <option value="expense" data-i18n="expense">Despesa</option>
+                                </select>
+                            </div>
+                            <div class="form-group"><label class="form-label" data-i18n="monthYear">Mes/Ano</label>
+                                <div class="month-year-filters">
+                                    <div class="form-group" style="margin-bottom:0;"><label class="form-label"
+                                            data-i18n="selectMonth"
+                                            style="font-size:0.8rem;margin-bottom:0.3rem;">Mes</label>
+                                        <button type="button" class="form-input" id="monthPickerButton"
+                                            onclick="showMonthPickerModal()"
+                                            style="text-align:left;cursor:pointer;display:flex;align-items:center;justify-content:space-between;">
+                                            <span id="monthPickerButtonText" data-i18n="selectMonth">Selecionar
+                                                Mes</span>
+                                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                                stroke="currentColor" stroke-width="2">
+                                                <polyline points="6,9 12,15 18,9"></polyline>
+                                            </svg>
+                                        </button>
+                                        <input type="hidden" id="selectedMonths" value="">
+                                    </div>
+                                    <div class="form-group" style="margin-bottom:0;"><label class="form-label"
+                                            data-i18n="selectYear"
+                                            style="font-size:0.8rem;margin-bottom:0.3rem;">Ano</label>
+                                        <select id="searchYear" class="form-select" onchange="performSearch()">
+                                            <option value="">Todos os anos</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group form-group-checkbox"><label
+                                    class="form-label form-label-checkbox"><input type="checkbox" id="searchFavorites"
+                                        onchange="performSearch()"> &#11088; <span data-i18n="favoritesOnly">Apenas
+                                        favoritas</span></label></div>
+                        </div>
+                        <div class="search-actions">
+                            <button class="btn btn-primary" onclick="performSearch()"><svg width="16" height="16"
+                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <circle cx="11" cy="11" r="8" />
+                                    <path d="m21 21-4.35-4.35" />
+                                </svg><span data-i18n="search">Buscar</span></button>
+                            <button class="btn btn-secondary" onclick="clearSearch()"><svg width="16" height="16"
+                                    viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="3,6 5,6 21,6" />
+                                    <path
+                                        d="m19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2" />
+                                </svg><span data-i18n="clearFilters">Limpar Filtros</span></button>
+                            <button class="btn btn-success" onclick="exportSearchResultsToExcel()"><svg width="16"
+                                    height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                    <polyline points="7,10 12,15 17,10" />
+                                    <line x1="12" y1="15" x2="12" y2="3" />
+                                </svg><span data-i18n="exportResults">Exportar Resultados</span></button>
+                        </div>
+                    </div>
+                    <div class="search-results">
+                        <div class="search-result-header">
+                            <h3 data-i18n="searchResults">Resultados da Busca</h3><span class="search-result-count"
+                                id="searchResultCount">0 transacoes encontradas</span>
+                        </div>
+                        <div class="card mb-2" id="searchTotalsCard" style="display:none;">
+                            <div class="stats-grid">
+                                <div class="stat-card income">
+                                    <div class="stat-value" id="searchTotalIncome">R$ 0,00</div>
+                                    <div class="stat-label" data-i18n="searchIncome">Receitas na Busca</div>
+                                </div>
+                                <div class="stat-card expense">
+                                    <div class="stat-value" id="searchTotalExpense">R$ 0,00</div>
+                                    <div class="stat-label" data-i18n="searchExpense">Despesas na Busca</div>
+                                </div>
+                                <div class="stat-card balance">
+                                    <div class="stat-value" id="searchTotalBalance">R$ 0,00</div>
+                                    <div class="stat-label" data-i18n="searchBalance">Saldo da Busca</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div id="searchResultsList"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- New Transaction Tab -->
+            <div id="new-transaction" class="tab-content active">
+                <div class="card">
+                    <h2 class="mb-2" data-i18n="newTransaction">Nova Transacao</h2>
+                    <form id="transactionForm">
+                        <!-- Segmented Control -->
+                        <div class="segmented-control-container">
+                            <div class="segmented-background" id="segmentedBackground"></div>
+                            <button type="button" class="segmented-btn active" id="btnIncome"
+                                onclick="setTransactionType('income')">
+                                <span data-i18n="gains">Ganho</span>
+                            </button>
+                            <button type="button" class="segmented-btn" id="btnExpense"
+                                onclick="setTransactionType('expense')">
+                                <span data-i18n="spending">Gasto</span>
+                            </button>
+                        </div>
+
+                        <!-- Value Display -->
+                        <div class="value-display-section">
+                            <div class="value-display-label" data-i18n="value">VALOR DO LANCAMENTO</div>
+                            <input type="number" id="transactionValue" class="value-display-amount" step="0.01" min="0"
+                                placeholder="0,00" required
+                                style="width:100%;border:none;background:transparent;padding:0;outline:none;font-family:inherit;">
+                        </div>
+
+                        <!-- Date Row -->
+                        <div class="form-row-label" data-i18n="date">DATA</div>
+                        <div class="form-row-styled date-row-styled">
+                            <div class="form-row-icon"
+                                onclick="var inp=document.getElementById('transactionDate');inp.showPicker?inp.showPicker():inp.focus();"
+                                style="cursor:pointer;">
+                                <span class="form-icon">&#128197;</span>
+                            </div>
+                            <span class="date-display-text" id="dateDisplayText"
+                                onclick="var inp=document.getElementById('transactionDate');inp.showPicker?inp.showPicker():inp.focus();">--/--/----</span>
+                            <input type="date" id="transactionDate" class="form-input" required
+                                style="position:absolute;opacity:0;pointer-events:none;width:0;height:0;">
+                            <div class="date-nav-arrows">
+                                <button type="button" class="date-nav-btn"
+                                    onclick="event.stopPropagation();var inp=document.getElementById('transactionDate');inp.showPicker?inp.showPicker():inp.focus();"
+                                    title="Calendario">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                        <line x1="16" y1="2" x2="16" y2="6" />
+                                        <line x1="8" y1="2" x2="8" y2="6" />
+                                        <line x1="3" y1="10" x2="21" y2="10" />
+                                    </svg>
+                                </button>
+                                <button type="button" class="date-nav-btn"
+                                    onclick="event.stopPropagation();previousDay();" title="Dia anterior">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <polyline points="15,18 9,12 15,6" />
+                                    </svg>
+                                </button>
+                                <button type="button" class="date-nav-btn" onclick="event.stopPropagation();nextDay();"
+                                    title="Proximo dia">
+                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                        stroke-width="2">
+                                        <polyline points="9,18 15,12 9,6" />
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Category Row -->
+                        <div class="form-row-label" data-i18n="category">CATEGORIA</div>
+                        <div class="form-row-styled">
+                            <div class="form-row-icon">
+                                <span class="form-icon">📋</span>
+                            </div>
+                            <select id="transactionCategory" class="form-select" required style="flex:1;">
+                                <option value="" data-i18n="selectCategory">Selecione uma categoria</option>
                                 <option value="alimentacao">&#127869; Alimentacao</option>
                                 <option value="mercado">&#128722; Mercado</option>
                                 <option value="combustivel">&#9981; Combustivel</option>
@@ -3249,163 +3550,330 @@
                                 <option value="outros">&#128230; Outros</option>
                             </select>
                         </div>
-                        <div class="form-group"><label class="form-label" data-i18n="type">Tipo</label>
-                            <select id="searchType" class="form-select" onchange="performSearch()">
-                                <option value="" data-i18n="allTypes">Todos os tipos</option>
-                                <option value="income" data-i18n="income">Receita</option>
-                                <option value="expense" data-i18n="expense">Despesa</option>
+
+                        <!-- Description Row -->
+                        <div class="form-row-label" data-i18n="description">DESCRICAO</div>
+                        <div class="form-row-styled">
+                            <div class="form-row-icon">
+                                <span class="form-icon">📝</span>
+                            </div>
+                            <input type="text" id="transactionDescription" class="form-input"
+                                data-i18n-placeholder="placeholderDescShort" placeholder="No que voce esta pensando?"
+                                required style="flex:1;">
+                        </div>
+
+                        <!-- Favorite -->
+                        <label class="favorite-row">
+                            <input type="checkbox" id="transactionFavorite">
+                            <span class="toggle-slider"></span>
+                            <span style="font-size:0.9rem;font-weight:500;">&#11088; <span
+                                    data-i18n="favoriteTransaction">Favoritar esta transação</span></span>
+                        </label>
+
+                        <!-- Save Button -->
+                        <button type="button" class="btn-save-transaction" id="btnSaveTransaction"
+                            onclick="saveNewTransaction()">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5">
+                                <polyline points="20,6 9,17 4,12" />
+                            </svg>
+                            <span data-i18n="saveTransaction">Salvar Transacao</span>
+                        </button>
+                    </form>
+                </div>
+                <div class="card">
+                    <h3 class="mb-2" data-i18n="dailyTransactions">Transacoes do Dia Selecionado</h3>
+                    <div class="stats-grid mb-2">
+                        <div class="stat-card income">
+                            <div class="stat-icon">&#128176;</div>
+                            <div class="stat-value" id="dailyIncome">R$ 0,00</div>
+                            <div class="stat-label" data-i18n="gains">Ganhos</div>
+                        </div>
+                        <div class="stat-card expense">
+                            <div class="stat-icon">&#128184;</div>
+                            <div class="stat-value" id="dailyExpense">R$ 0,00</div>
+                            <div class="stat-label" data-i18n="spending">Gastos</div>
+                        </div>
+                        <div class="stat-card balance">
+                            <div class="stat-icon">&#128202;</div>
+                            <div class="stat-value" id="dailyBalance">R$ 0,00</div>
+                            <div class="stat-label" data-i18n="balance">Saldo</div>
+                        </div>
+                    </div>
+                    <div id="dailyTransactionsList"></div>
+                </div>
+            </div>
+
+            <!-- Charts Tab -->
+            <div id="charts" class="tab-content">
+                <div class="card">
+                    <h2 class="mb-2" data-i18n="chartsTitle">Graficos de Receitas e Despesas</h2>
+                    <div class="chart-filters">
+                        <div class="form-group"><label class="form-label" data-i18n="period">Periodo</label>
+                            <select id="chartPeriod" class="form-select"
+                                onchange="toggleChartPeriodInputs();updateChart();">
+                                <option value="month" data-i18n="monthSpecific">Mes especifico</option>
+                                <option value="week" data-i18n="weekSpecific">Semana especifica</option>
+                                <option value="year" data-i18n="yearSpecific">Ano especifico</option>
+                                <option value="last3" data-i18n="last3Months">Ultimos 3 meses</option>
+                                <option value="last6" data-i18n="last6Months">Ultimos 6 meses</option>
                             </select>
                         </div>
-                        <div class="form-group"><label class="form-label" data-i18n="monthYear">Mes/Ano</label>
-                            <div class="month-year-filters">
-                                <div class="form-group" style="margin-bottom:0;"><label class="form-label"
-                                        data-i18n="selectMonth"
-                                        style="font-size:0.8rem;margin-bottom:0.3rem;">Mes</label>
-                                    <button type="button" class="form-input" id="monthPickerButton"
-                                        onclick="showMonthPickerModal()"
-                                        style="text-align:left;cursor:pointer;display:flex;align-items:center;justify-content:space-between;">
-                                        <span id="monthPickerButtonText" data-i18n="selectMonth">Selecionar Mes</span>
-                                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                                            stroke="currentColor" stroke-width="2">
-                                            <polyline points="6,9 12,15 18,9"></polyline>
-                                        </svg>
-                                    </button>
-                                    <input type="hidden" id="selectedMonths" value="">
-                                </div>
-                                <div class="form-group" style="margin-bottom:0;"><label class="form-label"
-                                        data-i18n="selectYear"
-                                        style="font-size:0.8rem;margin-bottom:0.3rem;">Ano</label>
-                                    <select id="searchYear" class="form-select" onchange="performSearch()">
-                                        <option value="">Todos os anos</option>
-                                    </select>
-                                </div>
+                        <div class="form-group chart-period-input" id="chartMonthGroup"><label class="form-label"
+                                data-i18n="month">Mes</label><input type="month" id="chartMonth" class="form-input"
+                                onchange="updateChart()"></div>
+                        <div class="form-group chart-period-input" id="chartWeekGroup" style="display:none;"><label
+                                class="form-label" data-i18n="week">Semana</label><input type="week" id="chartWeek"
+                                class="form-input" onchange="updateChart()"></div>
+                        <div class="form-group chart-period-input" id="chartYearGroup" style="display:none;"><label
+                                class="form-label" data-i18n="year">Ano</label><input type="number" id="chartYear"
+                                class="form-input" min="2020" max="2030" onchange="updateChart()"></div>
+                        <div class="form-group"><label class="form-label" data-i18n="view">Visualizar</label>
+                            <select id="chartTypeFilter" class="form-select" onchange="updateChart()">
+                                <option value="both" data-i18n="incomeExpense">Receitas e Despesas</option>
+                                <option value="expense" data-i18n="expenseOnly">Apenas Despesas</option>
+                                <option value="income" data-i18n="incomeOnly">Apenas Receitas</option>
+                            </select>
+                        </div>
+                        <div class="form-group"><label class="form-label" data-i18n="chartType">Tipo de grafico</label>
+                            <div class="chart-type-toggle">
+                                <button type="button" class="chart-type-btn active" data-type="pie"
+                                    onclick="setChartType('pie')">&#129383; <span data-i18n="pie">Pizza</span></button>
+                                <button type="button" class="chart-type-btn" data-type="bar"
+                                    onclick="setChartType('bar')">&#128202; <span data-i18n="bar">Barras</span></button>
                             </div>
                         </div>
-                        <div class="form-group form-group-checkbox"><label class="form-label form-label-checkbox"><input
-                                    type="checkbox" id="searchFavorites" onchange="performSearch()"> &#11088; <span
-                                    data-i18n="favoritesOnly">Apenas favoritas</span></label></div>
                     </div>
-                    <div class="search-actions">
-                        <button class="btn btn-primary" onclick="performSearch()"><svg width="16" height="16"
-                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <circle cx="11" cy="11" r="8" />
-                                <path d="m21 21-4.35-4.35" />
-                            </svg><span data-i18n="search">Buscar</span></button>
-                        <button class="btn btn-secondary" onclick="clearSearch()"><svg width="16" height="16"
+                    <div class="chart-container-wrapper"><canvas id="financeChart"></canvas></div>
+                </div>
+            </div>
+
+            <!-- Summaries Tab -->
+            <div id="summaries" class="tab-content">
+                <div class="summary-section">
+                    <div class="summary-header" onclick="toggleSummary('daily')">
+                        <div class="summary-title"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                <line x1="16" y1="2" x2="16" y2="6" />
+                                <line x1="8" y1="2" x2="8" y2="6" />
+                                <line x1="3" y1="10" x2="21" y2="10" />
+                            </svg><span data-i18n="dailySummary">Resumo Diario</span></div><svg class="expand-icon"
+                            width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polyline points="6,9 12,15 18,9" />
+                        </svg>
+                    </div>
+                    <div class="summary-content" id="dailySummaryContent">
+                        <div class="summary-body">
+                            <div class="form-group"><label class="form-label" data-i18n="selectDay">Selecionar
+                                    Dia</label><input type="date" id="dailySummaryDate" class="form-input"
+                                    onchange="updateDailySummary()"></div>
+                            <div class="stats-grid mb-2">
+                                <div class="stat-card income">
+                                    <div class="stat-value" id="dailySummaryIncome">R$ 0,00</div>
+                                    <div class="stat-label" data-i18n="gains">Ganhos</div>
+                                </div>
+                                <div class="stat-card expense">
+                                    <div class="stat-value" id="dailySummaryExpense">R$ 0,00</div>
+                                    <div class="stat-label" data-i18n="spending">Gastos</div>
+                                </div>
+                                <div class="stat-card balance">
+                                    <div class="stat-value" id="dailySummaryBalance">R$ 0,00</div>
+                                    <div class="stat-label" data-i18n="balance">Saldo</div>
+                                </div>
+                            </div>
+                            <div id="dailySummaryTransactions"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="summary-section">
+                    <div class="summary-header" onclick="toggleSummary('weekly')">
+                        <div class="summary-title"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="20" x2="18" y2="10" />
+                                <line x1="12" y1="20" x2="12" y2="4" />
+                                <line x1="6" y1="20" x2="6" y2="14" />
+                            </svg><span data-i18n="weeklySummary">Resumo Semanal</span></div><svg class="expand-icon"
+                            width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polyline points="6,9 12,15 18,9" />
+                        </svg>
+                    </div>
+                    <div class="summary-content" id="weeklySummaryContent">
+                        <div class="summary-body">
+                            <div class="form-group"><label class="form-label" data-i18n="selectWeek">Selecionar
+                                    Semana</label><input type="week" id="weeklySummaryDate" class="form-input"
+                                    onchange="updateWeeklySummary()"></div>
+                            <div class="stats-grid mb-2">
+                                <div class="stat-card income">
+                                    <div class="stat-value" id="weeklySummaryIncome">R$ 0,00</div>
+                                    <div class="stat-label" data-i18n="gains">Ganhos</div>
+                                </div>
+                                <div class="stat-card expense">
+                                    <div class="stat-value" id="weeklySummaryExpense">R$ 0,00</div>
+                                    <div class="stat-label" data-i18n="spending">Gastos</div>
+                                </div>
+                                <div class="stat-card balance">
+                                    <div class="stat-value" id="weeklySummaryBalance">R$ 0,00</div>
+                                    <div class="stat-label" data-i18n="balance">Saldo</div>
+                                </div>
+                            </div>
+                            <div id="weeklySummaryTransactions"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="summary-section">
+                    <div class="summary-header" onclick="toggleSummary('monthly')">
+                        <div class="summary-title"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                                <line x1="16" y1="2" x2="16" y2="6" />
+                                <line x1="8" y1="2" x2="8" y2="6" />
+                                <line x1="3" y1="10" x2="21" y2="10" />
+                            </svg><span data-i18n="monthlySummary">Resumo Mensal</span></div><svg class="expand-icon"
+                            width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polyline points="6,9 12,15 18,9" />
+                        </svg>
+                    </div>
+                    <div class="summary-content" id="monthlySummaryContent">
+                        <div class="summary-body">
+                            <div class="form-group"><label class="form-label" data-i18n="selectMonth">Selecionar
+                                    Mes</label><input type="month" id="monthlySummaryDate" class="form-input"
+                                    onchange="updateMonthlySummary()"></div>
+                            <div class="stats-grid mb-2">
+                                <div class="stat-card income">
+                                    <div class="stat-value" id="monthlySummaryIncome">R$ 0,00</div>
+                                    <div class="stat-label" data-i18n="gains">Ganhos</div>
+                                </div>
+                                <div class="stat-card expense">
+                                    <div class="stat-value" id="monthlySummaryExpense">R$ 0,00</div>
+                                    <div class="stat-label" data-i18n="spending">Gastos</div>
+                                </div>
+                                <div class="stat-card balance">
+                                    <div class="stat-value" id="monthlySummaryBalance">R$ 0,00</div>
+                                    <div class="stat-label" data-i18n="balance">Saldo</div>
+                                </div>
+                            </div>
+                            <div id="monthlySummaryTransactions"></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="summary-section">
+                    <div class="summary-header" onclick="toggleSummary('yearly')">
+                        <div class="summary-title"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2">
+                                <line x1="18" y1="20" x2="18" y2="10" />
+                                <line x1="12" y1="20" x2="12" y2="4" />
+                                <line x1="6" y1="20" x2="6" y2="14" />
+                            </svg><span data-i18n="yearlySummary">Resumo Anual</span></div><svg class="expand-icon"
+                            width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <polyline points="6,9 12,15 18,9" />
+                        </svg>
+                    </div>
+                    <div class="summary-content" id="yearlySummaryContent">
+                        <div class="summary-body">
+                            <div class="form-group"><label class="form-label" data-i18n="selectYear">Selecionar
+                                    Ano</label><input type="number" id="yearlySummaryDate" class="form-input" min="2020"
+                                    max="2030" onchange="updateYearlySummary()"></div>
+                            <div class="stats-grid mb-2">
+                                <div class="stat-card income">
+                                    <div class="stat-value" id="yearlySummaryIncome">R$ 0,00</div>
+                                    <div class="stat-label" data-i18n="gains">Ganhos</div>
+                                </div>
+                                <div class="stat-card expense">
+                                    <div class="stat-value" id="yearlySummaryExpense">R$ 0,00</div>
+                                    <div class="stat-label" data-i18n="spending">Gastos</div>
+                                </div>
+                                <div class="stat-card balance">
+                                    <div class="stat-value" id="yearlySummaryBalance">R$ 0,00</div>
+                                    <div class="stat-label" data-i18n="balance">Saldo</div>
+                                </div>
+                            </div>
+                            <div id="yearlySummaryTransactions"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Goals Tab -->
+            <div id="goals" class="tab-content">
+                <div class="card">
+                    <div class="flex justify-between items-center mb-2">
+                        <h2 data-i18n="financialGoals">Metas Financeiras</h2><button class="btn btn-primary"
+                            onclick="showAddGoalModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                stroke="currentColor" stroke-width="2">
+                                <line x1="12" y1="5" x2="12" y2="19" />
+                                <line x1="5" y1="12" x2="19" y2="12" />
+                            </svg><span data-i18n="newGoal">Nova Meta</span></button>
+                    </div>
+                    <div id="goalsList"></div>
+                </div>
+            </div>
+
+            <!-- Trash Tab -->
+            <div id="trash" class="tab-content">
+                <div class="card">
+                    <div class="flex justify-between items-center mb-2"><button type="button" class="btn btn-danger"
+                            onclick="emptyTrash()" id="emptyTrashBtn" style="display:none;"><svg width="16" height="16"
                                 viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                                 <polyline points="3,6 5,6 21,6" />
                                 <path
-                                    d="m19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2" />
-                            </svg><span data-i18n="clearFilters">Limpar Filtros</span></button>
-                        <button class="btn btn-success" onclick="exportSearchResultsToExcel()"><svg width="16"
-                                height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                <polyline points="7,10 12,15 17,10" />
-                                <line x1="12" y1="15" x2="12" y2="3" />
-                            </svg><span data-i18n="exportResults">Exportar Resultados</span></button>
-                    </div>
-                </div>
-                <div class="search-results">
-                    <div class="search-result-header">
-                        <h3 data-i18n="searchResults">Resultados da Busca</h3><span class="search-result-count"
-                            id="searchResultCount">0 transacoes encontradas</span>
-                    </div>
-                    <div class="card mb-2" id="searchTotalsCard" style="display:none;">
-                        <div class="stats-grid">
-                            <div class="stat-card income">
-                                <div class="stat-value" id="searchTotalIncome">R$ 0,00</div>
-                                <div class="stat-label" data-i18n="searchIncome">Receitas na Busca</div>
-                            </div>
-                            <div class="stat-card expense">
-                                <div class="stat-value" id="searchTotalExpense">R$ 0,00</div>
-                                <div class="stat-label" data-i18n="searchExpense">Despesas na Busca</div>
-                            </div>
-                            <div class="stat-card balance">
-                                <div class="stat-value" id="searchTotalBalance">R$ 0,00</div>
-                                <div class="stat-label" data-i18n="searchBalance">Saldo da Busca</div>
-                            </div>
-                        </div>
-                    </div>
-                    <div id="searchResultsList"></div>
+                                    d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                            </svg><span data-i18n="emptyTrash">Esvaziar lixeira</span></button></div>
+                    <p class="mb-2" style="opacity:0.6;font-size:0.85rem;" data-i18n="trashInfo">Transacoes excluidas
+                        podem
+                        ser restauradas ou removidas permanentemente.</p>
+                    <div id="trashList"></div>
                 </div>
             </div>
-        </div>
 
-        <!-- New Transaction Tab -->
-        <div id="new-transaction" class="tab-content active">
-            <div class="card">
-                <h2 class="mb-2" data-i18n="newTransaction">Nova Transacao</h2>
-                <form id="transactionForm">
-                    <!-- Segmented Control -->
-                    <div class="segmented-control-container">
-                        <div class="segmented-background" id="segmentedBackground"></div>
-                        <button type="button" class="segmented-btn active" id="btnIncome"
-                            onclick="setTransactionType('income')">
-                            <span data-i18n="gains">Ganho</span>
+            <!-- Backup Tab -->
+            <div id="backup" class="tab-content">
+                <div class="card">
+                    <h2 class="mb-2" data-i18n="backupExport">Backup e Exportacao</h2>
+                    <div class="backup-grid">
+                        <button class="backup-btn backup-btn-export" onclick="exportData()">
+                            <div class="backup-btn-icon">&#128228;</div><span data-i18n="exportJson">Exportar
+                                JSON</span>
                         </button>
-                        <button type="button" class="segmented-btn" id="btnExpense"
-                            onclick="setTransactionType('expense')">
-                            <span data-i18n="spending">Gasto</span>
+                        <button class="backup-btn backup-btn-import"
+                            onclick="document.getElementById('importFile').click()">
+                            <div class="backup-btn-icon">&#128229;</div><span data-i18n="importJson">Importar
+                                JSON</span>
+                        </button>
+                        <button class="backup-btn backup-btn-excel" onclick="showExportExcelModal()">
+                            <div class="backup-btn-icon">&#128202;</div><span data-i18n="exportExcel">Exportar
+                                Excel</span>
+                        </button>
+                        <button class="backup-btn backup-btn-clear" onclick="clearAllData()">
+                            <div class="backup-btn-icon">&#128465;</div><span data-i18n="clearAll">Limpar Tudo</span>
                         </button>
                     </div>
+                    <input type="file" id="importFile" accept=".json" style="display:none;"
+                        onchange="importData(event)">
+                </div>
+            </div>
+        </main>
 
-                    <!-- Value Display -->
-                    <div class="value-display-section">
-                        <div class="value-display-label" data-i18n="value">VALOR DO LANCAMENTO</div>
-                        <input type="number" id="transactionValue" class="value-display-amount" step="0.01" min="0"
-                            placeholder="0,00" required
-                            style="width:100%;border:none;background:transparent;padding:0;outline:none;font-family:inherit;">
-                    </div>
-
-                    <!-- Date Row -->
-                    <div class="form-row-label" data-i18n="date">DATA</div>
-                    <div class="form-row-styled date-row-styled">
-                        <div class="form-row-icon"
-                            onclick="var inp=document.getElementById('transactionDate');inp.showPicker?inp.showPicker():inp.focus();"
-                            style="cursor:pointer;">
-                            <span class="form-icon">&#128197;</span>
-                        </div>
-                        <span class="date-display-text" id="dateDisplayText"
-                            onclick="var inp=document.getElementById('transactionDate');inp.showPicker?inp.showPicker():inp.focus();">--/--/----</span>
-                        <input type="date" id="transactionDate" class="form-input" required
-                            style="position:absolute;opacity:0;pointer-events:none;width:0;height:0;">
-                        <div class="date-nav-arrows">
-                            <button type="button" class="date-nav-btn"
-                                onclick="event.stopPropagation();var inp=document.getElementById('transactionDate');inp.showPicker?inp.showPicker():inp.focus();"
-                                title="Calendario">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2">
-                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                                    <line x1="16" y1="2" x2="16" y2="6" />
-                                    <line x1="8" y1="2" x2="8" y2="6" />
-                                    <line x1="3" y1="10" x2="21" y2="10" />
-                                </svg>
-                            </button>
-                            <button type="button" class="date-nav-btn" onclick="event.stopPropagation();previousDay();"
-                                title="Dia anterior">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2">
-                                    <polyline points="15,18 9,12 15,6" />
-                                </svg>
-                            </button>
-                            <button type="button" class="date-nav-btn" onclick="event.stopPropagation();nextDay();"
-                                title="Proximo dia">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2">
-                                    <polyline points="9,18 15,12 9,6" />
-                                </svg>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Category Row -->
-                    <div class="form-row-label" data-i18n="category">CATEGORIA</div>
-                    <div class="form-row-styled">
-                        <div class="form-row-icon">
-                            <span class="form-icon">📋</span>
-                        </div>
-                        <select id="transactionCategory" class="form-select" required style="flex:1;">
-                            <option value="" data-i18n="selectCategory">Selecione uma categoria</option>
+        <!-- Edit Transaction Modal -->
+        <div class="modal-overlay" id="editTransactionModal">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3 class="modal-title" data-i18n="editTransaction">Editar Transacao</h3><button class="modal-close"
+                        onclick="closeModal('editTransactionModal')">&times;</button>
+                </div>
+                <form id="editTransactionForm">
+                    <div class="form-group"><label class="form-label" data-i18n="date">Data</label><input type="date"
+                            id="editTransactionDate" class="form-input" required></div>
+                    <div class="form-group"><label class="form-label" data-i18n="value">Valor (R$)</label><input
+                            type="number" id="editTransactionValue" class="form-input" step="0.01" min="0"
+                            max="999999.99" required></div>
+                    <div class="form-group"><label class="form-label" data-i18n="category">Categoria</label>
+                        <select id="editTransactionCategory" class="form-select" required>
+                            <option value="">Selecione uma categoria</option>
                             <option value="alimentacao">&#127869; Alimentacao</option>
                             <option value="mercado">&#128722; Mercado</option>
                             <option value="combustivel">&#9981; Combustivel</option>
@@ -3421,527 +3889,203 @@
                             <option value="outros">&#128230; Outros</option>
                         </select>
                     </div>
-
-                    <!-- Description Row -->
-                    <div class="form-row-label" data-i18n="description">DESCRICAO</div>
-                    <div class="form-row-styled">
-                        <div class="form-row-icon">
-                            <span class="form-icon">📝</span>
-                        </div>
-                        <input type="text" id="transactionDescription" class="form-input"
-                            data-i18n-placeholder="placeholderDescShort" placeholder="No que voce esta pensando?"
-                            required style="flex:1;">
+                    <div class="form-group"><label class="form-label" data-i18n="description">Descricao</label><textarea
+                            id="editTransactionDescription" class="form-textarea" required></textarea></div>
+                    <div class="form-group form-group-checkbox"><label class="form-label form-label-checkbox"><input
+                                type="checkbox" id="editTransactionFavorite"> &#11088; <span
+                                data-i18n="favoriteTransaction">Favoritar esta transacao</span></label></div>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-primary" onclick="saveTransactionEdit()"><svg width="16"
+                                height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                                <polyline points="17,21 17,13 7,13 7,21" />
+                                <polyline points="7,3 7,8 15,8" />
+                            </svg><span data-i18n="save">Salvar</span></button>
+                        <button type="button" class="btn btn-secondary"
+                            onclick="closeModal('editTransactionModal')"><span
+                                data-i18n="cancel">Cancelar</span></button>
                     </div>
-
-                    <!-- Favorite -->
-                    <label class="favorite-row">
-                        <input type="checkbox" id="transactionFavorite">
-                        <span class="toggle-slider"></span>
-                        <span style="font-size:0.9rem;font-weight:500;">&#11088; <span
-                                data-i18n="favoriteTransaction">Favoritar esta transação</span></span>
-                    </label>
-
-                    <!-- Save Button -->
-                    <button type="button" class="btn-save-transaction" id="btnSaveTransaction"
-                        onclick="saveNewTransaction()">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2.5">
-                            <polyline points="20,6 9,17 4,12" />
-                        </svg>
-                        <span data-i18n="saveTransaction">Salvar Transacao</span>
-                    </button>
                 </form>
             </div>
-            <div class="card">
-                <h3 class="mb-2" data-i18n="dailyTransactions">Transacoes do Dia Selecionado</h3>
-                <div class="stats-grid mb-2">
-                    <div class="stat-card income">
-                        <div class="stat-icon">&#128176;</div>
-                        <div class="stat-value" id="dailyIncome">R$ 0,00</div>
-                        <div class="stat-label" data-i18n="gains">Ganhos</div>
-                    </div>
-                    <div class="stat-card expense">
-                        <div class="stat-icon">&#128184;</div>
-                        <div class="stat-value" id="dailyExpense">R$ 0,00</div>
-                        <div class="stat-label" data-i18n="spending">Gastos</div>
-                    </div>
-                    <div class="stat-card balance">
-                        <div class="stat-icon">&#128202;</div>
-                        <div class="stat-value" id="dailyBalance">R$ 0,00</div>
-                        <div class="stat-label" data-i18n="balance">Saldo</div>
-                    </div>
+        </div>
+
+        <!-- Add Goal Modal -->
+        <div class="modal-overlay" id="addGoalModal">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3 class="modal-title" data-i18n="addGoal">Nova Meta</h3><button class="modal-close"
+                        onclick="closeModal('addGoalModal')">&times;</button>
                 </div>
-                <div id="dailyTransactionsList"></div>
+                <form id="addGoalForm">
+                    <div class="form-group"><label class="form-label" data-i18n="goalDescription">Descricao da
+                            Meta</label><input type="text" id="goalDescription" class="form-input"
+                            data-i18n-placeholder="goalPlaceholder" placeholder="Ex: Comprar um carro" required></div>
+                    <div class="form-group"><label class="form-label" data-i18n="goalTarget">Valor da Meta
+                            (R$)</label><input type="number" id="goalTarget" class="form-input" step="0.01" min="0"
+                            placeholder="0,00" required></div>
+                    <div class="form-group"><label class="form-label" data-i18n="goalCurrent">Valor Atual
+                            (R$)</label><input type="number" id="goalCurrent" class="form-input" step="0.01" min="0"
+                            placeholder="0,00" value="0"></div>
+                    <div class="btn-group"><button type="button" class="btn btn-primary" onclick="addGoal()"><svg
+                                width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                                <polyline points="17,21 17,13 7,13 7,21" />
+                                <polyline points="7,3 7,8 15,8" />
+                            </svg><span data-i18n="saveGoal">Salvar Meta</span></button><button type="button"
+                            class="btn btn-secondary" onclick="closeModal('addGoalModal')"><span
+                                data-i18n="cancel">Cancelar</span></button></div>
+                </form>
             </div>
         </div>
 
-        <!-- Charts Tab -->
-        <div id="charts" class="tab-content">
-            <div class="card">
-                <h2 class="mb-2" data-i18n="chartsTitle">Graficos de Receitas e Despesas</h2>
-                <div class="chart-filters">
-                    <div class="form-group"><label class="form-label" data-i18n="period">Periodo</label>
-                        <select id="chartPeriod" class="form-select"
-                            onchange="toggleChartPeriodInputs();updateChart();">
+        <!-- Edit Goal Modal -->
+        <div class="modal-overlay" id="editGoalModal">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3 class="modal-title" data-i18n="editGoal">Editar Meta</h3><button class="modal-close"
+                        onclick="closeModal('editGoalModal')">&times;</button>
+                </div>
+                <form id="editGoalForm">
+                    <div class="form-group"><label class="form-label" data-i18n="goalDescription">Descricao da
+                            Meta</label><input type="text" id="editGoalDescription" class="form-input" required></div>
+                    <div class="form-group"><label class="form-label" data-i18n="goalTarget">Valor da Meta
+                            (R$)</label><input type="number" id="editGoalTarget" class="form-input" step="0.01" min="0"
+                            required></div>
+                    <div class="form-group"><label class="form-label" data-i18n="goalCurrent">Valor Atual
+                            (R$)</label><input type="number" id="editGoalCurrent" class="form-input" step="0.01"
+                            min="0"></div>
+                    <div class="btn-group"><button type="button" class="btn btn-primary" onclick="saveGoalEdit()"><svg
+                                width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2">
+                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                                <polyline points="17,21 17,13 7,13 7,21" />
+                                <polyline points="7,3 7,8 15,8" />
+                            </svg><span data-i18n="save">Salvar</span></button><button type="button"
+                            class="btn btn-secondary" onclick="closeModal('editGoalModal')"><span
+                                data-i18n="cancel">Cancelar</span></button></div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Month Picker Modal -->
+        <div class="modal-overlay" id="monthPickerModal">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3 class="modal-title" data-i18n="selectMonth">Selecionar Mes</h3><button class="modal-close"
+                        onclick="closeMonthPickerModal()">&times;</button>
+                </div>
+                <div class="month-picker-container" id="monthPickerContainer">
+                    <div class="month-picker-header"><span class="month-picker-year" id="monthPickerYear">2026</span>
+                        <div class="month-picker-nav"><button type="button" class="month-picker-nav-btn"
+                                onclick="changeMonthPickerYear(1)">&#9650;</button><button type="button"
+                                class="month-picker-nav-btn" onclick="changeMonthPickerYear(-1)">&#9660;</button></div>
+                    </div>
+                    <div class="month-picker-grid" id="monthPickerGrid"></div>
+                    <div class="month-picker-grid" id="monthPickerGridOtherYear" style="opacity:0.4;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Export Excel Modal -->
+        <div class="modal-overlay" id="exportExcelModal">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3 class="modal-title" data-i18n="exportToExcel">Exportar para Excel</h3><button
+                        class="modal-close" onclick="closeModal('exportExcelModal')">&times;</button>
+                </div>
+                <form id="exportExcelForm">
+                    <div class="form-group"><label class="form-label" data-i18n="period">Periodo</label><select
+                            id="exportPeriod" class="form-select" onchange="updateExportDateField()">
+                            <option value="all" data-i18n="allRecords">Todos os registros</option>
                             <option value="month" data-i18n="monthSpecific">Mes especifico</option>
-                            <option value="week" data-i18n="weekSpecific">Semana especifica</option>
                             <option value="year" data-i18n="yearSpecific">Ano especifico</option>
-                            <option value="last3" data-i18n="last3Months">Ultimos 3 meses</option>
-                            <option value="last6" data-i18n="last6Months">Ultimos 6 meses</option>
+                        </select></div>
+                    <div class="form-group" id="exportDateGroup" style="display:none;"><label class="form-label"
+                            id="exportDateLabel" data-i18n="date">Data</label><input type="month" id="exportDate"
+                            class="form-input"></div>
+                    <div class="form-group"><label class="form-label" data-i18n="category">Categoria</label>
+                        <select id="exportCategory" class="form-select">
+                            <option value="all" data-i18n="allCategories">Todas as categorias</option>
+                            <option value="income" data-i18n="onlyIncome">Apenas ganhos</option>
+                            <option value="expense" data-i18n="onlyExpense">Apenas gastos</option>
+                            <option value="alimentacao">&#127869; Alimentacao</option>
+                            <option value="mercado">&#128722; Mercado</option>
+                            <option value="combustivel">&#9981; Combustivel</option>
+                            <option value="manutencao_veiculo">&#128295; Manutencao Veiculo</option>
+                            <option value="transporte">&#128663; Transporte</option>
+                            <option value="moradia">&#127968; Moradia</option>
+                            <option value="saude">&#127973; Saude</option>
+                            <option value="educacao">&#128218; Educacao</option>
+                            <option value="lazer">&#127918; Lazer</option>
+                            <option value="salario">&#128188; Salario</option>
+                            <option value="freelance">&#128187; Freelance</option>
+                            <option value="investimentos">&#128200; Investimentos</option>
+                            <option value="outros">&#128230; Outros</option>
                         </select>
                     </div>
-                    <div class="form-group chart-period-input" id="chartMonthGroup"><label class="form-label"
-                            data-i18n="month">Mes</label><input type="month" id="chartMonth" class="form-input"
-                            onchange="updateChart()"></div>
-                    <div class="form-group chart-period-input" id="chartWeekGroup" style="display:none;"><label
-                            class="form-label" data-i18n="week">Semana</label><input type="week" id="chartWeek"
-                            class="form-input" onchange="updateChart()"></div>
-                    <div class="form-group chart-period-input" id="chartYearGroup" style="display:none;"><label
-                            class="form-label" data-i18n="year">Ano</label><input type="number" id="chartYear"
-                            class="form-input" min="2020" max="2030" onchange="updateChart()"></div>
-                    <div class="form-group"><label class="form-label" data-i18n="view">Visualizar</label>
-                        <select id="chartTypeFilter" class="form-select" onchange="updateChart()">
-                            <option value="both" data-i18n="incomeExpense">Receitas e Despesas</option>
-                            <option value="expense" data-i18n="expenseOnly">Apenas Despesas</option>
-                            <option value="income" data-i18n="incomeOnly">Apenas Receitas</option>
-                        </select>
-                    </div>
-                    <div class="form-group"><label class="form-label" data-i18n="chartType">Tipo de grafico</label>
-                        <div class="chart-type-toggle">
-                            <button type="button" class="chart-type-btn active" data-type="pie"
-                                onclick="setChartType('pie')">&#129383; <span data-i18n="pie">Pizza</span></button>
-                            <button type="button" class="chart-type-btn" data-type="bar"
-                                onclick="setChartType('bar')">&#128202; <span data-i18n="bar">Barras</span></button>
-                        </div>
-                    </div>
-                </div>
-                <div class="chart-container-wrapper"><canvas id="financeChart"></canvas></div>
+                    <div class="btn-group"><button type="button" class="btn btn-success"
+                            onclick="exportFilteredToExcel()"><svg width="16" height="16" viewBox="0 0 24 24"
+                                fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                                <polyline points="7,10 12,15 17,10" />
+                                <line x1="12" y1="15" x2="12" y2="3" />
+                            </svg><span data-i18n="exportExcel">Exportar Excel</span></button><button type="button"
+                            class="btn btn-secondary" onclick="closeModal('exportExcelModal')"><span
+                                data-i18n="cancel">Cancelar</span></button></div>
+                </form>
             </div>
         </div>
 
-        <!-- Summaries Tab -->
-        <div id="summaries" class="tab-content">
-            <div class="summary-section">
-                <div class="summary-header" onclick="toggleSummary('daily')">
-                    <div class="summary-title"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2">
-                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                            <line x1="16" y1="2" x2="16" y2="6" />
-                            <line x1="8" y1="2" x2="8" y2="6" />
-                            <line x1="3" y1="10" x2="21" y2="10" />
-                        </svg><span data-i18n="dailySummary">Resumo Diario</span></div><svg class="expand-icon"
-                        width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="6,9 12,15 18,9" />
-                    </svg>
-                </div>
-                <div class="summary-content" id="dailySummaryContent">
-                    <div class="summary-body">
-                        <div class="form-group"><label class="form-label" data-i18n="selectDay">Selecionar
-                                Dia</label><input type="date" id="dailySummaryDate" class="form-input"
-                                onchange="updateDailySummary()"></div>
-                        <div class="stats-grid mb-2">
-                            <div class="stat-card income">
-                                <div class="stat-value" id="dailySummaryIncome">R$ 0,00</div>
-                                <div class="stat-label" data-i18n="gains">Ganhos</div>
-                            </div>
-                            <div class="stat-card expense">
-                                <div class="stat-value" id="dailySummaryExpense">R$ 0,00</div>
-                                <div class="stat-label" data-i18n="spending">Gastos</div>
-                            </div>
-                            <div class="stat-card balance">
-                                <div class="stat-value" id="dailySummaryBalance">R$ 0,00</div>
-                                <div class="stat-label" data-i18n="balance">Saldo</div>
-                            </div>
-                        </div>
-                        <div id="dailySummaryTransactions"></div>
-                    </div>
-                </div>
-            </div>
-            <div class="summary-section">
-                <div class="summary-header" onclick="toggleSummary('weekly')">
-                    <div class="summary-title"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2">
-                            <line x1="18" y1="20" x2="18" y2="10" />
-                            <line x1="12" y1="20" x2="12" y2="4" />
-                            <line x1="6" y1="20" x2="6" y2="14" />
-                        </svg><span data-i18n="weeklySummary">Resumo Semanal</span></div><svg class="expand-icon"
-                        width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="6,9 12,15 18,9" />
-                    </svg>
-                </div>
-                <div class="summary-content" id="weeklySummaryContent">
-                    <div class="summary-body">
-                        <div class="form-group"><label class="form-label" data-i18n="selectWeek">Selecionar
-                                Semana</label><input type="week" id="weeklySummaryDate" class="form-input"
-                                onchange="updateWeeklySummary()"></div>
-                        <div class="stats-grid mb-2">
-                            <div class="stat-card income">
-                                <div class="stat-value" id="weeklySummaryIncome">R$ 0,00</div>
-                                <div class="stat-label" data-i18n="gains">Ganhos</div>
-                            </div>
-                            <div class="stat-card expense">
-                                <div class="stat-value" id="weeklySummaryExpense">R$ 0,00</div>
-                                <div class="stat-label" data-i18n="spending">Gastos</div>
-                            </div>
-                            <div class="stat-card balance">
-                                <div class="stat-value" id="weeklySummaryBalance">R$ 0,00</div>
-                                <div class="stat-label" data-i18n="balance">Saldo</div>
-                            </div>
-                        </div>
-                        <div id="weeklySummaryTransactions"></div>
-                    </div>
-                </div>
-            </div>
-            <div class="summary-section">
-                <div class="summary-header" onclick="toggleSummary('monthly')">
-                    <div class="summary-title"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2">
-                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                            <line x1="16" y1="2" x2="16" y2="6" />
-                            <line x1="8" y1="2" x2="8" y2="6" />
-                            <line x1="3" y1="10" x2="21" y2="10" />
-                        </svg><span data-i18n="monthlySummary">Resumo Mensal</span></div><svg class="expand-icon"
-                        width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="6,9 12,15 18,9" />
-                    </svg>
-                </div>
-                <div class="summary-content" id="monthlySummaryContent">
-                    <div class="summary-body">
-                        <div class="form-group"><label class="form-label" data-i18n="selectMonth">Selecionar
-                                Mes</label><input type="month" id="monthlySummaryDate" class="form-input"
-                                onchange="updateMonthlySummary()"></div>
-                        <div class="stats-grid mb-2">
-                            <div class="stat-card income">
-                                <div class="stat-value" id="monthlySummaryIncome">R$ 0,00</div>
-                                <div class="stat-label" data-i18n="gains">Ganhos</div>
-                            </div>
-                            <div class="stat-card expense">
-                                <div class="stat-value" id="monthlySummaryExpense">R$ 0,00</div>
-                                <div class="stat-label" data-i18n="spending">Gastos</div>
-                            </div>
-                            <div class="stat-card balance">
-                                <div class="stat-value" id="monthlySummaryBalance">R$ 0,00</div>
-                                <div class="stat-label" data-i18n="balance">Saldo</div>
-                            </div>
-                        </div>
-                        <div id="monthlySummaryTransactions"></div>
-                    </div>
-                </div>
-            </div>
-            <div class="summary-section">
-                <div class="summary-header" onclick="toggleSummary('yearly')">
-                    <div class="summary-title"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2">
-                            <line x1="18" y1="20" x2="18" y2="10" />
-                            <line x1="12" y1="20" x2="12" y2="4" />
-                            <line x1="6" y1="20" x2="6" y2="14" />
-                        </svg><span data-i18n="yearlySummary">Resumo Anual</span></div><svg class="expand-icon"
-                        width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="6,9 12,15 18,9" />
-                    </svg>
-                </div>
-                <div class="summary-content" id="yearlySummaryContent">
-                    <div class="summary-body">
-                        <div class="form-group"><label class="form-label" data-i18n="selectYear">Selecionar
-                                Ano</label><input type="number" id="yearlySummaryDate" class="form-input" min="2020"
-                                max="2030" onchange="updateYearlySummary()"></div>
-                        <div class="stats-grid mb-2">
-                            <div class="stat-card income">
-                                <div class="stat-value" id="yearlySummaryIncome">R$ 0,00</div>
-                                <div class="stat-label" data-i18n="gains">Ganhos</div>
-                            </div>
-                            <div class="stat-card expense">
-                                <div class="stat-value" id="yearlySummaryExpense">R$ 0,00</div>
-                                <div class="stat-label" data-i18n="spending">Gastos</div>
-                            </div>
-                            <div class="stat-card balance">
-                                <div class="stat-value" id="yearlySummaryBalance">R$ 0,00</div>
-                                <div class="stat-label" data-i18n="balance">Saldo</div>
-                            </div>
-                        </div>
-                        <div id="yearlySummaryTransactions"></div>
-                    </div>
+        <!-- Floating Calculator -->
+        <button class="floating-calc-btn" onclick="toggleCalculator()" title="Calculadora">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="4" y="2" width="16" height="20" rx="2" ry="2" />
+                <line x1="8" y1="6" x2="16" y2="6" />
+                <line x1="8" y1="10" x2="8" y2="10.01" />
+                <line x1="12" y1="10" x2="12" y2="10.01" />
+                <line x1="16" y1="10" x2="16" y2="10.01" />
+                <line x1="8" y1="14" x2="8" y2="14.01" />
+                <line x1="12" y1="14" x2="12" y2="14.01" />
+                <line x1="16" y1="14" x2="16" y2="14.01" />
+                <line x1="8" y1="18" x2="8" y2="18.01" />
+                <line x1="12" y1="18" x2="12" y2="18.01" />
+                <line x1="16" y1="18" x2="16" y2="18.01" />
+            </svg>
+        </button>
+
+        <!-- Calculator Overlay -->
+        <div class="calc-overlay" id="calcOverlay" onclick="if(event.target===this) toggleCalculator()">
+            <div class="calc-window" onclick="event.stopPropagation()">
+                <input type="text" class="calc-display" id="calcDisplay" readonly value="0">
+                <div class="calc-buttons">
+                    <button type="button" class="calc-btn clear" onclick="calcClear()">C</button>
+                    <button type="button" class="calc-btn operator" onclick="calcInput('\u00B1')">&#177;</button>
+                    <button type="button" class="calc-btn operator" onclick="calcInput('%')">%</button>
+                    <button type="button" class="calc-btn operator" onclick="calcInput('/')">/</button>
+                    <button type="button" class="calc-btn" onclick="calcInput('7')">7</button>
+                    <button type="button" class="calc-btn" onclick="calcInput('8')">8</button>
+                    <button type="button" class="calc-btn" onclick="calcInput('9')">9</button>
+                    <button type="button" class="calc-btn operator" onclick="calcInput('*')">&#215;</button>
+                    <button type="button" class="calc-btn" onclick="calcInput('4')">4</button>
+                    <button type="button" class="calc-btn" onclick="calcInput('5')">5</button>
+                    <button type="button" class="calc-btn" onclick="calcInput('6')">6</button>
+                    <button type="button" class="calc-btn operator" onclick="calcInput('-')">&#8722;</button>
+                    <button type="button" class="calc-btn" onclick="calcInput('1')">1</button>
+                    <button type="button" class="calc-btn" onclick="calcInput('2')">2</button>
+                    <button type="button" class="calc-btn" onclick="calcInput('3')">3</button>
+                    <button type="button" class="calc-btn operator" onclick="calcInput('+')">+</button>
+                    <button type="button" class="calc-btn zero" onclick="calcInput('0')">0</button>
+                    <button type="button" class="calc-btn" onclick="calcInput('.')">.</button>
+                    <button type="button" class="calc-btn equals" onclick="calcEquals()">=</button>
                 </div>
             </div>
         </div>
 
-        <!-- Goals Tab -->
-        <div id="goals" class="tab-content">
-            <div class="card">
-                <div class="flex justify-between items-center mb-2">
-                    <h2 data-i18n="financialGoals">Metas Financeiras</h2><button class="btn btn-primary"
-                        onclick="showAddGoalModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2">
-                            <line x1="12" y1="5" x2="12" y2="19" />
-                            <line x1="5" y1="12" x2="19" y2="12" />
-                        </svg><span data-i18n="newGoal">Nova Meta</span></button>
-                </div>
-                <div id="goalsList"></div>
-            </div>
-        </div>
+        <!-- Notifications -->
+        <div class="notifications" id="notifications"></div>
 
-        <!-- Trash Tab -->
-        <div id="trash" class="tab-content">
-            <div class="card">
-                <div class="flex justify-between items-center mb-2"><button type="button" class="btn btn-danger"
-                        onclick="emptyTrash()" id="emptyTrashBtn" style="display:none;"><svg width="16" height="16"
-                            viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <polyline points="3,6 5,6 21,6" />
-                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                        </svg><span data-i18n="emptyTrash">Esvaziar lixeira</span></button></div>
-                <p class="mb-2" style="opacity:0.6;font-size:0.85rem;" data-i18n="trashInfo">Transacoes excluidas podem
-                    ser restauradas ou removidas permanentemente.</p>
-                <div id="trashList"></div>
-            </div>
-        </div>
-
-        <!-- Backup Tab -->
-        <div id="backup" class="tab-content">
-            <div class="card">
-                <h2 class="mb-2" data-i18n="backupExport">Backup e Exportacao</h2>
-                <div class="backup-grid">
-                    <button class="backup-btn backup-btn-export" onclick="exportData()">
-                        <div class="backup-btn-icon">&#128228;</div><span data-i18n="exportJson">Exportar JSON</span>
-                    </button>
-                    <button class="backup-btn backup-btn-import"
-                        onclick="document.getElementById('importFile').click()">
-                        <div class="backup-btn-icon">&#128229;</div><span data-i18n="importJson">Importar JSON</span>
-                    </button>
-                    <button class="backup-btn backup-btn-excel" onclick="showExportExcelModal()">
-                        <div class="backup-btn-icon">&#128202;</div><span data-i18n="exportExcel">Exportar Excel</span>
-                    </button>
-                    <button class="backup-btn backup-btn-clear" onclick="clearAllData()">
-                        <div class="backup-btn-icon">&#128465;</div><span data-i18n="clearAll">Limpar Tudo</span>
-                    </button>
-                </div>
-                <input type="file" id="importFile" accept=".json" style="display:none;" onchange="importData(event)">
-            </div>
-        </div>
-    </main>
-
-    <!-- Edit Transaction Modal -->
-    <div class="modal-overlay" id="editTransactionModal">
-        <div class="modal">
-            <div class="modal-header">
-                <h3 class="modal-title" data-i18n="editTransaction">Editar Transacao</h3><button class="modal-close"
-                    onclick="closeModal('editTransactionModal')">&times;</button>
-            </div>
-            <form id="editTransactionForm">
-                <div class="form-group"><label class="form-label" data-i18n="date">Data</label><input type="date"
-                        id="editTransactionDate" class="form-input" required></div>
-                <div class="form-group"><label class="form-label" data-i18n="value">Valor (R$)</label><input
-                        type="number" id="editTransactionValue" class="form-input" step="0.01" min="0" max="999999.99"
-                        required></div>
-                <div class="form-group"><label class="form-label" data-i18n="category">Categoria</label>
-                    <select id="editTransactionCategory" class="form-select" required>
-                        <option value="">Selecione uma categoria</option>
-                        <option value="alimentacao">&#127869; Alimentacao</option>
-                        <option value="mercado">&#128722; Mercado</option>
-                        <option value="combustivel">&#9981; Combustivel</option>
-                        <option value="manutencao_veiculo">&#128295; Manutencao Veiculo</option>
-                        <option value="transporte">&#128663; Transporte</option>
-                        <option value="moradia">&#127968; Moradia</option>
-                        <option value="saude">&#127973; Saude</option>
-                        <option value="educacao">&#128218; Educacao</option>
-                        <option value="lazer">&#127918; Lazer</option>
-                        <option value="salario">&#128188; Salario</option>
-                        <option value="freelance">&#128187; Freelance</option>
-                        <option value="investimentos">&#128200; Investimentos</option>
-                        <option value="outros">&#128230; Outros</option>
-                    </select>
-                </div>
-                <div class="form-group"><label class="form-label" data-i18n="description">Descricao</label><textarea
-                        id="editTransactionDescription" class="form-textarea" required></textarea></div>
-                <div class="form-group form-group-checkbox"><label class="form-label form-label-checkbox"><input
-                            type="checkbox" id="editTransactionFavorite"> &#11088; <span
-                            data-i18n="favoriteTransaction">Favoritar esta transacao</span></label></div>
-                <div class="btn-group">
-                    <button type="button" class="btn btn-primary" onclick="saveTransactionEdit()"><svg width="16"
-                            height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-                            <polyline points="17,21 17,13 7,13 7,21" />
-                            <polyline points="7,3 7,8 15,8" />
-                        </svg><span data-i18n="save">Salvar</span></button>
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('editTransactionModal')"><span
-                            data-i18n="cancel">Cancelar</span></button>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Add Goal Modal -->
-    <div class="modal-overlay" id="addGoalModal">
-        <div class="modal">
-            <div class="modal-header">
-                <h3 class="modal-title" data-i18n="addGoal">Nova Meta</h3><button class="modal-close"
-                    onclick="closeModal('addGoalModal')">&times;</button>
-            </div>
-            <form id="addGoalForm">
-                <div class="form-group"><label class="form-label" data-i18n="goalDescription">Descricao da
-                        Meta</label><input type="text" id="goalDescription" class="form-input"
-                        data-i18n-placeholder="goalPlaceholder" placeholder="Ex: Comprar um carro" required></div>
-                <div class="form-group"><label class="form-label" data-i18n="goalTarget">Valor da Meta
-                        (R$)</label><input type="number" id="goalTarget" class="form-input" step="0.01" min="0"
-                        placeholder="0,00" required></div>
-                <div class="form-group"><label class="form-label" data-i18n="goalCurrent">Valor Atual (R$)</label><input
-                        type="number" id="goalCurrent" class="form-input" step="0.01" min="0" placeholder="0,00"
-                        value="0"></div>
-                <div class="btn-group"><button type="button" class="btn btn-primary" onclick="addGoal()"><svg width="16"
-                            height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-                            <polyline points="17,21 17,13 7,13 7,21" />
-                            <polyline points="7,3 7,8 15,8" />
-                        </svg><span data-i18n="saveGoal">Salvar Meta</span></button><button type="button"
-                        class="btn btn-secondary" onclick="closeModal('addGoalModal')"><span
-                            data-i18n="cancel">Cancelar</span></button></div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Edit Goal Modal -->
-    <div class="modal-overlay" id="editGoalModal">
-        <div class="modal">
-            <div class="modal-header">
-                <h3 class="modal-title" data-i18n="editGoal">Editar Meta</h3><button class="modal-close"
-                    onclick="closeModal('editGoalModal')">&times;</button>
-            </div>
-            <form id="editGoalForm">
-                <div class="form-group"><label class="form-label" data-i18n="goalDescription">Descricao da
-                        Meta</label><input type="text" id="editGoalDescription" class="form-input" required></div>
-                <div class="form-group"><label class="form-label" data-i18n="goalTarget">Valor da Meta
-                        (R$)</label><input type="number" id="editGoalTarget" class="form-input" step="0.01" min="0"
-                        required></div>
-                <div class="form-group"><label class="form-label" data-i18n="goalCurrent">Valor Atual (R$)</label><input
-                        type="number" id="editGoalCurrent" class="form-input" step="0.01" min="0"></div>
-                <div class="btn-group"><button type="button" class="btn btn-primary" onclick="saveGoalEdit()"><svg
-                            width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2">
-                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-                            <polyline points="17,21 17,13 7,13 7,21" />
-                            <polyline points="7,3 7,8 15,8" />
-                        </svg><span data-i18n="save">Salvar</span></button><button type="button"
-                        class="btn btn-secondary" onclick="closeModal('editGoalModal')"><span
-                            data-i18n="cancel">Cancelar</span></button></div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Month Picker Modal -->
-    <div class="modal-overlay" id="monthPickerModal">
-        <div class="modal">
-            <div class="modal-header">
-                <h3 class="modal-title" data-i18n="selectMonth">Selecionar Mes</h3><button class="modal-close"
-                    onclick="closeMonthPickerModal()">&times;</button>
-            </div>
-            <div class="month-picker-container" id="monthPickerContainer">
-                <div class="month-picker-header"><span class="month-picker-year" id="monthPickerYear">2026</span>
-                    <div class="month-picker-nav"><button type="button" class="month-picker-nav-btn"
-                            onclick="changeMonthPickerYear(1)">&#9650;</button><button type="button"
-                            class="month-picker-nav-btn" onclick="changeMonthPickerYear(-1)">&#9660;</button></div>
-                </div>
-                <div class="month-picker-grid" id="monthPickerGrid"></div>
-                <div class="month-picker-grid" id="monthPickerGridOtherYear" style="opacity:0.4;"></div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Export Excel Modal -->
-    <div class="modal-overlay" id="exportExcelModal">
-        <div class="modal">
-            <div class="modal-header">
-                <h3 class="modal-title" data-i18n="exportToExcel">Exportar para Excel</h3><button class="modal-close"
-                    onclick="closeModal('exportExcelModal')">&times;</button>
-            </div>
-            <form id="exportExcelForm">
-                <div class="form-group"><label class="form-label" data-i18n="period">Periodo</label><select
-                        id="exportPeriod" class="form-select" onchange="updateExportDateField()">
-                        <option value="all" data-i18n="allRecords">Todos os registros</option>
-                        <option value="month" data-i18n="monthSpecific">Mes especifico</option>
-                        <option value="year" data-i18n="yearSpecific">Ano especifico</option>
-                    </select></div>
-                <div class="form-group" id="exportDateGroup" style="display:none;"><label class="form-label"
-                        id="exportDateLabel" data-i18n="date">Data</label><input type="month" id="exportDate"
-                        class="form-input"></div>
-                <div class="form-group"><label class="form-label" data-i18n="category">Categoria</label>
-                    <select id="exportCategory" class="form-select">
-                        <option value="all" data-i18n="allCategories">Todas as categorias</option>
-                        <option value="income" data-i18n="onlyIncome">Apenas ganhos</option>
-                        <option value="expense" data-i18n="onlyExpense">Apenas gastos</option>
-                        <option value="alimentacao">&#127869; Alimentacao</option>
-                        <option value="mercado">&#128722; Mercado</option>
-                        <option value="combustivel">&#9981; Combustivel</option>
-                        <option value="manutencao_veiculo">&#128295; Manutencao Veiculo</option>
-                        <option value="transporte">&#128663; Transporte</option>
-                        <option value="moradia">&#127968; Moradia</option>
-                        <option value="saude">&#127973; Saude</option>
-                        <option value="educacao">&#128218; Educacao</option>
-                        <option value="lazer">&#127918; Lazer</option>
-                        <option value="salario">&#128188; Salario</option>
-                        <option value="freelance">&#128187; Freelance</option>
-                        <option value="investimentos">&#128200; Investimentos</option>
-                        <option value="outros">&#128230; Outros</option>
-                    </select>
-                </div>
-                <div class="btn-group"><button type="button" class="btn btn-success"
-                        onclick="exportFilteredToExcel()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2">
-                            <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                            <polyline points="7,10 12,15 17,10" />
-                            <line x1="12" y1="15" x2="12" y2="3" />
-                        </svg><span data-i18n="exportExcel">Exportar Excel</span></button><button type="button"
-                        class="btn btn-secondary" onclick="closeModal('exportExcelModal')"><span
-                            data-i18n="cancel">Cancelar</span></button></div>
-            </form>
-        </div>
-    </div>
-
-    <!-- Floating Calculator -->
-    <button class="floating-calc-btn" onclick="toggleCalculator()" title="Calculadora">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="4" y="2" width="16" height="20" rx="2" ry="2" />
-            <line x1="8" y1="6" x2="16" y2="6" />
-            <line x1="8" y1="10" x2="8" y2="10.01" />
-            <line x1="12" y1="10" x2="12" y2="10.01" />
-            <line x1="16" y1="10" x2="16" y2="10.01" />
-            <line x1="8" y1="14" x2="8" y2="14.01" />
-            <line x1="12" y1="14" x2="12" y2="14.01" />
-            <line x1="16" y1="14" x2="16" y2="14.01" />
-            <line x1="8" y1="18" x2="8" y2="18.01" />
-            <line x1="12" y1="18" x2="12" y2="18.01" />
-            <line x1="16" y1="18" x2="16" y2="18.01" />
-        </svg>
-    </button>
-
-    <!-- Calculator Overlay -->
-    <div class="calc-overlay" id="calcOverlay" onclick="if(event.target===this) toggleCalculator()">
-        <div class="calc-window" onclick="event.stopPropagation()">
-            <input type="text" class="calc-display" id="calcDisplay" readonly value="0">
-            <div class="calc-buttons">
-                <button type="button" class="calc-btn clear" onclick="calcClear()">C</button>
-                <button type="button" class="calc-btn operator" onclick="calcInput('\u00B1')">&#177;</button>
-                <button type="button" class="calc-btn operator" onclick="calcInput('%')">%</button>
-                <button type="button" class="calc-btn operator" onclick="calcInput('/')">/</button>
-                <button type="button" class="calc-btn" onclick="calcInput('7')">7</button>
-                <button type="button" class="calc-btn" onclick="calcInput('8')">8</button>
-                <button type="button" class="calc-btn" onclick="calcInput('9')">9</button>
-                <button type="button" class="calc-btn operator" onclick="calcInput('*')">&#215;</button>
-                <button type="button" class="calc-btn" onclick="calcInput('4')">4</button>
-                <button type="button" class="calc-btn" onclick="calcInput('5')">5</button>
-                <button type="button" class="calc-btn" onclick="calcInput('6')">6</button>
-                <button type="button" class="calc-btn operator" onclick="calcInput('-')">&#8722;</button>
-                <button type="button" class="calc-btn" onclick="calcInput('1')">1</button>
-                <button type="button" class="calc-btn" onclick="calcInput('2')">2</button>
-                <button type="button" class="calc-btn" onclick="calcInput('3')">3</button>
-                <button type="button" class="calc-btn operator" onclick="calcInput('+')">+</button>
-                <button type="button" class="calc-btn zero" onclick="calcInput('0')">0</button>
-                <button type="button" class="calc-btn" onclick="calcInput('.')">.</button>
-                <button type="button" class="calc-btn equals" onclick="calcEquals()">=</button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Notifications -->
-    <div class="notifications" id="notifications"></div>
+    </div> <!-- End of #app-container -->
 
     <script>
         // Firebase Configuration (Placeholder - User needs to fill this)
