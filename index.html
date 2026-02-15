@@ -39,17 +39,26 @@
             --dark-text: #F1F5F9;
             --dark-text-2: #94A3B8;
             --dark-text-3: #64748B;
-            --light-bg: #F4F7FB;
-            --light-surface: rgba(255, 255, 255, 0.8);
-            --light-card: #F1F5F9;
-            --light-border: rgba(255, 255, 255, 0.6);
-            --light-text: #1E293B;
-            --light-text-2: #334155;
-            --light-text-3: #64748B;
-            --radius: 20px;
-            --radius-sm: 14px;
+            --light-bg: #E5E5EA;
+            /* iOS System Gray 5 */
+            --light-surface: rgba(242, 242, 247, 0.8);
+            --light-card: rgba(255, 255, 255, 0.55);
+            --light-border: rgba(0, 0, 0, 0.05);
+            --light-text: #000000;
+            --light-text-2: #3C3C43;
+            /* iOS Label Color */
+            --light-text-3: #8E8E93;
+            /* iOS Label Color 2 */
+            --radius: 24px;
+            --radius-sm: 16px;
             --radius-xs: 12px;
-            --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --glass-bg: rgba(255, 255, 255, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.5);
+            --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
+            --blur: 20px;
+            --ios-gray: #F2F2F7;
+            --ios-gray-dark: #1C1C1E;
+            --transition: 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
         }
 
         * {
@@ -64,7 +73,7 @@
         }
 
         body {
-            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "SF Pro", "Inter", "Segoe UI", Helvetica, Arial, sans-serif;
             transition: background var(--transition), color var(--transition);
             overflow-x: hidden;
             min-height: 100vh;
@@ -72,14 +81,15 @@
         }
 
         body.dark {
-            background: var(--dark-bg);
+            background: #000000;
             color: var(--dark-text);
+            --glass-bg: rgba(28, 28, 30, 0.7);
+            --glass-border: rgba(255, 255, 255, 0.1);
+            --ios-gray: #1C1C1E;
         }
 
         body.light {
             background: var(--light-bg);
-            background-image: linear-gradient(135deg, #F4F7FB 0%, #E2E8F0 100%);
-            background-attachment: fixed;
             color: var(--light-text);
         }
 
@@ -193,6 +203,8 @@
 
         .splash-logo svg {
             color: white;
+            width: 50px;
+            height: 50px;
         }
 
         .splash-title {
@@ -378,45 +390,87 @@
             background: currentColor;
         }
 
-        /* NEW VALUE DISPLAY */
+        /* VALUE DISPLAY REDESIGN */
         .value-display-section {
             text-align: left;
-            margin-bottom: 1.25rem;
+            margin-bottom: 1rem;
+            padding: 1rem 0.5rem;
+            background: transparent;
+            transition: all var(--transition);
+        }
+
+        .light .value-display-section {
+            background: transparent;
+        }
+
+        .value-display-section.expense-mode {
+            background: transparent;
+        }
+
+        .light .value-display-section.expense-mode {
+            background: transparent;
         }
 
         .value-display-label {
-            font-size: 0.7rem;
-            font-weight: 600;
+            font-size: 0.75rem;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 0.8px;
+            letter-spacing: 1.2px;
             color: var(--dark-text-3);
-            margin-bottom: 0.4rem;
+            margin-bottom: 0px;
+            opacity: 0.6;
+            font-family: inherit;
         }
 
         .light .value-display-label {
             color: var(--light-text-2);
         }
 
+        .value-input-wrapper {
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+        }
+
         .value-display-amount {
-            font-size: clamp(1.8rem, 6vw, 2.4rem);
+            font-size: 3rem;
+            /* Matched to previous prefix size */
             font-weight: 800;
-            color: var(--primary-light);
-            letter-spacing: -1px;
-            cursor: pointer;
-            transition: color var(--transition);
-            font-variant-numeric: tabular-nums;
-        }
-
-        .value-display-amount.expense-color {
-            color: var(--danger-light);
-        }
-
-        .light .value-display-amount {
             color: var(--primary);
+            background: transparent;
+            border: none;
+            outline: none;
+            padding: 0;
+            width: 100%;
+            font-family: inherit;
+            transition: color var(--transition);
+            line-height: 1;
+            letter-spacing: -1px;
         }
 
-        .light .value-display-amount.expense-color {
+        .expense-mode .value-display-amount {
             color: var(--danger);
+        }
+
+        .value-display-amount::placeholder {
+            color: rgba(16, 185, 129, 0.3);
+        }
+
+        .expense-mode .value-display-amount::placeholder {
+            color: rgba(239, 68, 68, 0.3);
+        }
+
+        /* Remove arrows from number input */
+        .value-display-amount::-webkit-outer-spin-button,
+        .value-display-amount::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+
+        @media(max-width:480px) {
+            .value-display-amount {
+                font-size: 2.5rem;
+            }
         }
 
         /* STYLED FORM ROW */
@@ -799,19 +853,24 @@
             height: 100%;
             z-index: 201;
             transform: translateX(-100%);
-            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
-            box-shadow: 4px 0 40px rgba(0, 0, 0, 0.3);
+            transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            box-shadow: 4px 0 40px rgba(0, 0, 0, 0.2);
             overflow-y: auto;
+            background: var(--glass-bg);
+            backdrop-filter: blur(var(--blur));
+            -webkit-backdrop-filter: blur(var(--blur));
+            border-right: 1px solid var(--glass-border);
         }
 
         .dark .side-menu {
-            background: var(--dark-bg-2);
+            background: rgba(28, 28, 30, 0.85);
+            /* Darker glass for menu */
+            border-color: var(--dark-border);
         }
 
         .light .side-menu {
-            background: rgba(255, 255, 255, 0.9);
-            backdrop-filter: blur(16px);
-            -webkit-backdrop-filter: blur(16px);
+            background: rgba(255, 255, 255, 0.75);
+            /* border-color already handled by base glass-border */
         }
 
         .side-menu.active {
@@ -934,20 +993,23 @@
             border-radius: var(--radius);
             padding: 1.5rem;
             margin-bottom: 1.25rem;
-            transition: all var(--transition);
-            border: 1px solid var(--dark-border);
+            transition: all 0.2s ease;
+            background: var(--light-surface);
+            backdrop-filter: blur(var(--blur));
+            -webkit-backdrop-filter: blur(var(--blur));
+            box-shadow: var(--glass-shadow);
+            border: 1px solid var(--glass-border);
         }
 
         .dark .card {
-            background: var(--dark-surface);
+            background: rgba(28, 28, 30, 0.6);
+            border-color: var(--dark-border);
+            box-shadow: none;
+            /* Cleaner look in dark mode */
         }
 
         .light .card {
-            background: var(--light-surface);
-            border-color: var(--light-border);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.05);
+            background: rgba(255, 255, 255, 0.65);
         }
 
         .card:hover {
@@ -1106,38 +1168,38 @@
         .form-select,
         .form-textarea {
             width: 100%;
-            padding: 0.85rem 1rem;
-            border: 1.5px solid var(--dark-border);
-            border-radius: var(--radius-xs);
-            font-size: 0.95rem;
+            padding: 16px;
+            background: var(--ios-gray);
+            border: none;
+            border-radius: 12px;
+            /* iOS input radius */
+            color: inherit;
             font-family: inherit;
-            transition: all var(--transition);
-            outline: none;
+            font-size: 16px;
+            /* Prevent zoom on iOS */
+            transition: background 0.2s;
         }
 
-        .dark .form-input,
-        .dark .form-select,
-        .dark .form-textarea {
-            background: var(--dark-card);
-            color: var(--dark-text);
-            border-color: rgba(255, 255, 255, 0.06);
-        }
-
-        .light .form-input,
-        .light .form-select,
-        .light .form-textarea {
-            background: rgba(241, 245, 249, 0.7);
-            /* Slightly transparent slate */
-            color: var(--light-text);
-            border-color: rgba(0, 0, 0, 0.06);
-            font-weight: 500;
+        body.dark .form-input,
+        body.dark .form-select,
+        body.dark .form-textarea {
+            background: #2C2C2E;
+            /* iOS Dark Gray 6 */
+            color: white;
         }
 
         .form-input:focus,
         .form-select:focus,
         .form-textarea:focus {
-            border-color: var(--primary);
-            box-shadow: 0 0 0 4px var(--primary-glow);
+            outline: none;
+            background: #E5E5EA;
+            /* iOS Gray 5 */
+        }
+
+        body.dark .form-input:focus,
+        body.dark .form-select:focus,
+        body.dark .form-textarea:focus {
+            background: #3A3A3C;
         }
 
         .form-textarea {
@@ -1164,25 +1226,24 @@
 
         /* BUTTONS */
         .btn {
-            padding: 0.75rem 1.5rem;
-            border: none;
-            border-radius: var(--radius-xs);
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all var(--transition);
             display: inline-flex;
             align-items: center;
-            gap: 0.6rem;
-            font-family: inherit;
-            text-decoration: none;
-            position: relative;
-            overflow: hidden;
-            touch-action: manipulation;
+            justify-content: center;
+            padding: 14px 24px;
+            border-radius: 100px;
+            /* Pill shape */
+            font-weight: 600;
+            font-size: 16px;
+            cursor: pointer;
+            transition: transform 0.1s;
+            border: none;
+            gap: 8px;
         }
 
         .btn:active {
-            transform: scale(0.97);
+            transform: scale(0.96);
+            /* iOS press effect */
+            opacity: 0.8;
         }
 
         .btn-primary {
@@ -2051,31 +2112,37 @@
             visibility: visible;
         }
 
+        .modal-content,
         .modal {
-            border-radius: var(--radius);
-            padding: 2rem;
+            background: var(--light-card);
+            backdrop-filter: blur(var(--blur));
+            -webkit-backdrop-filter: blur(var(--blur));
+            border-radius: 24px;
+            padding: 24px;
+            width: 90%;
             max-width: 500px;
-            width: 100%;
-            max-height: 90vh;
-            overflow-y: auto;
-            transform: scale(0.92);
-            transition: transform 0.3s ease;
             position: relative;
-            z-index: 1001;
+            animation: modalSlideUp 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
         }
 
-        .modal-overlay.active .modal {
-            transform: scale(1);
+        body.dark .modal-content,
+        body.dark .modal {
+            background: #1C1C1E;
+            border-color: var(--dark-border);
         }
 
-        .dark .modal {
-            background: var(--dark-surface);
-            border: 1px solid var(--dark-border);
-        }
+        @keyframes modalSlideUp {
+            from {
+                transform: translateY(100%);
+                opacity: 0;
+            }
 
-        .light .modal {
-            background: var(--light-surface);
-            border: 1px solid var(--light-border);
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
         }
 
         #monthPickerModal .modal {
@@ -2602,8 +2669,32 @@
 
         @media(max-width:480px) {
             .header {
-                padding: 0.6rem 0.85rem;
-                gap: 0.35rem;
+                padding: 0.6rem 0.5rem;
+                gap: 0.2rem;
+            }
+
+            .header-new-date {
+                display: block;
+                font-size: 0.7rem;
+                opacity: 0.8;
+            }
+
+            .header-new-title {
+                font-size: 0.9rem;
+                max-width: 110px;
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+
+            .header-controls {
+                gap: 2px;
+            }
+
+            .icon-toggle-btn {
+                width: 34px;
+                height: 34px;
+                padding: 6px;
             }
 
             .header-title {
@@ -3029,12 +3120,13 @@
     <!-- Splash Screen -->
     <div class="splash-screen" id="splashScreen">
         <div class="splash-logo">
-            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
                 <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
             </svg>
         </div>
-        <h1 class="splash-title">Controle Financeiro</h1>
-        <p class="splash-subtitle">Gerencie suas finanças de forma inteligente</p>
+        <div class="splash-title">Finance</div>
+        <div class="splash-subtitle">Controle simplificado</div>
         <div class="splash-loader"></div>
     </div>
 
@@ -3072,11 +3164,12 @@
     <!-- Header -->
     <header class="header">
         <div class="header-new-left">
-            <button class="menu-button" onclick="toggleMenu()" style="margin-right:4px;">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="3" y1="6" x2="21" y2="6" />
-                    <line x1="3" y1="12" x2="21" y2="12" />
-                    <line x1="3" y1="18" x2="21" y2="18" />
+            <button class="menu-button" onclick="toggleMenu()">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
                 </svg>
             </button>
             <div class="header-icon-circle">
@@ -3109,6 +3202,15 @@
                     <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
                 </svg>
             </button>
+
+            <button class="icon-toggle-btn" onclick="showExportExcelModal()" title="Exportar Excel">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"></path>
+                    <polyline points="16 6 12 2 8 6"></polyline>
+                    <line x1="12" y1="2" x2="12" y2="15"></line>
+                </svg>
+            </button>
         </div>
     </header>
 
@@ -3120,9 +3222,10 @@
         <div class="menu-header">
             <h2 data-i18n="menu">Menu</h2>
             <button class="menu-close" onclick="closeMenu()">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="18" y1="6" x2="6" y2="18" />
-                    <line x1="6" y1="6" x2="18" y2="18" />
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
                 </svg>
             </button>
         </div>
@@ -3295,11 +3398,15 @@
                                 <circle cx="11" cy="11" r="8" />
                                 <path d="m21 21-4.35-4.35" />
                             </svg><span data-i18n="search">Buscar</span></button>
-                        <button class="btn btn-secondary" onclick="clearSearch()"><svg width="16" height="16"
-                                viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <polyline points="3,6 5,6 21,6" />
-                                <path
-                                    d="m19,6v14a2,2 0 0,1 -2,2H7a2,2 0 0,1 -2,-2V6m3,0V4a2,2 0 0,1 2,-2h4a2,2 0 0,1 2,2v2" />
+                        <button class="btn btn-secondary" onclick="clearSearch()"><svg
+                                xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 512 512">
+                                <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                    stroke-width="32"
+                                    d="M112 112l24 24V400a48 48 0 0 0 48 48h192a48 48 0 0 0 48-48V136l24-24"></path>
+                                <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                    stroke-width="32" d="M192 112V72a40 40 0 0 1 40-40h80a40 40 0 0 1 40 40v40"></path>
+                                <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                    stroke-width="32" d="M160 112l192 0"></path>
                             </svg><span data-i18n="clearFilters">Limpar Filtros</span></button>
                         <button class="btn btn-success" onclick="exportSearchResultsToExcel()"><svg width="16"
                                 height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -3354,11 +3461,12 @@
                     </div>
 
                     <!-- Value Display -->
-                    <div class="value-display-section">
+                    <div class="value-display-section" id="valueDisplaySection">
                         <div class="value-display-label" data-i18n="value">VALOR DO LANCAMENTO</div>
-                        <input type="number" id="transactionValue" class="value-display-amount" step="0.01" min="0"
-                            placeholder="0,00" required
-                            style="width:100%;border:none;background:transparent;padding:0;outline:none;font-family:inherit;">
+                        <div class="value-input-wrapper">
+                            <input type="number" id="transactionValue" class="value-display-amount" step="0.01" min="0"
+                                placeholder="0,00" required>
+                        </div>
                     </div>
 
                     <!-- Date Row -->
@@ -3433,8 +3541,8 @@
                             <span class="form-icon">📝</span>
                         </div>
                         <input type="text" id="transactionDescription" class="form-input"
-                            data-i18n-placeholder="placeholderDescShort" placeholder="No que voce esta pensando?"
-                            required style="flex:1;">
+                            data-i18n-placeholder="placeholderDescShort" placeholder="Descrição da transação" required
+                            style="flex:1;">
                     </div>
 
                     <!-- Favorite -->
@@ -3563,14 +3671,19 @@
             </div>
             <div class="summary-section">
                 <div class="summary-header" onclick="toggleSummary('weekly')">
-                    <div class="summary-title"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2">
-                            <line x1="18" y1="20" x2="18" y2="10" />
-                            <line x1="12" y1="20" x2="12" y2="4" />
-                            <line x1="6" y1="20" x2="6" y2="14" />
-                        </svg><span data-i18n="weeklySummary">Resumo Semanal</span></div><svg class="expand-icon"
-                        width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="6,9 12,15 18,9" />
+                    <div class="summary-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                        <span data-i18n="weeklySummary">Resumo Semanal</span>
+                    </div>
+                    <svg class="expand-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 12 15 18 9"></polyline>
                     </svg>
                 </div>
                 <div class="summary-content" id="weeklySummaryContent">
@@ -3598,15 +3711,19 @@
             </div>
             <div class="summary-section">
                 <div class="summary-header" onclick="toggleSummary('monthly')">
-                    <div class="summary-title"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2">
-                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                            <line x1="16" y1="2" x2="16" y2="6" />
-                            <line x1="8" y1="2" x2="8" y2="6" />
-                            <line x1="3" y1="10" x2="21" y2="10" />
-                        </svg><span data-i18n="monthlySummary">Resumo Mensal</span></div><svg class="expand-icon"
-                        width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="6,9 12,15 18,9" />
+                    <div class="summary-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                        <span data-i18n="monthlySummary">Resumo Mensal</span>
+                    </div>
+                    <svg class="expand-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 12 15 18 9"></polyline>
                     </svg>
                 </div>
                 <div class="summary-content" id="monthlySummaryContent">
@@ -3634,14 +3751,19 @@
             </div>
             <div class="summary-section">
                 <div class="summary-header" onclick="toggleSummary('yearly')">
-                    <div class="summary-title"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2">
-                            <line x1="18" y1="20" x2="18" y2="10" />
-                            <line x1="12" y1="20" x2="12" y2="4" />
-                            <line x1="6" y1="20" x2="6" y2="14" />
-                        </svg><span data-i18n="yearlySummary">Resumo Anual</span></div><svg class="expand-icon"
-                        width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <polyline points="6,9 12,15 18,9" />
+                    <div class="summary-title">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="16" y1="2" x2="16" y2="6"></line>
+                            <line x1="8" y1="2" x2="8" y2="6"></line>
+                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                        </svg>
+                        <span data-i18n="yearlySummary">Resumo Anual</span>
+                    </div>
+                    <svg class="expand-icon" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <polyline points="6 9 12 15 18 9"></polyline>
                     </svg>
                 </div>
                 <div class="summary-content" id="yearlySummaryContent">
@@ -3737,6 +3859,12 @@
             <form id="editTransactionForm">
                 <div class="form-group"><label class="form-label" data-i18n="date">Data</label><input type="date"
                         id="editTransactionDate" class="form-input" required></div>
+                <div class="form-group"><label class="form-label" data-i18n="type">Tipo</label>
+                    <select id="editTransactionType" class="form-select" required>
+                        <option value="income" data-i18n="income">Receita</option>
+                        <option value="expense" data-i18n="expense">Despesa</option>
+                    </select>
+                </div>
                 <div class="form-group"><label class="form-label" data-i18n="value">Valor (R$)</label><input
                         type="number" id="editTransactionValue" class="form-input" step="0.01" min="0" max="999999.99"
                         required></div>
@@ -3764,14 +3892,22 @@
                             type="checkbox" id="editTransactionFavorite"> &#11088; <span
                             data-i18n="favoriteTransaction">Favoritar esta transacao</span></label></div>
                 <div class="btn-group">
-                    <button type="button" class="btn btn-primary" onclick="saveTransactionEdit()"><svg width="16"
-                            height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
-                            <polyline points="17,21 17,13 7,13 7,21" />
-                            <polyline points="7,3 7,8 15,8" />
+                    <button type="button" class="btn btn-primary" onclick="saveTransactionEdit()"><svg
+                            xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 512 512">
+                            <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                stroke-width="32"
+                                d="M336 320H184a24 24 0 0 0-24 24v120a24 24 0 0 0 24 24h240a24 24 0 0 0 24-24V176a24 24 0 0 0-24-24H336">
+                            </path>
+                            <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                stroke-width="32" d="M336 160V64H64v352h96"></path>
+                            <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                stroke-width="32" d="M304 192l96-96 48 48-96 96-48 16 16-48z"></path>
                         </svg><span data-i18n="save">Salvar</span></button>
-                    <button type="button" class="btn btn-secondary" onclick="closeModal('editTransactionModal')"><span
-                            data-i18n="cancel">Cancelar</span></button>
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('editTransactionModal')"><svg
+                            xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 512 512">
+                            <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
+                                stroke-width="32" d="M368 368L144 144M368 144L144 368"></path>
+                        </svg><span data-i18n="cancel">Cancelar</span></button>
                 </div>
             </form>
         </div>
@@ -3867,15 +4003,33 @@
                         <option value="all" data-i18n="allRecords">Todos os registros</option>
                         <option value="month" data-i18n="monthSpecific">Mes especifico</option>
                         <option value="year" data-i18n="yearSpecific">Ano especifico</option>
+                        <option value="custom" data-i18n="customPeriod">Periodo Personalizado</option>
                     </select></div>
                 <div class="form-group" id="exportDateGroup" style="display:none;"><label class="form-label"
                         id="exportDateLabel" data-i18n="date">Data</label><input type="month" id="exportDate"
                         class="form-input"></div>
+                <div class="form-group" id="exportCustomDateGroup" style="display:none;">
+                    <div style="display:flex; gap:10px;">
+                        <div style="flex:1;">
+                            <label class="form-label" data-i18n="startDate">Data Inicial</label>
+                            <input type="date" id="exportStartDate" class="form-input">
+                        </div>
+                        <div style="flex:1;">
+                            <label class="form-label" data-i18n="endDate">Data Final</label>
+                            <input type="date" id="exportEndDate" class="form-input">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group"><label class="form-label" data-i18n="type">Tipo</label>
+                    <select id="exportType" class="form-select">
+                        <option value="all" data-i18n="allTypes">Todos os tipos</option>
+                        <option value="income" data-i18n="income">Receitas</option>
+                        <option value="expense" data-i18n="expense">Despesas</option>
+                    </select>
+                </div>
                 <div class="form-group"><label class="form-label" data-i18n="category">Categoria</label>
                     <select id="exportCategory" class="form-select">
                         <option value="all" data-i18n="allCategories">Todas as categorias</option>
-                        <option value="income" data-i18n="onlyIncome">Apenas ganhos</option>
-                        <option value="expense" data-i18n="onlyExpense">Apenas gastos</option>
                         <option value="alimentacao">&#127869; Alimentacao</option>
                         <option value="mercado">&#128722; Mercado</option>
                         <option value="combustivel">&#9981; Combustivel</option>
@@ -3906,18 +4060,18 @@
 
     <!-- Floating Calculator -->
     <button class="floating-calc-btn" onclick="toggleCalculator()" title="Calculadora">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-            <rect x="4" y="2" width="16" height="20" rx="2" ry="2" />
-            <line x1="8" y1="6" x2="16" y2="6" />
-            <line x1="8" y1="10" x2="8" y2="10.01" />
-            <line x1="12" y1="10" x2="12" y2="10.01" />
-            <line x1="16" y1="10" x2="16" y2="10.01" />
-            <line x1="8" y1="14" x2="8" y2="14.01" />
-            <line x1="12" y1="14" x2="12" y2="14.01" />
-            <line x1="16" y1="14" x2="16" y2="14.01" />
-            <line x1="8" y1="18" x2="8" y2="18.01" />
-            <line x1="12" y1="18" x2="12" y2="18.01" />
-            <line x1="16" y1="18" x2="16" y2="18.01" />
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round">
+            <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
+            <line x1="8" y1="6" x2="16" y2="6"></line>
+            <line x1="16" y1="14" x2="16" y2="18"></line>
+            <path d="M16 10h.01"></path>
+            <path d="M12 10h.01"></path>
+            <path d="M8 10h.01"></path>
+            <path d="M12 14h.01"></path>
+            <path d="M8 14h.01"></path>
+            <path d="M12 18h.01"></path>
+            <path d="M8 18h.01"></path>
         </svg>
     </button>
 
@@ -4184,7 +4338,7 @@
 
         const i18n = {
             'pt-BR': {
-                logout: 'Sair', pageTitle: 'Controle Financeiro Aprimorado', appTitle: 'Finan\u00E7as', saveTransaction: 'Salvar Transa\u00E7\u00E3o', placeholderDescShort: 'No que voc\u00EA est\u00E1 pensando?', menuNewTransaction: 'Nova Transa\u00E7\u00E3o', menuTransactions: 'Transa\u00E7\u00F5es', menuSearch: 'Buscar', menuCharts: 'Gr\u00E1fico', menuSummaries: 'Resumos', menuGoals: 'Metas', menuTrash: 'Lixeira', menuBackup: 'Backup', menu: 'Menu', allTransactions: 'Todas as Transa\u00E7\u00F5es', searchTransactions: 'Buscar Transa\u00E7\u00F5es', searchByName: 'Buscar por nome/descri\u00E7\u00E3o', category: 'Categoria', type: 'Tipo', monthYear: 'M\u00EAs/Ano', allCategories: 'Todas as categorias', allTypes: 'Todos os tipos', income: 'Receita', expense: 'Despesa', favoritesOnly: 'Apenas favoritas', search: 'Buscar', clearFilters: 'Limpar Filtros', exportResults: 'Exportar Resultados', searchResults: 'Resultados da Busca', transactionsFound: 'transa\u00E7\u00F5es encontradas', searchIncome: 'Receitas na Busca', searchExpense: 'Despesas na Busca', searchBalance: 'Saldo da Busca', noTransactionsFound: 'Nenhuma transa\u00E7\u00E3o encontrada com os filtros aplicados', newTransaction: 'Nova Transa\u00E7\u00E3o', date: 'Data', value: 'Valor (R$)', description: 'Descri\u00E7\u00E3o', selectCategory: 'Selecione uma categoria', placeholderDesc: 'Descreva a transa\u00E7\u00E3o...', favoriteTransaction: 'Favoritar esta transa\u00E7\u00E3o', clear: 'Limpar', gains: 'Ganhos', spending: 'Gastos', balance: 'Saldo', dailyTransactions: 'Transa\u00E7\u00F5es do Dia Selecionado', chartsTitle: 'Gr\u00E1ficos de Receitas e Despesas', period: 'Per\u00EDodo', month: 'M\u00EAs', week: 'Semana', year: 'Ano', monthSpecific: 'M\u00EAs espec\u00EDfico', weekSpecific: 'Semana espec\u00EDfica', yearSpecific: 'Ano espec\u00EDfico', last3Months: '\u00DAltimos 3 meses', last6Months: '\u00DAltimos 6 meses', view: 'Visualizar', incomeExpense: 'Receitas e Despesas', expenseOnly: 'Apenas Despesas', incomeOnly: 'Apenas Receitas', chartType: 'Tipo de gr\u00E1fico', pie: 'Pizza', bar: 'Barras', dailySummary: 'Resumo Di\u00E1rio', weeklySummary: 'Resumo Semanal', monthlySummary: 'Resumo Mensal', yearlySummary: 'Resumo Anual', selectDay: 'Selecionar Dia', selectWeek: 'Selecionar Semana', selectMonth: 'Selecionar M\u00EAs', selectYear: 'Selecionar Ano', allMonths: 'Todos os meses', financialGoals: 'Metas Financeiras', newGoal: 'Nova Meta', emptyTrash: 'Esvaziar lixeira', trashInfo: 'Transa\u00E7\u00F5es exclu\u00EDdas podem ser restauradas ou removidas permanentemente.', backupExport: 'Backup e Exporta\u00E7\u00E3o', exportJson: 'Exportar JSON', importJson: 'Importar JSON', exportExcel: 'Exportar Excel', manualSync: 'Sincronizar na nuvem',
+                logout: 'Sair', pageTitle: 'Controle Financeiro Aprimorado', appTitle: 'Finan\u00E7as', saveTransaction: 'Salvar Transa\u00E7\u00E3o', placeholderDescShort: 'Descrição da sua transação', menuNewTransaction: 'Nova Transa\u00E7\u00E3o', menuTransactions: 'Transa\u00E7\u00F5es', menuSearch: 'Buscar', menuCharts: 'Gr\u00E1fico', menuSummaries: 'Resumos', menuGoals: 'Metas', menuTrash: 'Lixeira', menuBackup: 'Backup', menu: 'Menu', allTransactions: 'Todas as Transa\u00E7\u00F5es', searchTransactions: 'Buscar Transa\u00E7\u00F5es', searchByName: 'Buscar por nome/descri\u00E7\u00E3o', category: 'Categoria', type: 'Tipo', monthYear: 'M\u00EAs/Ano', allCategories: 'Todas as categorias', allTypes: 'Todos os tipos', income: 'Receita', expense: 'Despesa', favoritesOnly: 'Apenas favoritas', search: 'Buscar', clearFilters: 'Limpar Filtros', exportResults: 'Exportar Resultados', searchResults: 'Resultados da Busca', transactionsFound: 'transa\u00E7\u00F5es encontradas', searchIncome: 'Receitas na Busca', searchExpense: 'Despesas na Busca', searchBalance: 'Saldo da Busca', noTransactionsFound: 'Nenhuma transa\u00E7\u00E3o encontrada com os filtros aplicados', newTransaction: 'Nova Transa\u00E7\u00E3o', date: 'Data', value: 'Valor (R$)', description: 'Descri\u00E7\u00E3o', selectCategory: 'Selecione uma categoria', placeholderDesc: 'Descreva a transa\u00E7\u00E3o...', favoriteTransaction: 'Favoritar esta transa\u00E7\u00E3o', clear: 'Limpar', gains: 'Ganhos', spending: 'Gastos', balance: 'Saldo', dailyTransactions: 'Transa\u00E7\u00F5es do Dia Selecionado', chartsTitle: 'Gr\u00E1ficos de Receitas e Despesas', period: 'Per\u00EDodo', month: 'M\u00EAs', week: 'Semana', year: 'Ano', monthSpecific: 'M\u00EAs espec\u00EDfico', weekSpecific: 'Semana espec\u00EDfica', yearSpecific: 'Ano espec\u00EDfico', last3Months: '\u00DAltimos 3 meses', last6Months: '\u00DAltimos 6 meses', view: 'Visualizar', incomeExpense: 'Receitas e Despesas', expenseOnly: 'Apenas Despesas', incomeOnly: 'Apenas Receitas', chartType: 'Tipo de gr\u00E1fico', pie: 'Pizza', bar: 'Barras', dailySummary: 'Resumo Di\u00E1rio', weeklySummary: 'Resumo Semanal', monthlySummary: 'Resumo Mensal', yearlySummary: 'Resumo Anual', selectDay: 'Selecionar Dia', selectWeek: 'Selecionar Semana', selectMonth: 'Selecionar M\u00EAs', selectYear: 'Selecionar Ano', allMonths: 'Todos os meses', financialGoals: 'Metas Financeiras', newGoal: 'Nova Meta', emptyTrash: 'Esvaziar lixeira', trashInfo: 'Transa\u00E7\u00F5es exclu\u00EDdas podem ser restauradas ou removidas permanentemente.', backupExport: 'Backup e Exporta\u00E7\u00E3o', exportJson: 'Exportar JSON', importJson: 'Importar JSON', exportExcel: 'Exportar Excel', manualSync: 'Sincronizar na nuvem',
                 editTransaction: 'Editar Transa\u00E7\u00E3o', save: 'Salvar', cancel: 'Cancelar', addGoal: 'Nova Meta', goalDescription: 'Descri\u00E7\u00E3o da Meta', goalTarget: 'Valor da Meta (R$)', goalCurrent: 'Valor Atual (R$)', saveGoal: 'Salvar Meta', editGoal: 'Editar Meta', exportToExcel: 'Exportar para Excel', allRecords: 'Todos os registros', onlyIncome: 'Apenas ganhos', onlyExpense: 'Apenas gastos', calculator: 'Calculadora', edit: 'Editar', delete: 'Excluir', deletePermanent: 'Excluir permanentemente', moveToTrash: 'Mover esta transa\u00E7\u00E3o para a lixeira?', movedToTrash: 'Transa\u00E7\u00E3o movida para a lixeira.', deletePermanentConfirm: 'Excluir permanentemente? Esta a\u00E7\u00E3o n\u00E3o pode ser desfeita.', trashEmpty: 'A lixeira j\u00E1 est\u00E1 vazia.', emptyTrashConfirm: 'Excluir permanentemente as', trashEmptyConfirm: 'transa\u00E7\u00F5es) da lixeira? Esta a\u00E7\u00E3o n\u00E3o pode ser desfeita.', trashEmptied: 'Lixeira esvaziada.', noTrash: 'Nenhuma transa\u00E7\u00E3o na lixeira', fillGoalFields: 'Por favor, preencha os campos da meta!', currentNotGreater: 'O valor atual n\u00E3o pode ser maior que a meta!', goalAdded: 'Meta adicionada!', goalEdited: 'Meta editada!', deleteGoalConfirm: 'Tem certeza que deseja excluir esta meta?', goalDeleted: 'Meta exclu\u00EDda!', noGoals: 'Nenhuma meta cadastrada', restore: 'Restaurar', saveError: 'Erro ao salvar dados!', goalPlaceholder: 'Ex: Comprar um carro', noExport: 'Nenhuma transa\u00E7\u00E3o para exportar!', fillAllFields: 'Por favor, preencha todos os campos!', transactionAdded: 'Transa\u00E7\u00E3o adicionada com sucesso!', transactionEdited: 'Transa\u00E7\u00E3o editada!', transactionRestored: 'Transa\u00E7\u00E3o restaurada!', transactionDeletedPerm: 'Transa\u00E7\u00E3o exclu\u00EDda permanentemente.', noTransactionsPeriod: 'Nenhuma transa\u00E7\u00E3o para este per\u00EDodo', noTransactionsDay: 'Nenhuma transa\u00E7\u00E3o para este dia', noTransactionsFilters: 'Nenhuma transa\u00E7\u00E3o encontrada com os filtros!', exportSuccess: 'Exportado para Excel com sucesso!', exportError: 'Erro ao exportar para Excel!', importConfirm: 'Importar este arquivo ir\u00E1 substituir todos os dados atuais. Deseja continuar?', importSuccess: 'Dados importados com sucesso!', clearConfirm: '\u26A0\uFE0F ATEN\u00C7\u00C3O: Esta a\u00E7\u00E3o ir\u00E1 apagar TODOS os dados. Deseja continuar?', allDataCleared: 'Todos os dados foram apagados!', backupExported: 'Backup JSON exportado!', backupExportError: 'Erro ao exportar o backup!', loadError: 'Erro ao carregar dados!', fillGoalCorrect: 'Preencha os campos corretamente!', noTransactionsFoundShort: 'Nenhuma transa\u00E7\u00E3o encontrada'
             }, 'en': {
                 pageTitle: 'Financial Control - Enhanced', appTitle: 'Finances', saveTransaction: 'Save Transaction', placeholderDescShort: 'What are you thinking about?', menuNewTransaction: 'New Transaction', menuTransactions: 'Transactions', menuSearch: 'Search', menuCharts: 'Charts', menuSummaries: 'Summaries', menuGoals: 'Goals', menuTrash: 'Trash', menuBackup: 'Backup', menu: 'Menu', allTransactions: 'All Transactions', searchTransactions: 'Search Transactions', searchByName: 'Search by name/description', category: 'Category', type: 'Type', monthYear: 'Month/Year', allCategories: 'All categories', allTypes: 'All types', income: 'Income', expense: 'Expense', favoritesOnly: 'Favorites only', search: 'Search', clearFilters: 'Clear Filters', exportResults: 'Export Results', searchResults: 'Search Results', transactionsFound: 'transactions found', searchIncome: 'Search Income', searchExpense: 'Search Expense', searchBalance: 'Search Balance', noTransactionsFound: 'No transactions found with the applied filters', newTransaction: 'New Transaction', date: 'Date', value: 'Value ($)', description: 'Description', selectCategory: 'Select a category', placeholderDesc: 'Describe the transaction...', favoriteTransaction: 'Favorite this transaction', clear: 'Clear', gains: 'Gains', spending: 'Spending', balance: 'Balance', dailyTransactions: 'Selected Day Transactions', chartsTitle: 'Income and Expense Charts', period: 'Period', month: 'Month', week: 'Week', year: 'Year', monthSpecific: 'Specific month', weekSpecific: 'Specific week', yearSpecific: 'Specific year', last3Months: 'Last 3 months', last6Months: 'Last 6 months', view: 'View', incomeExpense: 'Income and Expenses', expenseOnly: 'Expenses only', incomeOnly: 'Income only', chartType: 'Chart type', logout: 'Logout', pie: 'Pie', bar: 'Bar', dailySummary: 'Daily Summary', weeklySummary: 'Weekly Summary', monthlySummary: 'Monthly Summary', yearlySummary: 'Yearly Summary', selectDay: 'Select Day', selectWeek: 'Select Week', selectMonth: 'Select Month', selectYear: 'Select Year', allMonths: 'All months', financialGoals: 'Financial Goals', newGoal: 'New Goal', emptyTrash: 'Empty Trash', trashInfo: 'Deleted transactions can be restored or permanently removed.', backupExport: 'Backup and Export', exportJson: 'Export JSON', importJson: 'Import JSON', exportExcel: 'Export Excel', manualSync: 'Sync to Cloud',
@@ -4353,7 +4507,7 @@
                 <button class="${fc}" onclick="toggleFavorite('${tx.id}');performSearch();" title="${tx.favorite ? 'Desfavoritar' : 'Favoritar'}">${fi}</button>
                 <div class="transaction-info">
                     <div class="transaction-description">${escapeHtml(tx.description)}</div>
-                    <div class="transaction-meta">${getCategoryLabel(tx.category)} \u2022 ${tx.type === 'income' ? t('income') : t('expense')}</div>
+                    <div class="transaction-meta">${getCategoryLabel(tx.category)} \u2022 ${tx.type === 'income' ? t('income') : t('expense')} \u2022 ${tx.time || ''}</div>
                 </div>
                 <div class="transaction-amount ${tx.type}">${tx.type === 'income' ? '+' : '-'}${formatCurrency(tx.value)}</div>
                 <div class="transaction-actions">
@@ -4391,7 +4545,23 @@
 
         function populateYearSelect() { const ys = document.getElementById('searchYear'); if (!ys) return; const years = new Set(); transactions.forEach(t => { if (t.date && t.date.length >= 4) years.add(t.date.substring(0, 4)); }); const cy = new Date().getFullYear(); for (let y = 2020; y <= cy + 1; y++)years.add(String(y)); const sy = Array.from(years).sort((a, b) => parseInt(b) - parseInt(a)); const cv = ys.value; ys.innerHTML = '<option value="">' + (currentLang === 'en' ? 'All years' : 'Todos os anos') + '</option>'; sy.forEach(y => { const o = document.createElement('option'); o.value = y; o.textContent = y; ys.appendChild(o); }); if (cv && ys.querySelector(`option[value="${cv}"]`)) ys.value = cv; }
 
-        function setCurrentDates() { const ti = getTodayInBrasiliaISO(); const td = new Date(ti + 'T00:00:00Z'); const y = td.getUTCFullYear(); const m = String(td.getUTCMonth() + 1).padStart(2, '0'); document.getElementById('transactionDate').value = ti; document.getElementById('dailySummaryDate').value = ti; document.getElementById('monthlySummaryDate').value = `${y}-${m}`; document.getElementById('yearlySummaryDate').value = y; const wi = document.getElementById('weeklySummaryDate'); const d = new Date(ti); d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7)); const ys = new Date(Date.UTC(d.getUTCFullYear(), 0, 1)); const wn = Math.ceil((((d - ys) / 86400000) + 1) / 7); wi.value = `${y}-W${String(wn).padStart(2, '0')}`; }
+        function setCurrentDates() {
+            const ti = getTodayInBrasiliaISO();
+            const td = new Date(ti + 'T00:00:00Z');
+            const y = td.getUTCFullYear();
+            const m = String(td.getUTCMonth() + 1).padStart(2, '0');
+            document.getElementById('transactionDate').value = ti;
+
+            document.getElementById('dailySummaryDate').value = ti;
+            document.getElementById('monthlySummaryDate').value = `${y}-${m}`;
+            document.getElementById('yearlySummaryDate').value = y;
+            const wi = document.getElementById('weeklySummaryDate');
+            const d = new Date(ti);
+            d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+            const ys = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+            const wn = Math.ceil((((d - ys) / 86400000) + 1) / 7);
+            wi.value = `${y}-W${String(wn).padStart(2, '0')}`;
+        }
 
         function addTransaction(type) {
             if (!currentUser) {
@@ -4403,16 +4573,25 @@
             const c = document.getElementById('transactionCategory').value;
             const desc = document.getElementById('transactionDescription').value.trim();
             const f = document.getElementById('transactionFavorite').checked;
+
+            // Validate
             if (!d || !v || v <= 0 || !c || !desc) {
                 showNotification(t('fillAllFields'), 'error');
                 return;
             }
+
+            // Auto-generate time
+            const now = new Date();
+            const h = String(now.getHours()).padStart(2, '0');
+            const min = String(now.getMinutes()).padStart(2, '0');
+            const currentTime = `${h}:${min}`;
 
             // Add directly to Firestore
             db.collection('transactions').add({
                 userId: currentUser.uid,
                 type: type,
                 date: d,
+                time: currentTime, // Auto-generated
                 value: v,
                 category: c,
                 description: desc,
@@ -4427,20 +4606,46 @@
                 showNotification("Erro ao salvar no servidor", "error");
             });
         }
-        function clearTransactionForm() { document.getElementById('transactionValue').value = ''; document.getElementById('transactionCategory').value = ''; document.getElementById('transactionDescription').value = ''; document.getElementById('transactionDate').value = getTodayInBrasiliaISO(); document.getElementById('transactionFavorite').checked = false; setTransactionType('income'); if (typeof updateDateDisplayText === 'function') updateDateDisplayText(); }
-        function editTransaction(id) { const tx = transactions.find(t => t.id === id); if (!tx) return; editingTransactionId = id; document.getElementById('editTransactionDate').value = tx.date; document.getElementById('editTransactionValue').value = tx.value; document.getElementById('editTransactionCategory').value = tx.category; document.getElementById('editTransactionDescription').value = tx.description; document.getElementById('editTransactionFavorite').checked = !!tx.favorite; showModal('editTransactionModal'); }
+        function clearTransactionForm() {
+            document.getElementById('transactionValue').value = '';
+            document.getElementById('transactionCategory').value = '';
+            document.getElementById('transactionDescription').value = '';
+            document.getElementById('transactionDate').value = getTodayInBrasiliaISO();
+
+            document.getElementById('transactionFavorite').checked = false;
+            setTransactionType('income');
+            if (typeof updateDateDisplayText === 'function') updateDateDisplayText();
+        }
+        function editTransaction(id) {
+            const tx = transactions.find(t => t.id === id);
+            if (!tx) return;
+            editingTransactionId = id;
+            document.getElementById('editTransactionDate').value = tx.date;
+            const typeSelect = document.getElementById('editTransactionType');
+            if (typeSelect) typeSelect.value = tx.type;
+            document.getElementById('editTransactionValue').value = tx.value;
+            document.getElementById('editTransactionCategory').value = tx.category;
+            document.getElementById('editTransactionDescription').value = tx.description;
+            document.getElementById('editTransactionFavorite').checked = !!tx.favorite;
+            showModal('editTransactionModal');
+        }
         function saveTransactionEdit() {
             const d = document.getElementById('editTransactionDate').value;
+            const typeSelect = document.getElementById('editTransactionType');
+            const type = typeSelect ? typeSelect.value : 'expense'; // Default fallback
             const v = parseFloat(document.getElementById('editTransactionValue').value);
             const c = document.getElementById('editTransactionCategory').value;
             const desc = document.getElementById('editTransactionDescription').value.trim();
             const f = document.getElementById('editTransactionFavorite').checked;
+
             if (!d || !v || v <= 0 || !c || !desc) {
                 showNotification(t('fillAllFields'), 'error');
                 return;
             }
 
+            // Note: We don't update 'time' here to preserve the original creation time
             db.collection('transactions').doc(editingTransactionId).update({
+                type: type,
                 date: d,
                 value: v,
                 category: c,
@@ -4673,25 +4878,153 @@
         function updateSummaryStats(pfx, list) { const inc = list.filter(t => t.type === 'income').reduce((s, t) => s + t.value, 0); const exp = list.filter(t => t.type === 'expense').reduce((s, t) => s + t.value, 0); const bal = inc - exp; document.getElementById(pfx + 'Income').textContent = formatCurrency(inc); document.getElementById(pfx + 'Expense').textContent = formatCurrency(exp); document.getElementById(pfx + 'Balance').textContent = formatCurrency(bal); }
 
         function showExportExcelModal() { document.getElementById('exportExcelForm').reset(); document.getElementById('exportDateGroup').style.display = 'none'; showModal('exportExcelModal'); }
-        function updateExportDateField() { const p = document.getElementById('exportPeriod').value; const dg = document.getElementById('exportDateGroup'); const di = document.getElementById('exportDate'); const dl = document.getElementById('exportDateLabel'); if (p === 'all') { dg.style.display = 'none'; } else { dg.style.display = 'block'; di.type = p === 'month' ? 'month' : 'number'; dl.textContent = p === 'month' ? t('month') : t('year'); if (p === 'year') { di.min = '2020'; di.max = '2030'; di.value = new Date().getFullYear(); } else { const n = new Date(); di.value = `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}`; } } }
-        function exportFilteredToExcel() { const p = document.getElementById('exportPeriod').value; const cf = document.getElementById('exportCategory').value; const dv = document.getElementById('exportDate').value; let f = [...getActiveTransactions()]; if (p === 'month' && dv) f = f.filter(t => t.date.startsWith(dv)); if (p === 'year' && dv) f = f.filter(t => t.date.startsWith(dv)); if (cf === 'income') f = f.filter(t => t.type === 'income'); else if (cf === 'expense') f = f.filter(t => t.type === 'expense'); else if (cf !== 'all') f = f.filter(t => t.category === cf); if (f.length === 0) { showNotification(t('noTransactionsFilters'), 'warning'); return; } exportToExcel(f, `relatorio-financeiro-${getTodayInBrasiliaISO()}`); closeModal('exportExcelModal'); }
-        function exportToExcel(data, filename) { try { const cD = currentLang === 'en' ? 'Date' : 'Data'; const cT = currentLang === 'en' ? 'Type' : 'Tipo'; const cV = currentLang === 'en' ? 'Value' : 'Valor'; const cC = currentLang === 'en' ? 'Category' : 'Categoria'; const cDe = currentLang === 'en' ? 'Description' : 'Descri\u00E7\u00E3o'; const td = data.map(tx => ({ [cD]: formatDateForDisplay(tx.date), [cT]: tx.type === 'income' ? t('income') : t('expense'), [cV]: tx.value, [cC]: getCategoryLabel(tx.category), [cDe]: tx.description })); const ti = data.filter(t => t.type === 'income').reduce((s, t) => s + t.value, 0); const te = data.filter(t => t.type === 'expense').reduce((s, t) => s + t.value, 0); const sC = currentLang === 'en' ? 'Summary' : 'Resumo'; const sd = [{ [sC]: currentLang === 'en' ? 'Total Income' : 'Total de Receitas', [cV]: ti }, { [sC]: currentLang === 'en' ? 'Total Expenses' : 'Total de Despesas', [cV]: te }, { [sC]: currentLang === 'en' ? 'Balance' : 'Saldo', [cV]: ti - te }]; const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(td), currentLang === 'en' ? 'Transactions' : 'Transa\u00E7\u00F5es'); XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(sd), currentLang === 'en' ? 'Summary' : 'Resumo'); XLSX.writeFile(wb, `${filename}.xlsx`); showNotification(t('exportSuccess'), 'success'); } catch (e) { console.error('Erro:', e); showNotification(t('exportError'), 'error'); } }
+        function updateExportDateField() {
+            const p = document.getElementById('exportPeriod').value;
+            const dg = document.getElementById('exportDateGroup');
+            const cdg = document.getElementById('exportCustomDateGroup');
+            const di = document.getElementById('exportDate');
+            const dl = document.getElementById('exportDateLabel');
+
+            if (p === 'all') {
+                dg.style.display = 'none';
+                cdg.style.display = 'none';
+            } else if (p === 'custom') {
+                dg.style.display = 'none';
+                cdg.style.display = 'block';
+            } else {
+                dg.style.display = 'block';
+                cdg.style.display = 'none';
+                di.type = p === 'month' ? 'month' : 'number';
+                dl.textContent = p === 'month' ? t('month') : t('year');
+                if (p === 'year') {
+                    di.min = '2020';
+                    di.max = '2030';
+                    di.value = new Date().getFullYear();
+                } else {
+                    const n = new Date();
+                    di.value = `${n.getFullYear()}-${String(n.getMonth() + 1).padStart(2, '0')}`;
+                }
+            }
+        }
+        function exportFilteredToExcel() {
+            const p = document.getElementById('exportPeriod').value;
+            const typeFilter = document.getElementById('exportType').value;
+            const cf = document.getElementById('exportCategory').value;
+            const dv = document.getElementById('exportDate').value;
+            const dStart = document.getElementById('exportStartDate').value;
+            const dEnd = document.getElementById('exportEndDate').value;
+
+            let f = [...getActiveTransactions()];
+
+            let periodText = '';
+
+            if (p === 'month' && dv) {
+                f = f.filter(t => t.date.startsWith(dv));
+                periodText = `Mes: ${dv}`;
+            } else if (p === 'year' && dv) {
+                f = f.filter(t => t.date.startsWith(dv));
+                periodText = `Ano: ${dv}`;
+            } else if (p === 'custom') {
+                if (!dStart || !dEnd) {
+                    showNotification("Selecione data inicial e final", "warning");
+                    return;
+                }
+                f = f.filter(t => t.date >= dStart && t.date <= dEnd);
+                periodText = `De: ${formatDateForDisplay(dStart)} Ate: ${formatDateForDisplay(dEnd)}`;
+            } else {
+                periodText = 'Todos os registros';
+            }
+
+            // Filter by Type
+            if (typeFilter !== 'all') {
+                f = f.filter(t => t.type === typeFilter);
+            }
+
+            // Filter by Category
+            if (cf !== 'all') {
+                f = f.filter(t => t.category === cf);
+            }
+
+            if (f.length === 0) {
+                showNotification(t('noTransactionsFilters'), 'warning');
+                return;
+            }
+
+            exportToExcel(f, `relatorio-financeiro-${getTodayInBrasiliaISO()}`, periodText);
+            closeModal('exportExcelModal');
+        }
+        function exportToExcel(data, filename, periodText) {
+            try {
+                const isEn = currentLang === 'en';
+
+                // Report Metadata
+                const genDate = new Date().toLocaleString(isEn ? 'en-US' : 'pt-BR');
+                const meta = [
+                    { "A": isEn ? "Financial Report" : "Relatorio Financeiro" },
+                    { "A": (isEn ? "Generated on: " : "Gerado em: ") + genDate },
+                    { "A": (isEn ? "Period: " : "Periodo: ") + (periodText || "") },
+                    { "A": "" } // Empty row
+                ];
+
+                const cD = isEn ? 'Date' : 'Data';
+                const cTi = isEn ? 'Time' : 'Hora';
+                const cT = isEn ? 'Type' : 'Tipo';
+                const cV = isEn ? 'Value' : 'Valor';
+                const cC = isEn ? 'Category' : 'Categoria';
+                const cDe = isEn ? 'Description' : 'Descricao';
+
+                const td = data.map(tx => ({
+                    [cD]: formatDateForDisplay(tx.date),
+                    [cTi]: tx.time || '',
+                    [cT]: tx.type === 'income' ? t('income') : t('expense'),
+                    [cV]: tx.value,
+                    [cC]: getCategoryLabel(tx.category),
+                    [cDe]: tx.description
+                }));
+
+                const ti = data.filter(t => t.type === 'income').reduce((s, t) => s + t.value, 0);
+                const te = data.filter(t => t.type === 'expense').reduce((s, t) => s + t.value, 0);
+                const sC = isEn ? 'Summary' : 'Resumo';
+
+                const sd = [
+                    { [sC]: isEn ? 'Total Income' : 'Total de Receitas', [cV]: ti },
+                    { [sC]: isEn ? 'Total Expenses' : 'Total de Despesas', [cV]: te },
+                    { [sC]: isEn ? 'Balance' : 'Saldo', [cV]: ti - te }
+                ];
+
+                const wb = XLSX.utils.book_new();
+
+                // Create Worksheet with Metadata
+                const ws = XLSX.utils.json_to_sheet(td, { origin: "A5" }); // Start data at A5
+                XLSX.utils.sheet_add_json(ws, meta, { skipHeader: true, origin: "A1" });
+
+                XLSX.utils.book_append_sheet(wb, ws, isEn ? 'Transactions' : 'Transacoes');
+                XLSX.utils.book_append_sheet(wb, XLSX.utils.json_to_sheet(sd), isEn ? 'Summary' : 'Resumo');
+
+                XLSX.writeFile(wb, `${filename}.xlsx`);
+                showNotification(t('exportSuccess'), 'success');
+            } catch (e) {
+                console.error('Erro:', e);
+                showNotification(t('exportError'), 'error');
+            }
+        }
 
         function formatCurrency(v) { const f = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v || 0); return f.replace(/\u00A0/g, ''); }
         function escapeHtml(text) { if (text == null || typeof text !== 'string') return ''; const d = document.createElement('div'); d.textContent = text; return d.innerHTML; }
         function formatDateForDisplay(ds) { if (!ds || typeof ds !== 'string') return ''; const p = ds.split('-'); if (p.length !== 3) return ds; return `${p[2]}/${p[1]}/${p[0]}`; }
         function renderTransactionItem(tx) {
             const fav = tx.favorite ? `<svg class="favorited" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>` : `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`;
+            const timeDisplay = tx.time ? ` \u2022 ${tx.time}` : '';
             return `<div class="transaction-item">
                 <div class="transaction-info">
                     <div class="transaction-description">${escapeHtml(tx.description)}</div>
-                    <div class="transaction-meta">${getCategoryLabel(tx.category)} \u2022 ${formatDateForDisplay(tx.date)}</div>
+                    <div class="transaction-meta">${getCategoryLabel(tx.category)} \u2022 ${formatDateForDisplay(tx.date)}${timeDisplay}</div>
                 </div>
                 <div class="transaction-amount ${tx.type}">${tx.type === 'income' ? '+' : '-'}${formatCurrency(tx.value)}</div>
                 <div class="transaction-actions">
                     <button class="action-btn favorite-btn" onclick="toggleFavorite('${tx.id}');updateAllViews();performSearch();" title="${tx.favorite ? 'Desfavoritar' : 'Favoritar'}">${fav}</button>
                     <button class="action-btn edit" onclick="editTransaction('${tx.id}')" title="${t('edit')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
-                    <button class="action-btn delete" onclick="deleteTransaction('${tx.id}')" title="${t('delete')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
+                    <button class="action-btn delete" onclick="deleteTransaction('${tx.id}')" title="${t('delete')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2-2v2"/></svg></button>
                 </div>
             </div>`;
         }
@@ -4706,6 +5039,8 @@
             const btnExp = document.getElementById('btnExpense');
             const valInput = document.getElementById('transactionValue');
 
+            const valSection = document.getElementById('valueDisplaySection');
+
             if (type === 'income') {
                 if (bg) {
                     bg.style.transform = 'translateX(0)';
@@ -4714,6 +5049,7 @@
                 if (btnInc) btnInc.classList.add('active');
                 if (btnExp) btnExp.classList.remove('active');
                 if (valInput) valInput.classList.remove('expense-color');
+                if (valSection) valSection.classList.remove('expense-mode');
             } else {
                 if (bg) {
                     bg.style.transform = 'translateX(100%)';
@@ -4722,6 +5058,7 @@
                 if (btnExp) btnExp.classList.add('active');
                 if (btnInc) btnInc.classList.remove('active');
                 if (valInput) valInput.classList.add('expense-color');
+                if (valSection) valSection.classList.add('expense-mode');
             }
         }
         // Initialize default
@@ -4734,6 +5071,18 @@
         }
 
         function updateAllViews() { updateTransactionsList(); updateGoalsList(); updateDailyTransactions(); updateDailySummary(); updateWeeklySummary(); updateMonthlySummary(); updateYearlySummary(); updateTrashList(); if (document.getElementById('search') && document.getElementById('search').classList.contains('active')) populateYearSelect(); }
+
+        function toggleSearch() {
+            const searchTabBtn = document.querySelector('.menu-item[onclick*="showTab(\'search\'"]');
+            if (searchTabBtn) {
+                showTab('search', searchTabBtn);
+            } else {
+                // Fallback
+                document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
+                document.getElementById('search').classList.add('active');
+            }
+        }
 
         function showModal(id) { document.getElementById(id).classList.add('active'); }
         function closeModal(id) { document.getElementById(id).classList.remove('active'); }
