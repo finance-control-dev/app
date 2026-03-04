@@ -6025,7 +6025,8 @@
         function nextDay() { const di = document.getElementById('transactionDate'); const cd = new Date(di.value + 'T00:00:00Z'); cd.setUTCDate(cd.getUTCDate() + 1); di.value = cd.toISOString().split('T')[0]; updateDailyTransactions(); }
         // ==================== CONTAS FIXAS ====================
         let contasFixas = [];                // loaded from Firestore
-        let cfBalance = 0;                   // user's available balance
+        let cfBalance = 0;                   // user's available balance (base)
+        let cfBalanceSavedAt = null;         // ISO timestamp when cfBalance was last saved
         let editingContaFixaId = null;       // currently being edited
         let unsubscribeContasFixas = null;   // Firestore listener
 
@@ -6048,9 +6049,10 @@
 
         // Load balance: try localStorage first (instant), then Firestore updates via listener
         function cfLoadBalance() {
-            if (!currentUser) { cfBalance = 0; return; }
+            if (!currentUser) { cfBalance = 0; cfBalanceSavedAt = null; return; }
             const localVal = parseFloat(localStorage.getItem('cfBalance_' + currentUser.uid) || '0') || 0;
             cfBalance = localVal;
+            cfBalanceSavedAt = localStorage.getItem('cfBalanceSavedAt_' + currentUser.uid) || null;
             const inp = document.getElementById('cfBalanceInput');
             if (inp && localVal > 0) inp.value = localVal;
         }
@@ -6074,13 +6076,17 @@
             const v = parseFloat(inp.value) || 0;
             if (v < 0) { showNotification('O saldo não pode ser negativo!', 'error'); return; }
             cfBalance = v;
+            const savedAt = new Date().toISOString();
+            cfBalanceSavedAt = savedAt;
             // Save to localStorage immediately (cache)
             localStorage.setItem('cfBalance_' + currentUser.uid, v);
+            localStorage.setItem('cfBalanceSavedAt_' + currentUser.uid, savedAt);
             // Save to Firestore (sync across devices)
             db.collection('userSettings').doc(currentUser.uid).set({
                 userId: currentUser.uid,
                 cfBalance: v,
-                updatedAt: new Date().toISOString()
+                cfBalanceSavedAt: savedAt,
+                updatedAt: savedAt
             }, { merge: true })
                 .then(() => {
                     showNotification('Saldo salvo na nuvem! ✅', 'success');
@@ -6116,13 +6122,17 @@
             unsubscribeUserSettings = db.collection('userSettings').doc(user.uid)
                 .onSnapshot(doc => {
                     if (doc.exists && doc.data().cfBalance !== undefined) {
-                        const remoteBalance = parseFloat(doc.data().cfBalance) || 0;
+                        const data = doc.data();
+                        const remoteBalance = parseFloat(data.cfBalance) || 0;
+                        const remoteSavedAt = data.cfBalanceSavedAt || null;
                         cfBalance = remoteBalance;
+                        cfBalanceSavedAt = remoteSavedAt;
                         // Update localStorage cache
                         localStorage.setItem('cfBalance_' + user.uid, remoteBalance);
+                        if (remoteSavedAt) localStorage.setItem('cfBalanceSavedAt_' + user.uid, remoteSavedAt);
                         // Update input field if visible
                         const inp = document.getElementById('cfBalanceInput');
-                        if (inp) inp.value = remoteBalance;
+                        if (inp && document.getElementById('cfBalanceEditRow')?.style.display !== 'none') inp.value = remoteBalance;
                         cfUpdateViews();
                     }
                 }, err => console.error('Erro userSettings listener:', err));
@@ -6226,13 +6236,20 @@
             const remaining = Math.max(totalBills - paidTotal, 0);
             const pct = totalBills > 0 ? Math.min((paidTotal / totalBills) * 100, 100) : 0;
 
-            // --- Net of all active transactions (income – expense) ---
-            const activeTransactions = getActiveTransactions();
-            const totalIncome = activeTransactions.filter(tx => tx.type === 'income').reduce((s, tx) => s + (tx.value || 0), 0);
-            const totalExpense = activeTransactions.filter(tx => tx.type === 'expense').reduce((s, tx) => s + (tx.value || 0), 0);
-            const netTransactions = totalIncome - totalExpense;
+            // --- Net of transactions created AFTER the balance was saved ---
+            let netTransactions = 0;
+            if (cfBalanceSavedAt) {
+                const cutoff = cfBalanceSavedAt; // ISO string for comparison
+                const txAfterSave = getActiveTransactions().filter(tx => {
+                    const txTime = tx.createdAt || (tx.date ? tx.date + 'T00:00:00.000Z' : null);
+                    return txTime && txTime >= cutoff;
+                });
+                const totalIncome = txAfterSave.filter(tx => tx.type === 'income').reduce((s, tx) => s + (tx.value || 0), 0);
+                const totalExpense = txAfterSave.filter(tx => tx.type === 'expense').reduce((s, tx) => s + (tx.value || 0), 0);
+                netTransactions = totalIncome - totalExpense;
+            }
 
-            // effectiveBalance = base balance entered by user + net of all transactions
+            // effectiveBalance = base balance + net of transactions added after the snapshot
             const effectiveBalance = cfBalance + netTransactions;
             const afterBills = effectiveBalance - remaining;
 
