@@ -3399,6 +3399,32 @@
             flex-shrink: 0;
         }
 
+        /* Edit balance pencil button */
+        .cf-edit-bal-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 26px;
+            height: 26px;
+            border: none;
+            border-radius: 8px;
+            background: rgba(255, 255, 255, 0.12);
+            color: rgba(255, 255, 255, 0.8);
+            cursor: pointer;
+            transition: background var(--transition), transform var(--transition);
+            flex-shrink: 0;
+        }
+
+        .cf-edit-bal-btn:hover {
+            background: rgba(255, 255, 255, 0.25);
+            transform: scale(1.1);
+        }
+
+        .cf-edit-bal-btn.active {
+            background: rgba(255, 255, 255, 0.3);
+            color: #fff;
+        }
+
         /* --- CF Responsive: 768px --- */
         @media(max-width:768px) {
             .cf-balance-header {
@@ -4334,11 +4360,10 @@
                     </button>
                 </div>
 
-                <!-- Balance input row -->
-                <div class="form-row-label" style="margin-bottom:0.4rem;">SALDO DISPONÍVEL</div>
-                <div class="cf-set-balance-row">
-                    <input type="number" id="cfBalanceInput" class="form-input" step="0.01" min="0" placeholder="0,00"
-                        oninput="cfUpdateViews()">
+                <!-- Balance input row (hidden by default, toggled by edit button) -->
+                <div class="cf-set-balance-row" id="cfBalanceEditRow" style="display:none;margin-bottom:0.75rem;">
+                    <input type="number" id="cfBalanceInput" class="form-input" step="0.01" min="0"
+                        placeholder="Novo saldo base (R$)" oninput="cfUpdateViews()">
                     <button class="btn btn-primary" onclick="cfSaveBalance()"
                         style="flex-shrink:0;padding:0.75rem 1.1rem;border-radius:12px;">
                         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
@@ -4352,9 +4377,19 @@
                 <!-- Balance & Goal cards -->
                 <div class="cf-balance-header">
                     <div class="cf-balance-card balance-avail">
-                        <div class="cf-balance-label">💰 Saldo Atual</div>
+                        <div
+                            style="display:flex;align-items:center;justify-content:space-between;margin-bottom:0.25rem;">
+                            <div class="cf-balance-label">💰 Saldo Atual</div>
+                            <button class="cf-edit-bal-btn" onclick="cfToggleBalanceEdit()" title="Editar saldo base">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                    stroke-width="2.5">
+                                    <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                                    <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                                </svg>
+                            </button>
+                        </div>
                         <div class="cf-balance-value" id="cfBalanceDisplay">R$ 0,00</div>
-                        <div class="cf-balance-sub">Disponível para uso</div>
+                        <div class="cf-balance-sub" id="cfBalanceDisplaySub">Insira seu saldo acima</div>
                     </div>
                     <div class="cf-balance-card balance-goal">
                         <div class="cf-balance-label">🎯 Restante Contas</div>
@@ -5755,7 +5790,7 @@
             addTransaction(currentTransactionType);
         }
 
-        function updateAllViews() { updateTransactionsList(); updateGoalsList(); updateDailyTransactions(); updateDailySummary(); updateWeeklySummary(); updateMonthlySummary(); updateYearlySummary(); updateTrashList(); if (document.getElementById('search') && document.getElementById('search').classList.contains('active')) populateYearSelect(); }
+        function updateAllViews() { updateTransactionsList(); updateGoalsList(); updateDailyTransactions(); updateDailySummary(); updateWeeklySummary(); updateMonthlySummary(); updateYearlySummary(); updateTrashList(); if (typeof cfUpdateViews === 'function') cfUpdateViews(); if (document.getElementById('search') && document.getElementById('search').classList.contains('active')) populateYearSelect(); }
 
         function toggleSearch() {
             const searchTabBtn = document.querySelector('.menu-item[onclick*="showTab(\'search\'"]');
@@ -6020,6 +6055,19 @@
             if (inp && localVal > 0) inp.value = localVal;
         }
 
+        function cfToggleBalanceEdit() {
+            const row = document.getElementById('cfBalanceEditRow');
+            const btn = document.querySelector('.cf-edit-bal-btn');
+            if (!row) return;
+            const isOpen = row.style.display !== 'none';
+            row.style.display = isOpen ? 'none' : 'flex';
+            if (btn) btn.classList.toggle('active', !isOpen);
+            if (!isOpen) {
+                const inp = document.getElementById('cfBalanceInput');
+                if (inp) { inp.value = cfBalance || ''; inp.focus(); }
+            }
+        }
+
         function cfSaveBalance() {
             if (!currentUser) { showNotification('Faça login para salvar', 'error'); return; }
             const inp = document.getElementById('cfBalanceInput');
@@ -6037,6 +6085,11 @@
                 .then(() => {
                     showNotification('Saldo salvo na nuvem! ✅', 'success');
                     inp.value = '';
+                    // Close edit row
+                    const row = document.getElementById('cfBalanceEditRow');
+                    const btn = document.querySelector('.cf-edit-bal-btn');
+                    if (row) row.style.display = 'none';
+                    if (btn) btn.classList.remove('active');
                     cfUpdateViews();
                 })
                 .catch(err => {
@@ -6171,14 +6224,20 @@
             const totalBills = activeBills.reduce((s, c) => s + (c.value || 0), 0);
             const paidTotal = activeBills.filter(c => c.paid).reduce((s, c) => s + (c.value || 0), 0);
             const remaining = Math.max(totalBills - paidTotal, 0);
-            const afterBills = cfBalance - remaining;
             const pct = totalBills > 0 ? Math.min((paidTotal / totalBills) * 100, 100) : 0;
 
-            // Update balance display with input value live
-            const inpVal = parseFloat(document.getElementById('cfBalanceInput')?.value) || cfBalance;
-            const displayBalance = inpVal;
+            // --- Net of all active transactions (income – expense) ---
+            const activeTransactions = getActiveTransactions();
+            const totalIncome = activeTransactions.filter(tx => tx.type === 'income').reduce((s, tx) => s + (tx.value || 0), 0);
+            const totalExpense = activeTransactions.filter(tx => tx.type === 'expense').reduce((s, tx) => s + (tx.value || 0), 0);
+            const netTransactions = totalIncome - totalExpense;
+
+            // effectiveBalance = base balance entered by user + net of all transactions
+            const effectiveBalance = cfBalance + netTransactions;
+            const afterBills = effectiveBalance - remaining;
 
             const balDisplay = document.getElementById('cfBalanceDisplay');
+            const balSub = document.getElementById('cfBalanceDisplaySub');
             const remDisplay = document.getElementById('cfRemainingDisplay');
             const remSub = document.getElementById('cfRemainingSubtitle');
             const progFill = document.getElementById('cfProgressFill');
@@ -6186,7 +6245,22 @@
             const motIcon = document.getElementById('cfMotivational')?.querySelector('.cf-motivational-icon');
             const motText = document.getElementById('cfMotivationalText');
 
-            if (balDisplay) balDisplay.textContent = formatCurrency(displayBalance);
+            if (balDisplay) balDisplay.textContent = formatCurrency(effectiveBalance);
+
+            // Show breakdown only when there are transactions
+            if (balSub) {
+                if (cfBalance === 0) {
+                    balSub.textContent = 'Insira seu saldo acima';
+                } else if (netTransactions === 0) {
+                    balSub.textContent = 'Base: ' + formatCurrency(cfBalance);
+                } else {
+                    const netLabel = netTransactions >= 0
+                        ? '+' + formatCurrency(netTransactions) + ' em ganhos'
+                        : formatCurrency(netTransactions) + ' em gastos';
+                    balSub.textContent = 'Base ' + formatCurrency(cfBalance) + ' • ' + netLabel;
+                }
+            }
+
             if (remDisplay) remDisplay.textContent = formatCurrency(remaining);
             if (remSub) {
                 if (remaining <= 0 && totalBills > 0) {
@@ -6194,10 +6268,13 @@
                 } else if (totalBills === 0) {
                     remSub.textContent = 'Nenhuma conta cadastrada';
                 } else {
-                    const afterStr = afterBills >= 0 ? 'sobram ' + formatCurrency(afterBills) : 'faltam ' + formatCurrency(Math.abs(afterBills));
+                    const afterStr = afterBills >= 0
+                        ? 'sobram ' + formatCurrency(afterBills)
+                        : 'faltam ' + formatCurrency(Math.abs(afterBills));
                     remSub.textContent = afterStr + ' após pagar tudo';
                 }
             }
+
             if (progFill) progFill.style.width = pct.toFixed(1) + '%';
             if (progPct) progPct.textContent = pct.toFixed(0) + '% pago';
 
