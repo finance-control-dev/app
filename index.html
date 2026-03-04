@@ -3701,7 +3701,20 @@
             </div>
             <div class="header-new-info">
                 <h1 class="header-new-title" data-i18n="appTitle">CONTROLE FINANCEIRO </h1>
-                <div class="header-new-date" id="headerNewDate">
+                <div class="header-new-date" id="headerNewDate"
+                    style="display:flex; align-items:center; flex-wrap:wrap; gap:6px;">
+                    <span id="headerBalanceAmount" style="font-weight:700; color:var(--primary); font-size: 1.05rem;">R$
+                        0,00</span>
+                    <button type="button" id="headerBalanceEyeBtn" onclick="toggleHeaderBalanceVisibility()"
+                        style="background:none; border:none; cursor:pointer; color:inherit; display:flex; align-items:center; padding:0; outline:none;"
+                        title="Mostrar/Ocultar Saldo">
+                        <svg id="headerBalanceEyeIcon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </button>
+                    <span style="color:var(--dark-text-3);">|</span>
                     <span id="clockDate">--/--/----</span> <span style="margin:0 2px;">&#8226;</span> <span
                         id="clockTime">00:00</span>
                 </div>
@@ -5790,7 +5803,45 @@
             addTransaction(currentTransactionType);
         }
 
-        function updateAllViews() { updateTransactionsList(); updateGoalsList(); updateDailyTransactions(); updateDailySummary(); updateWeeklySummary(); updateMonthlySummary(); updateYearlySummary(); updateTrashList(); if (typeof cfUpdateViews === 'function') cfUpdateViews(); if (document.getElementById('search') && document.getElementById('search').classList.contains('active')) populateYearSelect(); }
+        let isHeaderBalanceVisible = localStorage.getItem('headerBalanceVisible') !== 'false';
+
+        function toggleHeaderBalanceVisibility() {
+            isHeaderBalanceVisible = !isHeaderBalanceVisible;
+            localStorage.setItem('headerBalanceVisible', isHeaderBalanceVisible);
+            updateHeaderBalance();
+        }
+
+        function updateHeaderBalance() {
+            let netTransactions = 0;
+            if (typeof cfBalanceSavedAt !== 'undefined' && cfBalanceSavedAt) {
+                const cutoff = cfBalanceSavedAt;
+                const txAfterSave = getActiveTransactions().filter(tx => {
+                    const txTime = tx.createdAt || (tx.date ? tx.date + 'T00:00:00.000Z' : null);
+                    return txTime && txTime >= cutoff;
+                });
+                const totalIncome = txAfterSave.filter(tx => tx.type === 'income').reduce((s, tx) => s + (tx.value || 0), 0);
+                const totalExpense = txAfterSave.filter(tx => tx.type === 'expense').reduce((s, tx) => s + (tx.value || 0), 0);
+                netTransactions = totalIncome - totalExpense;
+            }
+            const effectiveBalance = (typeof cfBalance !== 'undefined' ? cfBalance : 0) + netTransactions;
+
+            const balanceElement = document.getElementById('headerBalanceAmount');
+            const iconElement = document.getElementById('headerBalanceEyeIcon');
+
+            if (balanceElement && iconElement) {
+                if (isHeaderBalanceVisible) {
+                    balanceElement.textContent = formatCurrency(effectiveBalance);
+                    document.getElementById('headerBalanceEyeBtn').style.opacity = '1';
+                    iconElement.innerHTML = '<path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle>';
+                } else {
+                    balanceElement.textContent = 'R$ •••••';
+                    document.getElementById('headerBalanceEyeBtn').style.opacity = '0.6';
+                    iconElement.innerHTML = '<path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line>';
+                }
+            }
+        }
+
+        function updateAllViews() { updateTransactionsList(); updateGoalsList(); updateDailyTransactions(); updateDailySummary(); updateWeeklySummary(); updateMonthlySummary(); updateYearlySummary(); updateTrashList(); updateHeaderBalance(); if (typeof cfUpdateViews === 'function') cfUpdateViews(); if (document.getElementById('search') && document.getElementById('search').classList.contains('active')) populateYearSelect(); }
 
         function toggleSearch() {
             const searchTabBtn = document.querySelector('.menu-item[onclick*="showTab(\'search\'"]');
