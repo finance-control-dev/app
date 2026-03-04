@@ -3110,6 +3110,504 @@
         .light .segmented-btn.active {
             color: #ffffff;
         }
+
+        /* ==================== CONTAS FIXAS ==================== */
+        .cf-balance-header {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+            flex-wrap: wrap;
+        }
+
+        .cf-balance-card {
+            flex: 1;
+            min-width: 140px;
+            border-radius: var(--radius-sm);
+            padding: 1.15rem 1.25rem;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .cf-balance-card.balance-avail {
+            background: linear-gradient(145deg, #052e16, #064e3b);
+            border: 1px solid rgba(16, 185, 129, 0.18);
+        }
+
+        .cf-balance-card.balance-goal {
+            background: linear-gradient(145deg, #1e1b4b, #312e81);
+            border: 1px solid rgba(99, 102, 241, 0.25);
+        }
+
+        .light .cf-balance-card.balance-avail {
+            background: linear-gradient(145deg, #ECFDF5, #D1FAE5);
+            border-color: rgba(16, 185, 129, 0.2);
+        }
+
+        .light .cf-balance-card.balance-goal {
+            background: linear-gradient(145deg, #EEF2FF, #E0E7FF);
+            border-color: rgba(99, 102, 241, 0.2);
+        }
+
+        .cf-balance-label {
+            font-size: 0.68rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.7;
+        }
+
+        .cf-balance-card.balance-avail .cf-balance-label {
+            color: #a7f3d0;
+        }
+
+        .cf-balance-card.balance-goal .cf-balance-label {
+            color: #c7d2fe;
+        }
+
+        .light .cf-balance-card.balance-avail .cf-balance-label {
+            color: #065F46;
+        }
+
+        .light .cf-balance-card.balance-goal .cf-balance-label {
+            color: #3730a3;
+        }
+
+        .cf-balance-value {
+            font-size: clamp(1.1rem, 3.5vw, 1.65rem);
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            line-height: 1.1;
+        }
+
+        .cf-balance-card.balance-avail .cf-balance-value {
+            color: #34d399;
+        }
+
+        .cf-balance-card.balance-goal .cf-balance-value {
+            color: #818cf8;
+        }
+
+        .light .cf-balance-card.balance-avail .cf-balance-value {
+            color: var(--primary-dark);
+        }
+
+        .light .cf-balance-card.balance-goal .cf-balance-value {
+            color: #4338ca;
+        }
+
+        .cf-balance-sub {
+            font-size: 0.73rem;
+            opacity: 0.6;
+        }
+
+        .cf-balance-card.balance-avail .cf-balance-sub {
+            color: #a7f3d0;
+        }
+
+        .cf-balance-card.balance-goal .cf-balance-sub {
+            color: #c7d2fe;
+        }
+
+        .light .cf-balance-card.balance-avail .cf-balance-sub {
+            color: #065F46;
+        }
+
+        .light .cf-balance-card.balance-goal .cf-balance-sub {
+            color: #3730a3;
+        }
+
+        .cf-set-balance-row {
+            display: flex;
+            gap: 0.6rem;
+            margin-bottom: 1.25rem;
+            align-items: center;
+        }
+
+        .cf-set-balance-row input {
+            flex: 1;
+        }
+
+        .cf-motivational {
+            border-radius: var(--radius-sm);
+            padding: 1rem 1.25rem;
+            margin-bottom: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            animation: fadeInUp 0.5s ease;
+        }
+
+        .dark .cf-motivational {
+            background: rgba(16, 185, 129, 0.07);
+            border: 1px solid rgba(16, 185, 129, 0.15);
+        }
+
+        .light .cf-motivational {
+            background: rgba(16, 185, 129, 0.06);
+            border: 1px solid rgba(16, 185, 129, 0.18);
+        }
+
+        .cf-motivational-icon {
+            font-size: 1.8rem;
+            flex-shrink: 0;
+        }
+
+        .cf-motivational-text {
+            font-size: 0.9rem;
+            font-weight: 500;
+            line-height: 1.5;
+        }
+
+        .dark .cf-motivational-text {
+            color: #a7f3d0;
+        }
+
+        .light .cf-motivational-text {
+            color: #065F46;
+        }
+
+        .cf-goal-progress-wrap {
+            margin-bottom: 1.25rem;
+        }
+
+        .cf-goal-label-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.78rem;
+            margin-bottom: 0.4rem;
+            opacity: 0.7;
+        }
+
+        .cf-bill-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.85rem 1rem;
+            border-radius: var(--radius-sm);
+            margin-bottom: 0.5rem;
+            transition: all var(--transition);
+        }
+
+        .dark .cf-bill-item {
+            background: var(--dark-card);
+            border: 1px solid var(--dark-border);
+        }
+
+        .light .cf-bill-item {
+            background: var(--light-card);
+            border: 1px solid var(--light-border);
+        }
+
+        .cf-bill-item:hover {
+            border-color: rgba(16, 185, 129, 0.2);
+            transform: translateX(3px);
+        }
+
+        .cf-bill-item.paid {
+            opacity: 0.55;
+        }
+
+        .cf-bill-check {
+            width: 22px;
+            height: 22px;
+            min-width: 22px;
+            border-radius: 50%;
+            border: 2px solid var(--primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all var(--transition);
+            flex-shrink: 0;
+            background: transparent;
+        }
+
+        .cf-bill-check.checked {
+            background: var(--primary);
+            border-color: var(--primary);
+        }
+
+        .cf-bill-check svg {
+            width: 12px;
+            height: 12px;
+            color: white;
+            display: none;
+        }
+
+        .cf-bill-check.checked svg {
+            display: block;
+        }
+
+        .cf-bill-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .cf-bill-name {
+            font-weight: 700;
+            font-size: 0.92rem;
+            margin-bottom: 2px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .cf-bill-meta {
+            font-size: 0.75rem;
+            opacity: 0.6;
+        }
+
+        .cf-bill-amount {
+            font-weight: 800;
+            font-size: 0.95rem;
+            color: var(--danger-light);
+            white-space: nowrap;
+            margin-right: 0.25rem;
+        }
+
+        .light .cf-bill-amount {
+            color: var(--danger);
+        }
+
+        /* Add button for Contas Fixas */
+        .cf-add-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--primary);
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            padding: 0.5rem 1rem;
+            font-size: 0.88rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background var(--transition), transform var(--transition);
+            flex-shrink: 0;
+            white-space: nowrap;
+        }
+
+        .cf-add-btn:hover {
+            background: var(--primary-dark);
+            transform: scale(1.04);
+        }
+
+        .cf-add-btn svg {
+            flex-shrink: 0;
+        }
+
+        /* --- CF Responsive: 768px --- */
+        @media(max-width:768px) {
+            .cf-balance-header {
+                gap: 0.75rem;
+            }
+
+            .cf-balance-card {
+                min-width: 130px;
+                padding: 1rem;
+            }
+
+            .cf-balance-value {
+                font-size: clamp(1rem, 4vw, 1.4rem);
+            }
+
+            .cf-set-balance-row {
+                gap: 0.5rem;
+            }
+
+            .cf-motivational {
+                gap: 0.65rem;
+                padding: 0.85rem 1rem;
+            }
+
+            .cf-motivational-icon {
+                font-size: 1.5rem;
+            }
+
+            .cf-bill-item {
+                gap: 0.6rem;
+            }
+
+            .cf-bill-name {
+                font-size: 0.88rem;
+            }
+
+            .cf-bill-amount {
+                font-size: 0.88rem;
+            }
+        }
+
+        /* --- CF Responsive: 480px --- */
+        @media(max-width:480px) {
+
+            /* Page header: keep title + button on the same row */
+            #contas-fixas .card>div:first-child {
+                flex-direction: row;
+                align-items: center;
+                gap: 0.5rem;
+            }
+
+            /* Compact icon-only add button on mobile */
+            .cf-add-btn {
+                padding: 0.45rem 0.6rem;
+                border-radius: 10px;
+                font-size: 0;
+                /* hide any stray text */
+                gap: 0;
+            }
+
+            .cf-add-btn-label {
+                display: none;
+            }
+
+            .cf-add-btn svg {
+                width: 18px;
+                height: 18px;
+            }
+
+            /* Balance cards: stack vertically */
+            .cf-balance-header {
+                flex-direction: column;
+                gap: 0.6rem;
+            }
+
+            .cf-balance-card {
+                min-width: unset;
+                width: 100%;
+                padding: 0.85rem 1rem;
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+            }
+
+            .cf-balance-label {
+                font-size: 0.65rem;
+                margin-bottom: 0;
+            }
+
+            .cf-balance-value {
+                font-size: clamp(1rem, 5vw, 1.25rem);
+                text-align: right;
+            }
+
+            .cf-balance-sub {
+                display: none;
+            }
+
+            /* Balance input row: stack button below */
+            .cf-set-balance-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .cf-set-balance-row button {
+                width: 100%;
+                justify-content: center;
+                padding: 0.7rem 1rem;
+            }
+
+            /* Motivational: compact */
+            .cf-motivational {
+                padding: 0.75rem;
+                gap: 0.55rem;
+            }
+
+            .cf-motivational-icon {
+                font-size: 1.4rem;
+            }
+
+            .cf-motivational-text {
+                font-size: 0.84rem;
+            }
+
+            /* Bill items: collapse actions to row below */
+            .cf-bill-item {
+                flex-wrap: wrap;
+                gap: 0.5rem;
+                padding: 0.7rem;
+            }
+
+            .cf-bill-check {
+                width: 20px;
+                height: 20px;
+                min-width: 20px;
+            }
+
+            .cf-bill-info {
+                flex: 1;
+                min-width: 0;
+            }
+
+            .cf-bill-name {
+                font-size: 0.86rem;
+                white-space: normal;
+            }
+
+            .cf-bill-meta {
+                font-size: 0.72rem;
+            }
+
+            .cf-bill-amount {
+                font-size: 0.9rem;
+                font-weight: 800;
+                margin-right: 0;
+            }
+
+            /* Actions: full width below */
+            .cf-bill-item>.transaction-actions {
+                width: 100%;
+                justify-content: flex-end;
+                gap: 0.5rem;
+                border-top: 1px solid rgba(255, 255, 255, 0.05);
+                padding-top: 0.45rem;
+                margin-top: 0;
+            }
+
+            .light .cf-bill-item>.transaction-actions {
+                border-top-color: rgba(0, 0, 0, 0.06);
+            }
+
+            .cf-bill-item>.transaction-actions .action-btn {
+                flex: 1;
+                justify-content: center;
+                padding: 0.4rem 0;
+            }
+
+            /* Progress label row */
+            .cf-goal-label-row {
+                font-size: 0.74rem;
+            }
+        }
+
+        /* --- CF Responsive: 360px (extra small) --- */
+        @media(max-width:360px) {
+            .cf-balance-card {
+                padding: 0.7rem 0.85rem;
+            }
+
+            .cf-balance-value {
+                font-size: clamp(0.95rem, 5vw, 1.1rem);
+            }
+
+            .cf-balance-label {
+                font-size: 0.6rem;
+            }
+
+            .cf-motivational-text {
+                font-size: 0.8rem;
+            }
+
+            .cf-bill-name {
+                font-size: 0.82rem;
+            }
+
+            .cf-bill-amount {
+                font-size: 0.84rem;
+            }
+        }
     </style>
 </head>
 
@@ -3245,6 +3743,15 @@
                     <line x1="8" y1="12" x2="16" y2="12" />
                 </svg>
                 <span data-i18n="menuNewTransaction">Nova Transacao</span>
+            </button>
+            <button class="menu-item" onclick="showTab('contas-fixas', this)">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="2" y="5" width="20" height="14" rx="2" />
+                    <line x1="2" y1="10" x2="22" y2="10" />
+                    <line x1="6" y1="15" x2="10" y2="15" />
+                    <line x1="14" y1="15" x2="18" y2="15" />
+                </svg>
+                <span>Contas Fixas</span>
             </button>
             <button class="menu-item" onclick="showTab('transactions', this)">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
@@ -3812,6 +4319,75 @@
             </div>
         </div>
 
+        <!-- Contas Fixas Tab -->
+        <div id="contas-fixas" class="tab-content">
+            <div class="card">
+                <div class="flex justify-between items-center mb-2">
+                    <h2>Contas Fixas</h2>
+                    <button class="cf-add-btn" onclick="showAddContaFixaModal()" title="Nova Conta Fixa">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5">
+                            <line x1="12" y1="5" x2="12" y2="19" />
+                            <line x1="5" y1="12" x2="19" y2="12" />
+                        </svg>
+                        <span class="cf-add-btn-label">Nova Conta</span>
+                    </button>
+                </div>
+
+                <!-- Balance input row -->
+                <div class="form-row-label" style="margin-bottom:0.4rem;">SALDO DISPONÍVEL</div>
+                <div class="cf-set-balance-row">
+                    <input type="number" id="cfBalanceInput" class="form-input" step="0.01" min="0" placeholder="0,00"
+                        oninput="cfUpdateViews()">
+                    <button class="btn btn-primary" onclick="cfSaveBalance()"
+                        style="flex-shrink:0;padding:0.75rem 1.1rem;border-radius:12px;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5">
+                            <polyline points="20,6 9,17 4,12" />
+                        </svg>
+                        Salvar
+                    </button>
+                </div>
+
+                <!-- Balance & Goal cards -->
+                <div class="cf-balance-header">
+                    <div class="cf-balance-card balance-avail">
+                        <div class="cf-balance-label">💰 Saldo Atual</div>
+                        <div class="cf-balance-value" id="cfBalanceDisplay">R$ 0,00</div>
+                        <div class="cf-balance-sub">Disponível para uso</div>
+                    </div>
+                    <div class="cf-balance-card balance-goal">
+                        <div class="cf-balance-label">🎯 Restante Contas</div>
+                        <div class="cf-balance-value" id="cfRemainingDisplay">R$ 0,00</div>
+                        <div class="cf-balance-sub" id="cfRemainingSubtitle">a pagar este mês</div>
+                    </div>
+                </div>
+
+                <!-- Goal progress -->
+                <div class="cf-goal-progress-wrap">
+                    <div class="cf-goal-label-row">
+                        <span id="cfProgressLabel">Progresso do pagamento</span>
+                        <span id="cfProgressPct">0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="cfProgressFill" style="width:0%"></div>
+                    </div>
+                </div>
+
+                <!-- Motivational message -->
+                <div class="cf-motivational" id="cfMotivational">
+                    <div class="cf-motivational-icon">🌟</div>
+                    <div class="cf-motivational-text" id="cfMotivationalText">Cadastre suas contas fixas e mantenha o
+                        controle!</div>
+                </div>
+
+                <!-- Bills list -->
+                <div id="cfBillsList">
+                    <div class="empty-state">Nenhuma conta fixa cadastrada</div>
+                </div>
+            </div>
+        </div>
+
         <!-- Trash Tab -->
         <div id="trash" class="tab-content">
             <div class="card">
@@ -3854,6 +4430,63 @@
             </div>
         </div>
     </main>
+
+    <!-- Add/Edit Conta Fixa Modal -->
+    <div class="modal-overlay" id="addContaFixaModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="cfModalTitle">Nova Conta Fixa</h3>
+                <button class="modal-close" onclick="closeModal('addContaFixaModal')">&times;</button>
+            </div>
+            <form id="addContaFixaForm">
+                <div class="form-group">
+                    <label class="form-label">NOME DA CONTA</label>
+                    <input type="text" id="cfBillName" class="form-input" placeholder="Ex: Aluguel, Internet..."
+                        required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">VALOR (R$)</label>
+                    <input type="number" id="cfBillValue" class="form-input" step="0.01" min="0.01" placeholder="0,00"
+                        required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">CATEGORIA / ÍCONE</label>
+                    <select id="cfBillCategory" class="form-select">
+                        <option value="🏠">🏠 Moradia</option>
+                        <option value="💡">💡 Energia / Luz</option>
+                        <option value="💧">💧 Água</option>
+                        <option value="📱">📱 Celular</option>
+                        <option value="🌐">🌐 Internet</option>
+                        <option value="🚗">🚗 Transporte</option>
+                        <option value="🏥">🏥 Saúde / Plano</option>
+                        <option value="📚">📚 Educação</option>
+                        <option value="🎬">🎬 Streaming</option>
+                        <option value="💳">💳 Cartão / Crédito</option>
+                        <option value="🏋">🏋 Academia</option>
+                        <option value="📦">📦 Outros</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">DIA DE VENCIMENTO</label>
+                    <input type="number" id="cfBillDueDay" class="form-input" min="1" max="31" placeholder="Ex: 10"
+                        value="10">
+                </div>
+                <div class="btn-group">
+                    <button type="button" class="btn btn-primary" onclick="saveContaFixa()">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2">
+                            <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                            <polyline points="17,21 17,13 7,13 7,21" />
+                            <polyline points="7,3 7,8 15,8" />
+                        </svg>
+                        Salvar
+                    </button>
+                    <button type="button" class="btn btn-secondary"
+                        onclick="closeModal('addContaFixaModal')">Cancelar</button>
+                </div>
+            </form>
+        </div>
+    </div>
 
     <!-- Edit Transaction Modal -->
     <div class="modal-overlay" id="editTransactionModal">
@@ -4743,17 +5376,62 @@
             }
             l.innerHTML = s.map(function (tx) {
                 var dd = tx.deletedAt ? formatDateForDisplay(String(tx.deletedAt).split('T')[0]) : '';
+                var isCF = !!tx.isCF;
+                var categoryLabel = isCF ? (tx.category || '📦') + ' Conta Fixa' : getCategoryLabel(tx.category);
+
+                // Buttons differ for CF items vs regular transactions
+                var restoreBtn, deleteBtn;
+                if (isCF) {
+                    // Pass the full item data as JSON so we can recreate in Firestore
+                    var encoded = encodeURIComponent(JSON.stringify(tx));
+                    restoreBtn = '<button type="button" class="action-btn edit" onclick="restoreContaFixaFromTrash(\'' + tx.id + '\',' + JSON.stringify(tx).replace(/'/g, "&#39;").replace(/"/g, '&quot;') + ')" title="' + t('restore') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><polyline points="3 3 3 8 8 8"/></svg></button>';
+                    deleteBtn = '<button type="button" class="action-btn delete" onclick="deleteContaFixaPermanentlyFromTrash(\'' + tx.id + '\')" title="' + t('deletePermanent') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>';
+                } else {
+                    restoreBtn = '<button type="button" class="action-btn edit" onclick="restoreTransaction(\'' + tx.id + '\')" title="' + t('restore') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><polyline points="3 3 3 8 8 8"/></svg></button>';
+                    deleteBtn = '<button type="button" class="action-btn delete" onclick="deletePermanently(\'' + tx.id + '\')" title="' + t('deletePermanent') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>';
+                }
+
                 return '<div class="transaction-item">' +
                     '<div class="transaction-info">' +
                     '<div class="transaction-description">' + escapeHtml(tx.description || '') + '</div>' +
-                    '<div class="transaction-meta">' + getCategoryLabel(tx.category) + ' \u2022 ' + formatDateForDisplay(tx.date) + (dd ? ' \u2022 ' + (currentLang === 'en' ? 'Deleted on ' : 'Exclu\u00EDda em ') + dd : '') + '</div>' +
+                    '<div class="transaction-meta">' + categoryLabel + ' \u2022 ' + formatDateForDisplay(tx.date) + (dd ? ' \u2022 ' + (currentLang === 'en' ? 'Deleted on ' : 'Exclu\u00EDda em ') + dd : '') + '</div>' +
                     '</div>' +
                     '<div class="transaction-amount ' + (tx.type || 'expense') + '">' + (tx.type === 'income' ? '+' : '-') + formatCurrency(tx.value) + '</div>' +
-                    '<div class="transaction-actions">' +
-                    '<button type="button" class="action-btn edit" onclick="restoreTransaction(\'' + tx.id + '\')" title="' + t('restore') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><polyline points="3 3 3 8 8 8"/></svg></button>' +
-                    '<button type="button" class="action-btn delete" onclick="deletePermanently(\'' + tx.id + '\')" title="' + t('deletePermanent') + '"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>' +
-                    '</div></div>';
+                    '<div class="transaction-actions">' + restoreBtn + deleteBtn + '</div></div>';
             }).join('');
+        }
+
+        // Restore a deleted conta fixa — re-creates in Firestore, removes from localStorage trash
+        function restoreContaFixaFromTrash(trashId, txData) {
+            if (!currentUser) { showNotification('Faça login para restaurar', 'error'); return; }
+            var data = typeof txData === 'string' ? JSON.parse(txData) : txData;
+            db.collection('contasFixas').add({
+                userId: currentUser.uid,
+                name: (data.description || '').replace(' (Conta Fixa)', ''),
+                value: data.value || 0,
+                category: data.category || '📦',
+                dueDay: data.dueDay || 10,
+                paid: false,
+                createdAt: new Date().toISOString()
+            }).then(function () {
+                // Remove from localStorage trash
+                var trash = getTrashFromStorage().filter(function (i) { return i.id !== trashId; });
+                saveTrashToStorage(trash);
+                updateTrashList();
+                showNotification('Conta fixa restaurada!', 'success');
+            }).catch(function (e) {
+                console.error('Erro ao restaurar conta fixa:', e);
+                showNotification('Erro ao restaurar conta fixa', 'error');
+            });
+        }
+
+        // Permanently delete a conta fixa from the local trash (it's already gone from Firestore)
+        function deleteContaFixaPermanentlyFromTrash(trashId) {
+            if (!confirm(t('deletePermanentConfirm'))) return;
+            var trash = getTrashFromStorage().filter(function (i) { return i.id !== trashId; });
+            saveTrashToStorage(trash);
+            updateTrashList();
+            showNotification(t('transactionDeletedPerm'), 'warning');
         }
 
         function showAddGoalModal() { showModal('addGoalModal'); }
@@ -5310,6 +5988,285 @@
         document.addEventListener('click', e => { if (e.target.classList.contains('modal-overlay')) { const mid = e.target.id; if (mid === 'monthPickerModal') closeMonthPickerModal(); else closeModal(mid); } });
         function previousDay() { const di = document.getElementById('transactionDate'); const cd = new Date(di.value + 'T00:00:00Z'); cd.setUTCDate(cd.getUTCDate() - 1); di.value = cd.toISOString().split('T')[0]; updateDailyTransactions(); }
         function nextDay() { const di = document.getElementById('transactionDate'); const cd = new Date(di.value + 'T00:00:00Z'); cd.setUTCDate(cd.getUTCDate() + 1); di.value = cd.toISOString().split('T')[0]; updateDailyTransactions(); }
+        // ==================== CONTAS FIXAS ====================
+        let contasFixas = [];                // loaded from Firestore
+        let cfBalance = 0;                   // user's available balance
+        let editingContaFixaId = null;       // currently being edited
+        let unsubscribeContasFixas = null;   // Firestore listener
+
+        const CF_MOTIVATIONAL_MESSAGES = [
+            { icon: '🚀', text: 'Você está no controle! Continue assim e suas finanças vão decolar!' },
+            { icon: '💪', text: 'Cada conta paga é um passo em direção à sua liberdade financeira!' },
+            { icon: '🌟', text: 'Incrível! Você está gerenciando suas contas com excelência.' },
+            { icon: '🎯', text: 'Foco total! Quitar suas contas fixas é a base de uma vida financeira saudável.' },
+            { icon: '🏆', text: 'Campeão do orçamento! Suas contas fixas estão sob controle.' },
+            { icon: '🌱', text: 'Pequenos pagamentos constantes constroem uma vida financeira sólida. Você está no caminho certo!' },
+            { icon: '✨', text: 'Sua dedicação em pagar as contas em dia é inspiradora! Continue brilhando.' },
+            { icon: '💎', text: 'Disciplina financeira é o segredo dos bem-sucedidos. E você tem isso!' },
+            { icon: '🔥', text: 'Você está em chamas! Mantenha esse ritmo e as finanças serão suas aliadas.' },
+            { icon: '🌈', text: 'Cada conta quitada abre espaço para realizar seus sonhos. Vai em frente!' }
+        ];
+
+        function cfGetRandomMessage() {
+            return CF_MOTIVATIONAL_MESSAGES[Math.floor(Math.random() * CF_MOTIVATIONAL_MESSAGES.length)];
+        }
+
+        // Load balance: try localStorage first (instant), then Firestore updates via listener
+        function cfLoadBalance() {
+            if (!currentUser) { cfBalance = 0; return; }
+            const localVal = parseFloat(localStorage.getItem('cfBalance_' + currentUser.uid) || '0') || 0;
+            cfBalance = localVal;
+            const inp = document.getElementById('cfBalanceInput');
+            if (inp && localVal > 0) inp.value = localVal;
+        }
+
+        function cfSaveBalance() {
+            if (!currentUser) { showNotification('Faça login para salvar', 'error'); return; }
+            const inp = document.getElementById('cfBalanceInput');
+            const v = parseFloat(inp.value) || 0;
+            if (v < 0) { showNotification('O saldo não pode ser negativo!', 'error'); return; }
+            cfBalance = v;
+            // Save to localStorage immediately (cache)
+            localStorage.setItem('cfBalance_' + currentUser.uid, v);
+            // Save to Firestore (sync across devices)
+            db.collection('userSettings').doc(currentUser.uid).set({
+                userId: currentUser.uid,
+                cfBalance: v,
+                updatedAt: new Date().toISOString()
+            }, { merge: true })
+                .then(() => {
+                    showNotification('Saldo salvo na nuvem! ✅', 'success');
+                    inp.value = '';
+                    cfUpdateViews();
+                })
+                .catch(err => {
+                    console.error('Erro ao salvar saldo:', err);
+                    showNotification('Saldo salvo localmente (sem conexão).', 'warning');
+                    cfUpdateViews();
+                });
+        }
+
+        let unsubscribeUserSettings = null;
+
+        function cfSetupFirestoreListener(user) {
+            // Listener for contasFixas
+            if (unsubscribeContasFixas) unsubscribeContasFixas();
+            unsubscribeContasFixas = db.collection('contasFixas')
+                .where('userId', '==', user.uid)
+                .onSnapshot(snapshot => {
+                    contasFixas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    cfUpdateViews();
+                }, err => console.error('Erro contasFixas listener:', err));
+
+            // Real-time listener for user balance (userSettings)
+            if (unsubscribeUserSettings) unsubscribeUserSettings();
+            unsubscribeUserSettings = db.collection('userSettings').doc(user.uid)
+                .onSnapshot(doc => {
+                    if (doc.exists && doc.data().cfBalance !== undefined) {
+                        const remoteBalance = parseFloat(doc.data().cfBalance) || 0;
+                        cfBalance = remoteBalance;
+                        // Update localStorage cache
+                        localStorage.setItem('cfBalance_' + user.uid, remoteBalance);
+                        // Update input field if visible
+                        const inp = document.getElementById('cfBalanceInput');
+                        if (inp) inp.value = remoteBalance;
+                        cfUpdateViews();
+                    }
+                }, err => console.error('Erro userSettings listener:', err));
+        }
+
+        // Hook into the existing auth state change to also setup CF listener
+        const _origSetupListeners = setupFirestoreListeners;
+        setupFirestoreListeners = function (user) {
+            _origSetupListeners(user);
+            cfSetupFirestoreListener(user);
+            cfLoadBalance();
+        };
+
+        function showAddContaFixaModal() {
+            editingContaFixaId = null;
+            document.getElementById('cfModalTitle').textContent = 'Nova Conta Fixa';
+            document.getElementById('addContaFixaForm').reset();
+            document.getElementById('cfBillDueDay').value = 10;
+            showModal('addContaFixaModal');
+        }
+
+        function editContaFixa(id) {
+            const cf = contasFixas.find(c => c.id === id);
+            if (!cf) return;
+            editingContaFixaId = id;
+            document.getElementById('cfModalTitle').textContent = 'Editar Conta Fixa';
+            document.getElementById('cfBillName').value = cf.name;
+            document.getElementById('cfBillValue').value = cf.value;
+            document.getElementById('cfBillCategory').value = cf.category || '📦';
+            document.getElementById('cfBillDueDay').value = cf.dueDay || 10;
+            showModal('addContaFixaModal');
+        }
+
+        function saveContaFixa() {
+            if (!currentUser) { showNotification('Faça login para salvar', 'error'); return; }
+            const name = document.getElementById('cfBillName').value.trim();
+            const value = parseFloat(document.getElementById('cfBillValue').value);
+            const category = document.getElementById('cfBillCategory').value;
+            const dueDay = parseInt(document.getElementById('cfBillDueDay').value) || 10;
+            if (!name || !value || value <= 0) { showNotification('Preencha nome e valor!', 'error'); return; }
+
+            const data = {
+                userId: currentUser.uid,
+                name, value, category, dueDay,
+                paid: false,
+                createdAt: new Date().toISOString()
+            };
+
+            if (editingContaFixaId) {
+                db.collection('contasFixas').doc(editingContaFixaId).update({ name, value, category, dueDay })
+                    .then(() => { showNotification('Conta atualizada!', 'success'); closeModal('addContaFixaModal'); })
+                    .catch(e => console.error(e));
+            } else {
+                db.collection('contasFixas').add(data)
+                    .then(() => { showNotification('Conta fixa adicionada!', 'success'); closeModal('addContaFixaModal'); })
+                    .catch(e => console.error(e));
+            }
+        }
+
+        function cfTogglePaid(id) {
+            const cf = contasFixas.find(c => c.id === id);
+            if (!cf) return;
+            db.collection('contasFixas').doc(id).update({ paid: !cf.paid })
+                .catch(e => console.error(e));
+        }
+
+        function deleteContaFixa(id) {
+            const cf = contasFixas.find(c => c.id === id);
+            if (!cf) return;
+            if (confirm('Mover "' + cf.name + '" para a lixeira?')) {
+                // Store in trash via localStorage (same mechanism as transactions)
+                const trashItem = {
+                    id: 'cf_' + id,
+                    type: 'expense',
+                    description: cf.name + ' (Conta Fixa)',
+                    value: cf.value,
+                    category: cf.category,
+                    date: getTodayInBrasiliaISO(),
+                    deletedAt: new Date().toISOString(),
+                    isCF: true,
+                    cfId: id
+                };
+                // Add to localStorage trash
+                const trash = getTrashFromStorage();
+                trash.push(trashItem);
+                saveTrashToStorage(trash);
+                // Delete from Firestore
+                db.collection('contasFixas').doc(id).delete()
+                    .then(() => {
+                        showNotification('Movido para a lixeira.', 'success');
+                        updateTrashList();
+                    })
+                    .catch(e => console.error(e));
+            }
+        }
+
+        function cfUpdateViews() {
+            const activeBills = contasFixas.filter(c => !c.deleted);
+            const totalBills = activeBills.reduce((s, c) => s + (c.value || 0), 0);
+            const paidTotal = activeBills.filter(c => c.paid).reduce((s, c) => s + (c.value || 0), 0);
+            const remaining = Math.max(totalBills - paidTotal, 0);
+            const afterBills = cfBalance - remaining;
+            const pct = totalBills > 0 ? Math.min((paidTotal / totalBills) * 100, 100) : 0;
+
+            // Update balance display with input value live
+            const inpVal = parseFloat(document.getElementById('cfBalanceInput')?.value) || cfBalance;
+            const displayBalance = inpVal;
+
+            const balDisplay = document.getElementById('cfBalanceDisplay');
+            const remDisplay = document.getElementById('cfRemainingDisplay');
+            const remSub = document.getElementById('cfRemainingSubtitle');
+            const progFill = document.getElementById('cfProgressFill');
+            const progPct = document.getElementById('cfProgressPct');
+            const motIcon = document.getElementById('cfMotivational')?.querySelector('.cf-motivational-icon');
+            const motText = document.getElementById('cfMotivationalText');
+
+            if (balDisplay) balDisplay.textContent = formatCurrency(displayBalance);
+            if (remDisplay) remDisplay.textContent = formatCurrency(remaining);
+            if (remSub) {
+                if (remaining <= 0 && totalBills > 0) {
+                    remSub.textContent = '✅ Todas as contas pagas!';
+                } else if (totalBills === 0) {
+                    remSub.textContent = 'Nenhuma conta cadastrada';
+                } else {
+                    const afterStr = afterBills >= 0 ? 'sobram ' + formatCurrency(afterBills) : 'faltam ' + formatCurrency(Math.abs(afterBills));
+                    remSub.textContent = afterStr + ' após pagar tudo';
+                }
+            }
+            if (progFill) progFill.style.width = pct.toFixed(1) + '%';
+            if (progPct) progPct.textContent = pct.toFixed(0) + '% pago';
+
+            // Motivational message
+            const msg = cfGetRandomMessage();
+            if (motIcon) motIcon.textContent = msg.icon;
+            if (motText) {
+                if (totalBills === 0) {
+                    motText.textContent = 'Cadastre suas contas fixas e mantenha o controle financeiro!';
+                } else if (pct >= 100) {
+                    motText.textContent = '🎉 Parabéns! Você pagou TODAS as suas contas fixas este mês! Que conquista incrível!';
+                } else {
+                    motText.textContent = msg.text;
+                }
+            }
+
+            // Render bills list
+            cfRenderBills(activeBills);
+        }
+
+        function cfRenderBills(bills) {
+            const list = document.getElementById('cfBillsList');
+            if (!list) return;
+            if (bills.length === 0) {
+                list.innerHTML = '<div class="empty-state">Nenhuma conta fixa cadastrada</div>';
+                return;
+            }
+            const sorted = [...bills].sort((a, b) => (a.dueDay || 99) - (b.dueDay || 99));
+            list.innerHTML = sorted.map(cf => {
+                const paidClass = cf.paid ? ' paid' : '';
+                const checkedClass = cf.paid ? ' checked' : '';
+                return `<div class="cf-bill-item${paidClass}">
+                    <button class="cf-bill-check${checkedClass}" onclick="cfTogglePaid('${cf.id}')" title="${cf.paid ? 'Marcar como não paga' : 'Marcar como paga'}">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                            <polyline points="20,6 9,17 4,12"/>
+                        </svg>
+                    </button>
+                    <div class="cf-bill-info">
+                        <div class="cf-bill-name">${cf.category || '📦'} ${escapeHtml(cf.name)}</div>
+                        <div class="cf-bill-meta">Vence dia ${cf.dueDay || '?'} &bullet; ${cf.paid ? '✅ Paga' : '⏳ Pendente'}</div>
+                    </div>
+                    <div class="cf-bill-amount">${formatCurrency(cf.value)}</div>
+                    <div class="transaction-actions">
+                        <button class="action-btn edit" onclick="editContaFixa('${cf.id}')" title="Editar">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
+                            </svg>
+                        </button>
+                        <button class="action-btn delete" onclick="deleteContaFixa('${cf.id}')" title="Excluir">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                                <polyline points="3 6 5 6 21 6"/>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        // Show contas-fixas tab should also refresh views
+        const _origShowTab = showTab;
+        showTab = function (tabName, el) {
+            _origShowTab(tabName, el);
+            if (tabName === 'contas-fixas') {
+                cfLoadBalance();
+                cfUpdateViews();
+            }
+        };
     </script>
     <script>
         if ('serviceWorker' in navigator) {
