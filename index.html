@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
@@ -6,6 +6,8 @@
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
     <title>Controle Financeiro Aprimorado</title>
+    <link rel="icon" type="image/png" href="./favicon.png">
+    <link rel="shortcut icon" type="image/png" href="./favicon.png">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1533,6 +1535,184 @@
 
         .search-results {
             margin-top: 1rem;
+        }
+
+        /* DATE RANGE FILTER */
+        .date-range-filter {
+            display: flex;
+            gap: 0.75rem;
+            width: 100%;
+        }
+
+        .date-range-filter .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+
+        .date-range-separator {
+            display: flex;
+            align-items: flex-end;
+            padding-bottom: 12px;
+            color: var(--dark-text-3);
+            font-weight: 600;
+            font-size: 0.85rem;
+        }
+
+        .light .date-range-separator {
+            color: var(--light-text-3);
+        }
+
+        .date-range-quick-btns {
+            display: flex;
+            gap: 0.4rem;
+            flex-wrap: wrap;
+            margin-top: 0.5rem;
+        }
+
+        .date-range-quick-btn {
+            padding: 0.35rem 0.75rem;
+            border-radius: 50px;
+            font-size: 0.72rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all var(--transition);
+            font-family: inherit;
+            border: 1.5px solid rgba(16, 185, 129, 0.2);
+            background: transparent;
+        }
+
+        .dark .date-range-quick-btn {
+            color: var(--dark-text-2);
+        }
+
+        .light .date-range-quick-btn {
+            color: var(--light-text-2);
+            border-color: rgba(0, 0, 0, 0.1);
+        }
+
+        .date-range-quick-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            background: rgba(16, 185, 129, 0.08);
+        }
+
+        .date-range-quick-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            box-shadow: 0 2px 8px var(--primary-glow);
+        }
+
+        /* CATEGORY MULTI-SELECT CHIPS */
+        .category-chips-wrapper {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .category-chips-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+        }
+
+        .category-chips-count {
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 0.15rem 0.55rem;
+            border-radius: 50px;
+            background: var(--primary);
+            color: white;
+            min-width: 20px;
+            text-align: center;
+        }
+
+        .category-chips-count.hidden {
+            display: none;
+        }
+
+        .category-chips-clear {
+            font-size: 0.7rem;
+            font-weight: 600;
+            cursor: pointer;
+            border: none;
+            background: none;
+            color: var(--primary);
+            padding: 0.15rem 0.4rem;
+            transition: all var(--transition);
+            font-family: inherit;
+        }
+
+        .category-chips-clear:hover {
+            color: var(--primary-light);
+            text-decoration: underline;
+        }
+
+        .category-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.4rem;
+        }
+
+        .category-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 0.38rem 0.7rem;
+            border-radius: 50px;
+            font-size: 0.78rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition);
+            font-family: inherit;
+            border: 1.5px solid rgba(255, 255, 255, 0.08);
+            background: transparent;
+            user-select: none;
+        }
+
+        .dark .category-chip {
+            color: var(--dark-text-2);
+            border-color: rgba(255, 255, 255, 0.08);
+        }
+
+        .light .category-chip {
+            color: var(--light-text-2);
+            border-color: rgba(0, 0, 0, 0.1);
+        }
+
+        .category-chip:hover {
+            border-color: var(--primary);
+            background: rgba(16, 185, 129, 0.06);
+        }
+
+        .category-chip.selected {
+            background: rgba(16, 185, 129, 0.15);
+            border-color: var(--primary);
+            color: var(--primary);
+            font-weight: 600;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.1);
+        }
+
+        .light .category-chip.selected {
+            background: rgba(16, 185, 129, 0.12);
+            color: var(--primary-dark);
+        }
+
+        .category-chip .chip-emoji {
+            font-size: 0.9rem;
+            line-height: 1;
+        }
+
+        .category-chip .chip-check {
+            display: none;
+            width: 14px;
+            height: 14px;
+            color: var(--primary);
+        }
+
+        .category-chip.selected .chip-check {
+            display: inline-block;
         }
 
         .search-results-grouped {
@@ -3893,23 +4073,70 @@
                                 nome/descricao</label><input type="text" id="searchDescription" class="form-input"
                                 data-i18n-placeholder="placeholderDesc" placeholder="Digite a descricao..."
                                 oninput="performSearch()"></div>
-                        <div class="form-group"><label class="form-label" data-i18n="category">Categoria</label>
-                            <select id="searchCategory" class="form-select" onchange="performSearch()">
-                                <option value="" data-i18n="allCategories">Todas as categorias</option>
-                                <option value="alimentacao">&#127869; Alimentacao</option>
-                                <option value="mercado">&#128722; Mercado</option>
-                                <option value="combustivel">&#9981; Combustivel</option>
-                                <option value="manutencao_veiculo">&#128295; Manutencao Veiculo</option>
-                                <option value="transporte">&#128663; Transporte</option>
-                                <option value="moradia">&#127968; Moradia</option>
-                                <option value="saude">&#127973; Saude</option>
-                                <option value="educacao">&#128218; Educacao</option>
-                                <option value="lazer">&#127918; Lazer</option>
-                                <option value="salario">&#128188; Salario</option>
-                                <option value="freelance">&#128187; Freelance</option>
-                                <option value="investimentos">&#128200; Investimentos</option>
-                                <option value="outros">&#128230; Outros</option>
-                            </select>
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <div class="category-chips-wrapper">
+                                <div class="category-chips-header">
+                                    <label class="form-label" data-i18n="category" style="margin-bottom:0;">Categoria</label>
+                                    <div style="display:flex; align-items:center; gap:0.4rem;">
+                                        <span class="category-chips-count hidden" id="searchCategoryCount">0</span>
+                                        <button type="button" class="category-chips-clear" id="searchCategoryClearBtn" onclick="clearSearchCategories()" style="display:none;">Limpar</button>
+                                    </div>
+                                </div>
+                                <div class="category-chips" id="searchCategoryChips">
+                                    <button type="button" class="category-chip" data-cat="alimentacao" onclick="toggleSearchCategory(this)">
+                                        <span class="chip-emoji">🍽️</span> Alimentação
+                                        <svg class="chip-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                                    </button>
+                                    <button type="button" class="category-chip" data-cat="mercado" onclick="toggleSearchCategory(this)">
+                                        <span class="chip-emoji">🛒</span> Mercado
+                                        <svg class="chip-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                                    </button>
+                                    <button type="button" class="category-chip" data-cat="combustivel" onclick="toggleSearchCategory(this)">
+                                        <span class="chip-emoji">⛽</span> Combustível
+                                        <svg class="chip-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                                    </button>
+                                    <button type="button" class="category-chip" data-cat="manutencao_veiculo" onclick="toggleSearchCategory(this)">
+                                        <span class="chip-emoji">🔧</span> Manutenção
+                                        <svg class="chip-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                                    </button>
+                                    <button type="button" class="category-chip" data-cat="transporte" onclick="toggleSearchCategory(this)">
+                                        <span class="chip-emoji">🚗</span> Transporte
+                                        <svg class="chip-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                                    </button>
+                                    <button type="button" class="category-chip" data-cat="moradia" onclick="toggleSearchCategory(this)">
+                                        <span class="chip-emoji">🏠</span> Moradia
+                                        <svg class="chip-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                                    </button>
+                                    <button type="button" class="category-chip" data-cat="saude" onclick="toggleSearchCategory(this)">
+                                        <span class="chip-emoji">🏥</span> Saúde
+                                        <svg class="chip-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                                    </button>
+                                    <button type="button" class="category-chip" data-cat="educacao" onclick="toggleSearchCategory(this)">
+                                        <span class="chip-emoji">📚</span> Educação
+                                        <svg class="chip-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                                    </button>
+                                    <button type="button" class="category-chip" data-cat="lazer" onclick="toggleSearchCategory(this)">
+                                        <span class="chip-emoji">🎮</span> Lazer
+                                        <svg class="chip-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                                    </button>
+                                    <button type="button" class="category-chip" data-cat="salario" onclick="toggleSearchCategory(this)">
+                                        <span class="chip-emoji">💼</span> Salário
+                                        <svg class="chip-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                                    </button>
+                                    <button type="button" class="category-chip" data-cat="freelance" onclick="toggleSearchCategory(this)">
+                                        <span class="chip-emoji">💻</span> Freelance
+                                        <svg class="chip-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                                    </button>
+                                    <button type="button" class="category-chip" data-cat="investimentos" onclick="toggleSearchCategory(this)">
+                                        <span class="chip-emoji">📈</span> Investimentos
+                                        <svg class="chip-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                                    </button>
+                                    <button type="button" class="category-chip" data-cat="outros" onclick="toggleSearchCategory(this)">
+                                        <span class="chip-emoji">📦</span> Outros
+                                        <svg class="chip-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>
+                                    </button>
+                                </div>
+                            </div>
                         </div>
                         <div class="form-group"><label class="form-label" data-i18n="type">Tipo</label>
                             <select id="searchType" class="form-select" onchange="performSearch()">
@@ -3942,6 +4169,38 @@
                                         <option value="">Todos os anos</option>
                                     </select>
                                 </div>
+                            </div>
+                        </div>
+                        <div class="form-group" style="grid-column: 1 / -1;">
+                            <label class="form-label">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -2px; margin-right: 4px;">
+                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                    <line x1="16" y1="2" x2="16" y2="6"/>
+                                    <line x1="8" y1="2" x2="8" y2="6"/>
+                                    <line x1="3" y1="10" x2="21" y2="10"/>
+                                </svg>
+                                Filtrar por Período (Dias)
+                            </label>
+                            <div class="date-range-filter">
+                                <div class="form-group">
+                                    <label class="form-label" style="font-size:0.72rem; margin-bottom:0.3rem;">Data Inicial</label>
+                                    <input type="date" id="searchStartDate" class="form-input" onchange="performSearch()">
+                                </div>
+                                <div class="date-range-separator">até</div>
+                                <div class="form-group">
+                                    <label class="form-label" style="font-size:0.72rem; margin-bottom:0.3rem;">Data Final</label>
+                                    <input type="date" id="searchEndDate" class="form-input" onchange="performSearch()">
+                                </div>
+                            </div>
+                            <div class="date-range-quick-btns">
+                                <button type="button" class="date-range-quick-btn" onclick="setQuickDateRange('today')" id="qdrToday">Hoje</button>
+                                <button type="button" class="date-range-quick-btn" onclick="setQuickDateRange('yesterday')" id="qdrYesterday">Ontem</button>
+                                <button type="button" class="date-range-quick-btn" onclick="setQuickDateRange('7days')" id="qdr7">7 dias</button>
+                                <button type="button" class="date-range-quick-btn" onclick="setQuickDateRange('15days')" id="qdr15">15 dias</button>
+                                <button type="button" class="date-range-quick-btn" onclick="setQuickDateRange('30days')" id="qdr30">30 dias</button>
+                                <button type="button" class="date-range-quick-btn" onclick="setQuickDateRange('thisMonth')" id="qdrThisMonth">Este mês</button>
+                                <button type="button" class="date-range-quick-btn" onclick="setQuickDateRange('lastMonth')" id="qdrLastMonth">Mês passado</button>
+                                <button type="button" class="date-range-quick-btn" onclick="setQuickDateRange('clear')" id="qdrClear">✕ Limpar</button>
                             </div>
                         </div>
                         <div class="form-group form-group-checkbox"><label class="form-label form-label-checkbox"><input
@@ -5189,7 +5448,11 @@
 
         function showTab(tabName, el) { document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active')); document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active')); document.getElementById(tabName).classList.add('active'); if (el) el.classList.add('active'); closeMenu(); if (tabName === 'new-transaction') updateDailyTransactions(); else if (tabName === 'search') { populateYearSelect(); updateMonthPickerButtonText(); performSearch(); } else if (tabName === 'trash') { updateTrashList(); setTimeout(updateTrashList, 50); } else if (tabName === 'charts') toggleChartPeriodInputs(); }
 
-        function performSearch() { const sD = document.getElementById('searchDescription').value.toLowerCase(); const sC = document.getElementById('searchCategory').value; const sT = document.getElementById('searchType').value; const sY = document.getElementById('searchYear') ? document.getElementById('searchYear').value : ''; const sF = document.getElementById('searchFavorites').checked; const sMA = Array.from(selectedMonths).map(k => k.split('-')[1]); let f = getActiveTransactions().filter(tx => { if (sD && !tx.description.toLowerCase().includes(sD)) return false; if (sC && tx.category !== sC) return false; if (sT && tx.type !== sT) return false; if (sMA.length > 0 || sY) { const tY = tx.date.substring(0, 4); const tM = tx.date.substring(5, 7); if (sY && tY !== sY) return false; if (sMA.length > 0 && !sMA.includes(tM)) return false; } if (sF && !tx.favorite) return false; return true; }); f.sort((a, b) => new Date(b.date) - new Date(a.date)); lastSearchResults = f; updateSearchResults(f); }
+        let selectedSearchCategories = new Set();
+        function toggleSearchCategory(btn) { const cat = btn.getAttribute('data-cat'); if (selectedSearchCategories.has(cat)) { selectedSearchCategories.delete(cat); btn.classList.remove('selected'); } else { selectedSearchCategories.add(cat); btn.classList.add('selected'); } updateSearchCategoryUI(); performSearch(); }
+        function clearSearchCategories() { selectedSearchCategories.clear(); document.querySelectorAll('#searchCategoryChips .category-chip').forEach(b => b.classList.remove('selected')); updateSearchCategoryUI(); performSearch(); }
+        function updateSearchCategoryUI() { const countEl = document.getElementById('searchCategoryCount'); const clearBtn = document.getElementById('searchCategoryClearBtn'); const n = selectedSearchCategories.size; if (countEl) { countEl.textContent = n; if (n > 0) { countEl.classList.remove('hidden'); } else { countEl.classList.add('hidden'); } } if (clearBtn) { clearBtn.style.display = n > 0 ? 'inline-block' : 'none'; } }
+        function performSearch() { const sD = document.getElementById('searchDescription').value.toLowerCase(); const sCats = selectedSearchCategories; const sT = document.getElementById('searchType').value; const sY = document.getElementById('searchYear') ? document.getElementById('searchYear').value : ''; const sF = document.getElementById('searchFavorites').checked; const sMA = Array.from(selectedMonths).map(k => k.split('-')[1]); const sSD = document.getElementById('searchStartDate') ? document.getElementById('searchStartDate').value : ''; const sED = document.getElementById('searchEndDate') ? document.getElementById('searchEndDate').value : ''; let f = getActiveTransactions().filter(tx => { if (sD && !tx.description.toLowerCase().includes(sD)) return false; if (sCats.size > 0 && !sCats.has(tx.category)) return false; if (sT && tx.type !== sT) return false; if (sSD && tx.date < sSD) return false; if (sED && tx.date > sED) return false; if (sMA.length > 0 || sY) { const tY = tx.date.substring(0, 4); const tM = tx.date.substring(5, 7); if (sY && tY !== sY) return false; if (sMA.length > 0 && !sMA.includes(tM)) return false; } if (sF && !tx.favorite) return false; return true; }); f.sort((a, b) => new Date(b.date) - new Date(a.date)); lastSearchResults = f; updateSearchResults(f); }
 
         function updateSearchResults(f) { const l = document.getElementById('searchResultsList'); const c = document.getElementById('searchResultCount'); const tc = document.getElementById('searchTotalsCard'); c.textContent = `${f.length} ${t('transactionsFound')}`; if (f.length === 0) { l.innerHTML = '<div class="empty-state">' + t('noTransactionsFound') + '</div>'; tc.style.display = 'none'; return; } const inc = f.filter(x => x.type === 'income').reduce((s, x) => s + x.value, 0); const exp = f.filter(x => x.type === 'expense').reduce((s, x) => s + x.value, 0); const bal = inc - exp; document.getElementById('searchTotalIncome').textContent = formatCurrency(inc); document.getElementById('searchTotalExpense').textContent = formatCurrency(exp); document.getElementById('searchTotalBalance').textContent = formatCurrency(bal); tc.style.display = 'block'; const bd = {}; f.forEach(x => { if (!bd[x.date]) bd[x.date] = []; bd[x.date].push(x); }); const ds = Object.keys(bd).sort((a, b) => b.localeCompare(a)); l.innerHTML = '<div class="search-results-grouped">' + ds.map(d => `<div class="search-results-date-group"><div class="search-results-date-header">${formatDateForDisplay(d)}</div><div class="search-results-date-list">${bd[d].map(x => renderSearchResultCard(x)).join('')}</div></div>`).join('') + '</div>'; }
 
@@ -5218,7 +5481,9 @@
                 }).catch(err => console.error("Erro ao favoritar:", err));
             }
         }
-        function clearSearch() { document.getElementById('searchDescription').value = ''; document.getElementById('searchCategory').value = ''; document.getElementById('searchType').value = ''; clearMonthSelection(); document.getElementById('searchYear').value = ''; document.getElementById('searchFavorites').checked = false; performSearch(); }
+        function clearSearch() { document.getElementById('searchDescription').value = ''; clearSearchCategories(); document.getElementById('searchType').value = ''; clearMonthSelection(); document.getElementById('searchYear').value = ''; document.getElementById('searchFavorites').checked = false; if (document.getElementById('searchStartDate')) document.getElementById('searchStartDate').value = ''; if (document.getElementById('searchEndDate')) document.getElementById('searchEndDate').value = ''; clearQuickDateBtns(); performSearch(); }
+        function setQuickDateRange(range) { const today = getTodayInBrasiliaISO(); const startEl = document.getElementById('searchStartDate'); const endEl = document.getElementById('searchEndDate'); if (!startEl || !endEl) return; clearQuickDateBtns(); if (range === 'clear') { startEl.value = ''; endEl.value = ''; performSearch(); return; } const todayDate = new Date(today + 'T12:00:00'); let startDate, endDate; switch(range) { case 'today': startDate = today; endDate = today; break; case 'yesterday': { const yd = new Date(todayDate); yd.setDate(yd.getDate() - 1); startDate = yd.toISOString().split('T')[0]; endDate = startDate; break; } case '7days': { const sd = new Date(todayDate); sd.setDate(sd.getDate() - 6); startDate = sd.toISOString().split('T')[0]; endDate = today; break; } case '15days': { const sd = new Date(todayDate); sd.setDate(sd.getDate() - 14); startDate = sd.toISOString().split('T')[0]; endDate = today; break; } case '30days': { const sd = new Date(todayDate); sd.setDate(sd.getDate() - 29); startDate = sd.toISOString().split('T')[0]; endDate = today; break; } case 'thisMonth': { startDate = today.substring(0, 7) + '-01'; endDate = today; break; } case 'lastMonth': { const lm = new Date(todayDate.getFullYear(), todayDate.getMonth() - 1, 1); const lmEnd = new Date(todayDate.getFullYear(), todayDate.getMonth(), 0); startDate = lm.toISOString().split('T')[0]; endDate = lmEnd.toISOString().split('T')[0]; break; } } startEl.value = startDate; endEl.value = endDate; const btnId = { 'today': 'qdrToday', 'yesterday': 'qdrYesterday', '7days': 'qdr7', '15days': 'qdr15', '30days': 'qdr30', 'thisMonth': 'qdrThisMonth', 'lastMonth': 'qdrLastMonth' }; const activeBtn = document.getElementById(btnId[range]); if (activeBtn) activeBtn.classList.add('active'); performSearch(); }
+        function clearQuickDateBtns() { document.querySelectorAll('.date-range-quick-btn').forEach(b => b.classList.remove('active')); }
         function exportSearchResultsToExcel() { if (lastSearchResults.length === 0) { showNotification(t('noExport'), 'warning'); return; } exportToExcel(lastSearchResults, `busca-financeira-${getTodayInBrasiliaISO()}`); }
 
         function getTodayInBrasiliaISO() { const n = new Date(); const b = new Date(n.getTime() - 3 * 60 * 60 * 1000); return b.toISOString().split('T')[0]; }
