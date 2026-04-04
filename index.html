@@ -639,57 +639,215 @@
             background: white;
         }
 
-        /* DATE ROW WITH ARROWS */
-        .date-row-styled {
-            position: relative;
-        }
-
-        .date-display-text {
-            flex: 1;
-            font-size: 0.92rem;
-            font-weight: 500;
-            cursor: pointer;
-            min-width: 0;
-            color: var(--dark-text);
-            user-select: none;
-        }
-
-        .light .date-display-text {
-            color: var(--light-text);
-        }
-
-        .date-nav-arrows {
-            display: flex;
-            align-items: center;
-            gap: 2px;
-            flex-shrink: 0;
-        }
-
-        .date-nav-btn {
-            background: transparent;
-            border: none;
-            cursor: pointer;
-            padding: 4px;
-            color: var(--dark-text-3);
-            transition: all var(--transition);
+        /* CUSTOM DATE PILL */
+        .home-date-nav {
             display: flex;
             align-items: center;
             justify-content: center;
-            border-radius: 6px;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
         }
 
-        .date-nav-btn:hover {
+        .home-date-arrow {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            background: transparent;
+            border: none;
+            color: var(--dark-text);
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+        .light .home-date-arrow {
+            color: var(--light-text);
+        }
+        .home-date-arrow svg {
+            width: 24px;
+            height: 24px;
+        }
+        .home-date-arrow:hover {
             color: var(--primary);
-            background: rgba(16, 185, 129, 0.08);
         }
 
-        .light .date-nav-btn {
-            color: var(--light-text-3);
+        .home-date-pill {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: white;
+            color: black;
+            border-radius: 50px;
+            padding: 8px 16px;
+            font-size: 1.05rem;
+            font-weight: 800;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+            transition: all var(--transition);
+            border: none;
+            letter-spacing: 0.5px;
+        }
+        .dark .home-date-pill {
+            background: white;
+            color: black;
+        }
+        .light .home-date-pill {
+            background: white;
+            color: black;
+        }
+        .home-date-pill:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+        }
+        .home-date-pill svg {
+            width: 20px;
+            height: 20px;
+            stroke-width: 2.5;
         }
 
-        .light .date-nav-btn:hover {
-            color: var(--primary);
-            background: rgba(16, 185, 129, 0.08);
+        /* CUSTOM CALENDAR MODAL */
+        .custom-cal-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(5px);
+        }
+        .custom-cal-modal.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .custom-cal-container {
+            background: #F4F5F7;
+            width: 100%;
+            max-width: 360px;
+            border-radius: 20px;
+            padding: 24px 20px;
+            transform: translateY(20px) scale(0.95);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+            margin: 0 20px;
+        }
+        .dark .custom-cal-container {
+            background: #1C1C1E;
+        }
+        .custom-cal-modal.active .custom-cal-container {
+            transform: translateY(0) scale(1);
+        }
+        .custom-cal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 24px;
+        }
+        .custom-cal-today-btn {
+            font-size: 0.95rem;
+            color: #3B82F6;
+            font-weight: 600;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            text-transform: uppercase;
+            padding: 4px;
+        }
+        .custom-cal-month-nav {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            font-weight: 700;
+            font-size: 1.05rem;
+            text-transform: uppercase;
+            color: #111;
+        }
+        .dark .custom-cal-month-nav {
+            color: #fff;
+        }
+        .custom-cal-nav-btn {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            color: #111;
+        }
+        .dark .custom-cal-nav-btn {
+            color: #fff;
+        }
+        .custom-cal-nav-btn svg {
+            width: 20px;
+            height: 20px;
+        }
+        .custom-cal-close {
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            color: #111;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+        }
+        .dark .custom-cal-close {
+            color: #fff;
+        }
+        .custom-cal-close svg {
+            width: 24px;
+            height: 24px;
+        }
+        .custom-cal-weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            text-align: center;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: #8E8E93;
+            margin-bottom: 12px;
+            border-bottom: 1px solid rgba(0,0,0,0.05);
+            padding-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+        .dark .custom-cal-weekdays {
+            border-bottom-color: rgba(255,255,255,0.05);
+        }
+        .custom-cal-days {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 4px;
+            row-gap: 8px;
+        }
+        .custom-cal-day {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 40px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #111;
+            border-radius: 50%;
+            cursor: pointer;
+            border: none;
+            background: transparent;
+            transition: all 0.2s ease;
+        }
+        .dark .custom-cal-day {
+            color: #fff;
+        }
+        .custom-cal-day.other-month {
+            color: #8E8E93;
+            font-weight: 400;
+        }
+        .custom-cal-day.selected {
+            background: #FF5A50;
+            color: white;
+            box-shadow: 0 4px 10px rgba(255, 90, 80, 0.3);
         }
 
         /* HIDDEN NATIVE VALUE INPUT */
@@ -3610,6 +3768,89 @@
             color: #fff;
         }
 
+        /* Notification Bell Button */
+        .cf-title-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            margin-bottom: 0.5rem;
+        }
+
+        .cf-notif-btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1px solid rgba(0,0,0,0.1);
+            background: rgba(255,255,255,0.8);
+            color: var(--text-color);
+            cursor: pointer;
+            transition: all var(--transition);
+            flex-shrink: 0;
+            position: absolute;
+            top: 1.25rem;
+            right: 1.25rem;
+            z-index: 10;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .dark .cf-notif-btn {
+            background: rgba(45,45,45,0.8);
+            border-color: rgba(255,255,255,0.1);
+        }
+
+        .cf-notif-btn.active {
+            background: rgba(255, 193, 7, 0.15) !important;
+            color: #ffb300 !important;
+            border-color: rgba(255, 193, 7, 0.4) !important;
+            box-shadow: 0 2px 10px rgba(255, 193, 7, 0.2);
+        }
+
+        .cf-notif-btn:hover {
+            transform: scale(1.1);
+            background: white;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        .dark .cf-notif-btn:hover {
+            background: #333;
+        }
+
+        .cf-notif-options-panel {
+            display: none;
+            align-items: center;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            background: rgba(0, 0, 0, 0.03);
+            padding: 0.75rem 1rem;
+            border-radius: 12px;
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .light .cf-notif-options-panel {
+            background: #f8f9fa;
+        }
+
+        .cf-notif-options-panel label {
+            font-size: 0.8rem;
+            color: var(--text-color);
+            opacity: 0.8;
+        }
+
+        .cf-notif-options-panel select,
+        .cf-notif-options-panel input[type="time"] {
+            padding: 0.35rem 0.5rem;
+            font-size: 0.85rem;
+            border-radius: 8px;
+            border: 1px solid rgba(0,0,0,0.1);
+            background: var(--bg-color);
+            color: var(--text-color);
+        }
+
         /* --- CF Responsive: 768px --- */
         @media(max-width:768px) {
             .cf-balance-header {
@@ -3661,22 +3902,69 @@
                 gap: 0.5rem;
             }
 
-            /* Compact icon-only add button on mobile */
+            /* Compact add buttons on mobile with visible labels */
             .cf-add-btn {
-                padding: 0.45rem 0.6rem;
-                border-radius: 10px;
-                font-size: 0;
-                /* hide any stray text */
-                gap: 0;
+                padding: 0.4rem 0.6rem;
+                border-radius: 8px;
+                font-size: 0.75rem; 
+                gap: 0.3rem;
             }
 
             .cf-add-btn-label {
-                display: none;
+                display: inline;
+                font-weight: 700;
             }
 
             .cf-add-btn svg {
-                width: 18px;
-                height: 18px;
+                width: 16px;
+                height: 16px;
+            }
+
+            .cf-header-actions {
+                flex-direction: column;
+                align-items: stretch !important;
+                gap: 1.25rem;
+                padding-bottom: 1.25rem;
+                border-bottom: 1px solid rgba(0,0,0,0.06);
+                margin-bottom: 1.5rem !important;
+            }
+            .cf-header-btns {
+                display: grid !important;
+                grid-template-columns: 1fr 1fr;
+                gap: 0.75rem;
+                width: 100%;
+            }
+            .cf-add-btn {
+                justify-content: center;
+                padding: 1rem 0.5rem;
+                border: 1px solid rgba(0,0,0,0.05);
+                border-radius: 14px;
+                font-weight: 700;
+                box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+            }
+            .cf-title-row {
+                width: 100%;
+                justify-content: space-between;
+                margin-bottom: 0;
+            }
+            .cf-title-row h2 {
+                font-size: 1.6rem;
+                letter-spacing: -0.02em;
+            }
+            .cf-notif-btn {
+                top: 1rem;
+                right: 1rem;
+                width: 36px;
+                height: 36px;
+                background: white;
+                box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            }
+            .dark .cf-notif-btn {
+                background: var(--ios-gray-dark);
+            }
+
+            .cf-notif-options-panel.active-mobile {
+                display: flex !important;
             }
 
             /* Balance cards: stack vertically */
@@ -4286,45 +4574,26 @@
                     </div>
 
                     <!-- Date Row -->
-                    <div class="form-row-label" data-i18n="date">DATA</div>
-                    <div class="form-row-styled date-row-styled">
-                        <div class="form-row-icon"
-                            onclick="var inp=document.getElementById('transactionDate');inp.showPicker?inp.showPicker():inp.focus();"
-                            style="cursor:pointer;">
-                            <span class="form-icon">&#128197;</span>
-                        </div>
-                        <span class="date-display-text" id="dateDisplayText"
-                            onclick="var inp=document.getElementById('transactionDate');inp.showPicker?inp.showPicker():inp.focus();">--/--/----</span>
-                        <input type="date" id="transactionDate" class="form-input" required
-                            style="position:absolute;opacity:0;pointer-events:none;width:0;height:0;">
-                        <div class="date-nav-arrows">
-                            <button type="button" class="date-nav-btn"
-                                onclick="event.stopPropagation();var inp=document.getElementById('transactionDate');inp.showPicker?inp.showPicker():inp.focus();"
-                                title="Calendario">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2">
-                                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                                    <line x1="16" y1="2" x2="16" y2="6" />
-                                    <line x1="8" y1="2" x2="8" y2="6" />
-                                    <line x1="3" y1="10" x2="21" y2="10" />
-                                </svg>
-                            </button>
-                            <button type="button" class="date-nav-btn" onclick="event.stopPropagation();previousDay();"
-                                title="Dia anterior">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2">
-                                    <polyline points="15,18 9,12 15,6" />
-                                </svg>
-                            </button>
-                            <button type="button" class="date-nav-btn" onclick="event.stopPropagation();nextDay();"
-                                title="Proximo dia">
-                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                                    stroke-width="2">
-                                    <polyline points="9,18 15,12 9,6" />
-                                </svg>
-                            </button>
-                        </div>
+                    <div class="home-date-nav">
+                        <button type="button" class="home-date-arrow" onclick="event.stopPropagation();previousDay();" title="Dia anterior">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                        </button>
+                        
+                        <button type="button" class="home-date-pill" id="datePillButton" onclick="event.stopPropagation();openCustomDateModal();" title="Calendário">
+                            <span id="datePillText">HOJE</span>
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+                                <line x1="16" y1="2" x2="16" y2="6"></line>
+                                <line x1="8" y1="2" x2="8" y2="6"></line>
+                                <line x1="3" y1="10" x2="21" y2="10"></line>
+                            </svg>
+                        </button>
+
+                        <button type="button" class="home-date-arrow" onclick="event.stopPropagation();nextDay();" title="Próximo dia">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                        </button>
                     </div>
+                    <input type="date" id="transactionDate" required style="display:none;">
 
                     <!-- Category Row -->
                     <div class="form-row-label" data-i18n="category">CATEGORIA</div>
@@ -4624,17 +4893,34 @@
 
         <!-- Contas Fixas Tab -->
         <div id="contas-fixas" class="tab-content">
-            <div class="card">
-                <div class="flex justify-between items-center mb-2">
-                    <h2>Contas Fixas</h2>
-                    <button class="cf-add-btn" onclick="showAddContaFixaModal()" title="Nova Conta Fixa">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2.5">
-                            <line x1="12" y1="5" x2="12" y2="19" />
-                            <line x1="5" y1="12" x2="19" y2="12" />
+                <div class="card" style="position:relative;">
+                    <button class="cf-notif-btn" id="cfNotifBtn" onclick="showNotificationSettingsModal()" title="Configurar Lembretes">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
                         </svg>
-                        <span class="cf-add-btn-label">Nova Conta</span>
                     </button>
+                    <div class="flex justify-between items-center mb-4 cf-header-actions">
+                        <h2 style="margin:0;">Contas Fixas</h2>
+                        <div style="display:flex;gap:0.5rem" class="cf-header-btns">
+                        <button class="cf-add-btn" onclick="showAddContaFixaModal()" title="Nova Conta Fixa">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                                stroke-width="2.5">
+                                <line x1="12" y1="5" x2="12" y2="19" />
+                                <line x1="5" y1="12" x2="19" y2="12" />
+                            </svg>
+                            <span class="cf-add-btn-label">Nova Conta</span>
+                        </button>
+                        <button class="cf-add-btn" onclick="showAddContaParceladaModal()" title="Nova Conta Parcelada" style="background:var(--secondary);color:white;border:1px solid rgba(0,0,0,0.1);">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                                <line x1="16" y1="2" x2="16" y2="6"/>
+                                <line x1="8" y1="2" x2="8" y2="6"/>
+                                <line x1="3" y1="10" x2="21" y2="10"/>
+                            </svg>
+                            <span class="cf-add-btn-label">Parcelada</span>
+                        </button>
+                    </div>
                 </div>
 
                 <!-- Balance input row (hidden by default, toggled by edit button) -->
@@ -4694,8 +4980,14 @@
                 </div>
 
                 <!-- Bills list -->
+                <h3 style="margin-top:1.5rem;margin-bottom:0.75rem;font-size:1.1rem;color:var(--text-color);">Mensais / Fixas</h3>
                 <div id="cfBillsList">
                     <div class="empty-state">Nenhuma conta fixa cadastrada</div>
+                </div>
+                
+                <h3 style="margin-top:1.5rem;margin-bottom:0.75rem;font-size:1.1rem;color:var(--text-color);">Parceladas e Específicas</h3>
+                <div id="cpBillsList">
+                    <div class="empty-state">Nenhuma conta parcelada cadastrada</div>
                 </div>
             </div>
         </div>
@@ -4778,10 +5070,16 @@
                         <option value="📦">📦 Outros</option>
                     </select>
                 </div>
-                <div class="form-group">
-                    <label class="form-label">DIA DE VENCIMENTO</label>
-                    <input type="number" id="cfBillDueDay" class="form-input" min="1" max="31" placeholder="Ex: 10"
-                        value="10">
+                <div style="display:flex; gap:10px;">
+                    <div class="form-group" style="flex:1;">
+                        <label class="form-label">MÊS DE VIGÊNCIA</label>
+                        <input type="month" id="cfBillMonth" class="form-input">
+                        <small style="opacity:0.7;font-size:0.75rem;margin-top:0.2rem;display:block;">Em branco = todo mês</small>
+                    </div>
+                    <div class="form-group" style="width:110px;">
+                        <label class="form-label">VENCIMENTO</label>
+                        <input type="number" id="cfBillDueDay" class="form-input" min="1" max="31" placeholder="Ex: 10" value="10">
+                    </div>
                 </div>
                 <div class="btn-group">
                     <button type="button" class="btn btn-primary" onclick="saveContaFixa()">
@@ -4800,7 +5098,114 @@
         </div>
     </div>
 
-    <!-- Edit Transaction Modal -->
+    <!-- Add/Edit Conta Parcelada Modal -->
+    <div class="modal-overlay" id="addContaParceladaModal">
+        <div class="modal" style="max-height: 90vh; display: flex; flex-direction: column;">
+            <div class="modal-header" style="flex-shrink: 0;">
+                <h3 class="modal-title" id="cpModalTitle">Nova Conta Parcelada</h3>
+                <button class="modal-close" onclick="closeModal('addContaParceladaModal')">&times;</button>
+            </div>
+            <div style="flex-grow: 1; overflow-y: auto; padding-right: 5px;">
+                <form id="addContaParceladaForm">
+                    <div class="form-group">
+                        <label class="form-label">NOME DA COMPRA</label>
+                        <input type="text" id="cpBillName" class="form-input" placeholder="Ex: Geladeira, Celular..." required>
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <div class="form-group" style="flex:1;">
+                            <label class="form-label">VALOR TOTAL (R$)</label>
+                            <input type="number" id="cpBillTotal" class="form-input" step="0.01" min="0.01" placeholder="0,00" required>
+                        </div>
+                        <div class="form-group" style="flex:1;">
+                            <label class="form-label">Nº DE PARCELAS</label>
+                            <input type="number" id="cpBillInstallments" class="form-input" min="2" max="120" placeholder="Ex: 5" value="2" required>
+                        </div>
+                    </div>
+                    <div style="display:flex; gap:10px;">
+                        <div class="form-group" style="flex:1;">
+                            <label class="form-label">CATEGORIA</label>
+                            <select id="cpBillCategory" class="form-select">
+                                <option value="🛒">🛒 Compra</option>
+                                <option value="🏠">🏠 Casa</option>
+                                <option value="🚗">🚗 Veículo</option>
+                                <option value="✈️">✈️ Viagem</option>
+                                <option value="🎓">🎓 Educação</option>
+                                <option value="🏥">🏥 Saúde</option>
+                                <option value="📱">📱 Eletrônicos</option>
+                                <option value="💳">💳 Cartão</option>
+                                <option value="📦">📦 Outros</option>
+                            </select>
+                        </div>
+                        <div class="form-group" style="flex:1;">
+                            <label class="form-label">DATA DA 1ª PARCELA</label>
+                            <input type="date" id="cpBillFirstDate" class="form-input" required>
+                        </div>
+                    </div>
+                    
+                    <button type="button" class="btn btn-secondary" onclick="generateInstallmentsPreview()" style="width:100%; margin-bottom: 1rem;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"></path><polyline points="9 11 12 14 22 4"></polyline></svg>
+                        Gerar Prévia de Parcelas
+                    </button>
+
+                    <div id="cpPreviewContainer" style="display:none; flex-direction:column; gap:0.5rem; margin-bottom:1rem; border-top:1px solid rgba(0,0,0,0.1); padding-top:1rem;">
+                        <h4 style="font-size:0.9rem; color:var(--text-color);">Prévia (Você pode editar as datas e valores antes de salvar)</h4>
+                        <div id="cpPreviewList"></div>
+                    </div>
+
+                    <div class="btn-group" style="margin-top:0;">
+                        <button type="button" class="btn btn-primary" onclick="saveContaParcelada()" id="btnSaveCp" disabled>
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z" />
+                                <polyline points="17,21 17,13 7,13 7,21" />
+                                <polyline points="7,3 7,8 15,8" />
+                            </svg>
+                            Salvar Parcelas
+                        </button>
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('addContaParceladaModal')">Cancelar</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Settings Modal -->
+    <div class="modal-overlay" id="notificationSettingsModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Configurar Lembretes</h3>
+                <button class="modal-close" onclick="closeModal('notificationSettingsModal')">&times;</button>
+            </div>
+            <div class="modal-body" style="padding: 1.5rem;">
+                <div class="form-group" style="display:flex; align-items:center; justify-content:space-between; margin-bottom: 0;">
+                    <label class="form-label" style="margin-bottom:0; font-weight:700;">Ativar Alertas de Vencimento</label>
+                    <input type="checkbox" id="cfNotifToggleModal" onchange="toggleCfNotifications(this)" style="width:22px;height:22px;accent-color:var(--primary); cursor:pointer;">
+                </div>
+                <p style="font-size:0.75rem; opacity:0.6; margin-top:0.5rem;">Receba avisos na central de notificações do celular (Android/Chrome).</p>
+                
+                <div id="cfNotifOptionsModal" style="display:none; flex-direction:column; gap:1.25rem; margin-top:1.5rem; padding-top:1.5rem; border-top:1px solid rgba(0,0,0,0.1);">
+                    <div class="form-group">
+                        <label class="form-label">AVISAR QUANDO?</label>
+                        <select id="cfNotifModeModal" class="form-select" onchange="updateCfNotifSettings()">
+                            <option value="both">No dia e 1 dia antes</option>
+                            <option value="day">Apenas no dia</option>
+                            <option value="prev">Apenas 1 dia antes</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">HORÁRIO DO LEMBRETE</label>
+                        <input type="time" id="cfNotifTimeModal" class="form-input" value="09:00" onchange="updateCfNotifSettings()">
+                    </div>
+                    <button type="button" class="btn btn-secondary" onclick="testNotification()" style="width:100%; display:flex; align-items:center; justify-content:center; gap:0.5rem; font-weight:600; padding:0.75rem;">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                        Testar Notificação Agora
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer" style="padding: 1.25rem; border-top:1px solid rgba(0,0,0,0.05); display:flex; justify-content:flex-end;">
+                <button class="btn btn-primary" onclick="closeModal('notificationSettingsModal')" style="padding: 0.6rem 2rem;">Pronto</button>
+            </div>
+        </div>
+    </div>
     <div class="modal-overlay" id="editTransactionModal">
         <div class="modal">
             <div class="modal-header">
@@ -6327,20 +6732,131 @@
             addTransaction(currentTransactionType);
         }
 
-        document.getElementById('transactionDate').addEventListener('change', function () { updateDailyTransactions(); updateDateDisplayText(); });
-        function updateDateDisplayText() {
+        function updateDatePillText() {
             var di = document.getElementById('transactionDate');
-            var dt = document.getElementById('dateDisplayText');
+            var dt = document.getElementById('datePillText');
             if (!di || !dt) return;
-            if (!di.value) { dt.textContent = '--/--/----'; return; }
-            var parts = di.value.split('-');
-            if (parts.length === 3) { dt.textContent = parts[2] + '/' + parts[1] + '/' + parts[0]; }
+            if (!di.value) { dt.textContent = ''; return; }
+            
+            const today = new Date();
+            const todayStr = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
+            
+            const yest = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 1);
+            const yestStr = yest.getFullYear() + '-' + String(yest.getMonth()+1).padStart(2,'0') + '-' + String(yest.getDate()).padStart(2,'0');
+            
+            const tom = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1);
+            const tomStr = tom.getFullYear() + '-' + String(tom.getMonth()+1).padStart(2,'0') + '-' + String(tom.getDate()).padStart(2,'0');
+            
+            const valStr = di.value;
+            if (valStr === todayStr) {
+                dt.textContent = 'HOJE';
+            } else if (valStr === yestStr) {
+                dt.textContent = 'ONTEM';
+            } else if (valStr === tomStr) {
+                dt.textContent = 'AMANHÃ';
+            } else {
+                const parts = valStr.split('-');
+                const d = new Date(valStr + 'T00:00:00Z');
+                const monthNames = ["JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"];
+                dt.textContent = d.getUTCDate() + ' ' + monthNames[d.getUTCMonth()] + '.';
+            }
         }
-        // Patch previousDay/nextDay to also update display text
+        function updateDateDisplayText() { updateDatePillText(); }
+        document.getElementById('transactionDate').addEventListener('change', function () { updateDailyTransactions(); updateDatePillText(); });
+
+        let customCalDate = new Date();
+        function openCustomDateModal() {
+            const di = document.getElementById('transactionDate');
+            if(di && di.value){
+                customCalDate = new Date(di.value + 'T00:00:00Z');
+            } else {
+                customCalDate = new Date();
+            }
+            renderCustomCal();
+            const modal = document.getElementById('customDateModal');
+            if(modal) modal.classList.add('active');
+        }
+
+        function closeCustomDateModal() {
+            const modal = document.getElementById('customDateModal');
+            if(modal) modal.classList.remove('active');
+        }
+
+        function changeCustomCalMonth(offset) {
+            customCalDate.setUTCMonth(customCalDate.getUTCMonth() + offset);
+            renderCustomCal();
+        }
+
+        function selectTodayCustomCal() {
+            const today = new Date();
+            const todayStr = today.getFullYear() + '-' + String(today.getMonth()+1).padStart(2,'0') + '-' + String(today.getDate()).padStart(2,'0');
+            const di = document.getElementById('transactionDate');
+            if(di) di.value = todayStr;
+            updateDailyTransactions();
+            updateDatePillText();
+            closeCustomDateModal();
+        }
+
+        function renderCustomCal() {
+            const year = customCalDate.getUTCFullYear();
+            const month = customCalDate.getUTCMonth();
+            
+            const monthNames = ["JANEIRO", "FEVEREIRO", "MARÇO", "ABRIL", "MAIO", "JUNHO", "JULHO", "AGOSTO", "SETEMBRO", "OUTUBRO", "NOVEMBRO", "DEZEMBRO"];
+            const monthSpan = document.getElementById('customCalMonthYear');
+            if(monthSpan) monthSpan.textContent = monthNames[month] + (year !== new Date().getFullYear() ? " " + year : "");
+
+            const grid = document.getElementById('customCalDays');
+            if(!grid) return;
+            grid.innerHTML = '';
+
+            const firstDay = new Date(Date.UTC(year, month, 1));
+            const lastDay = new Date(Date.UTC(year, month + 1, 0));
+            const startingDayOfWeek = firstDay.getUTCDay();
+            const prevMonthLastDay = new Date(Date.UTC(year, month, 0)).getUTCDate();
+
+            const di = document.getElementById('transactionDate');
+            let selectedStr = '';
+            if(di && di.value) selectedStr = di.value;
+
+            for(let i = startingDayOfWeek - 1; i >= 0; i--) {
+                const btn = document.createElement('button');
+                btn.className = 'custom-cal-day other-month';
+                btn.textContent = prevMonthLastDay - i;
+                grid.appendChild(btn);
+            }
+
+            for(let i = 1; i <= lastDay.getUTCDate(); i++) {
+                const btn = document.createElement('button');
+                btn.className = 'custom-cal-day';
+                btn.textContent = i;
+                
+                const cellStr = year + '-' + String(month+1).padStart(2,'0') + '-' + String(i).padStart(2,'0');
+                if(cellStr === selectedStr) btn.classList.add('selected');
+
+                btn.onclick = () => {
+                    if(di) di.value = cellStr;
+                    updateDailyTransactions();
+                    updateDatePillText();
+                    closeCustomDateModal();
+                };
+                grid.appendChild(btn);
+            }
+
+            const totalCells = startingDayOfWeek + lastDay.getUTCDate();
+            let nextDays = 1;
+            for(let i = totalCells; i < 42; i++) {
+                if (i >= 35 && startingDayOfWeek + lastDay.getUTCDate() <= 35) break;
+                const btn = document.createElement('button');
+                btn.className = 'custom-cal-day other-month';
+                btn.textContent = nextDays++;
+                grid.appendChild(btn);
+            }
+        }
+
         var _origPrevDay = previousDay;
-        previousDay = function () { _origPrevDay(); updateDateDisplayText(); };
+        previousDay = function () { _origPrevDay(); updateDatePillText(); };
         var _origNextDay = nextDay;
-        nextDay = function () { _origNextDay(); updateDateDisplayText(); };
+        nextDay = function () { _origNextDay(); updateDatePillText(); };
         document.addEventListener('click', e => { if (e.target.classList.contains('modal-overlay')) { const mid = e.target.id; if (mid === 'monthPickerModal') closeMonthPickerModal(); else closeModal(mid); } });
         function previousDay() { const di = document.getElementById('transactionDate'); const cd = new Date(di.value + 'T00:00:00Z'); cd.setUTCDate(cd.getUTCDate() - 1); di.value = cd.toISOString().split('T')[0]; updateDailyTransactions(); }
         function nextDay() { const di = document.getElementById('transactionDate'); const cd = new Date(di.value + 'T00:00:00Z'); cd.setUTCDate(cd.getUTCDate() + 1); di.value = cd.toISOString().split('T')[0]; updateDailyTransactions(); }
@@ -6451,6 +6967,31 @@
                         // Update localStorage cache
                         localStorage.setItem('cfBalance_' + user.uid, remoteBalance);
                         if (remoteSavedAt) localStorage.setItem('cfBalanceSavedAt_' + user.uid, remoteSavedAt);
+                        
+                        if (data.cfNotificationsEnabled !== undefined) {
+                            const tog = document.getElementById('cfNotifToggleModal');
+                            const opt = document.getElementById('cfNotifOptionsModal');
+                            const btn = document.getElementById('cfNotifBtn');
+                            if(tog) {
+                                tog.checked = data.cfNotificationsEnabled;
+                                if (opt) {
+                                    opt.style.display = data.cfNotificationsEnabled ? 'flex' : 'none';
+                                }
+                                if (btn) {
+                                    if(data.cfNotificationsEnabled) btn.classList.add('active');
+                                    else btn.classList.remove('active');
+                                }
+                            }
+                        }
+                        if (data.cfNotifMode !== undefined) {
+                            const mod = document.getElementById('cfNotifModeModal');
+                            if(mod) mod.value = data.cfNotifMode;
+                        }
+                        if (data.cfNotifTime !== undefined) {
+                            const tim = document.getElementById('cfNotifTimeModal');
+                            if(tim) tim.value = data.cfNotifTime;
+                        }
+                        
                         // Update input field if visible
                         const inp = document.getElementById('cfBalanceInput');
                         if (inp && document.getElementById('cfBalanceEditRow')?.style.display !== 'none') inp.value = remoteBalance;
@@ -6472,6 +7013,7 @@
             document.getElementById('cfModalTitle').textContent = 'Nova Conta Fixa';
             document.getElementById('addContaFixaForm').reset();
             document.getElementById('cfBillDueDay').value = 10;
+            document.getElementById('cfBillMonth').value = '';
             showModal('addContaFixaModal');
         }
 
@@ -6484,6 +7026,13 @@
             document.getElementById('cfBillValue').value = cf.value;
             document.getElementById('cfBillCategory').value = cf.category || '📦';
             document.getElementById('cfBillDueDay').value = cf.dueDay || 10;
+            
+            let monthVal = '';
+            if(cf.dueMonth && cf.dueYear) {
+                monthVal = `${cf.dueYear}-${String(cf.dueMonth).padStart(2,'0')}`;
+            }
+            document.getElementById('cfBillMonth').value = monthVal;
+            
             showModal('addContaFixaModal');
         }
 
@@ -6493,17 +7042,29 @@
             const value = parseFloat(document.getElementById('cfBillValue').value);
             const category = document.getElementById('cfBillCategory').value;
             const dueDay = parseInt(document.getElementById('cfBillDueDay').value) || 10;
+            const monthVal = document.getElementById('cfBillMonth').value;
+            
             if (!name || !value || value <= 0) { showNotification('Preencha nome e valor!', 'error'); return; }
 
             const data = {
                 userId: currentUser.uid,
                 name, value, category, dueDay,
                 paid: false,
+                isInstallment: false,
                 createdAt: new Date().toISOString()
             };
+            
+            if(monthVal) {
+                const [y, m] = monthVal.split('-');
+                data.dueYear = parseInt(y);
+                data.dueMonth = parseInt(m);
+            } else {
+                data.dueYear = null;
+                data.dueMonth = null;
+            }
 
             if (editingContaFixaId) {
-                db.collection('contasFixas').doc(editingContaFixaId).update({ name, value, category, dueDay })
+                db.collection('contasFixas').doc(editingContaFixaId).update({ name, value, category, dueDay, dueYear: data.dueYear, dueMonth: data.dueMonth })
                     .then(() => { showNotification('Conta atualizada!', 'success'); closeModal('addContaFixaModal'); })
                     .catch(e => console.error(e));
             } else {
@@ -6512,6 +7073,142 @@
                     .catch(e => console.error(e));
             }
         }
+
+        // --- Lógica de Contas Parceladas ---
+        function showAddContaParceladaModal() {
+            document.getElementById('cpModalTitle').textContent = 'Nova Conta Parcelada';
+            document.getElementById('addContaParceladaForm').reset();
+            document.getElementById('cpBillFirstDate').value = getTodayInBrasiliaISO();
+            document.getElementById('cpPreviewContainer').style.display = 'none';
+            document.getElementById('btnSaveCp').disabled = true;
+            document.getElementById('cpPreviewList').innerHTML = '';
+            showModal('addContaParceladaModal');
+        }
+
+        function generateInstallmentsPreview() {
+            const name = document.getElementById('cpBillName').value.trim();
+            const totalStr = document.getElementById('cpBillTotal').value;
+            const plotsStr = document.getElementById('cpBillInstallments').value;
+            const startDateStr = document.getElementById('cpBillFirstDate').value;
+            
+            if(!name || !totalStr || !plotsStr || !startDateStr) {
+                showNotification('Preencha todos os campos.', 'error');
+                return;
+            }
+            
+            const totalValue = parseFloat(totalStr);
+            const plots = parseInt(plotsStr);
+            if(totalValue <= 0 || plots < 2) {
+                showNotification('O valor deve ser maior que zero e número de parcelas > 1.', 'error');
+                return;
+            }
+            
+            let valuePerPlot = Math.floor((totalValue / plots) * 100) / 100;
+            let firstPlotValue = totalValue - (valuePerPlot * (plots - 1));
+            firstPlotValue = Math.round(firstPlotValue * 100) / 100;
+            
+            const listDiv = document.getElementById('cpPreviewList');
+            let html = '';
+            
+            const [y, m, d] = startDateStr.split('-');
+            let baseDate = new Date(parseInt(y), parseInt(m) - 1, parseInt(d), 12, 0, 0);
+            
+            for(let i = 1; i <= plots; i++){
+                let plotValue = (i === 1) ? firstPlotValue : valuePerPlot;
+                
+                let plotDate = new Date(baseDate.getTime());
+                plotDate.setMonth(plotDate.getMonth() + (i - 1));
+                
+                let pdY = plotDate.getFullYear();
+                let pdM = String(plotDate.getMonth() + 1).padStart(2, '0');
+                let pdD = String(plotDate.getDate()).padStart(2, '0');
+                let dateInputVal = `${pdY}-${pdM}-${pdD}`;
+                
+                let uniqueId = 'preview_' + i;
+                
+                html += `
+                <div class="cp-preview-item" style="display:flex; gap:0.5rem; align-items:center; background:var(--bg-color); padding:0.5rem; border-radius:8px; border:1px solid rgba(0,0,0,0.05);">
+                    <div style="flex:1;">
+                        <input type="text" id="${uniqueId}_name" class="form-input" value="${escapeHtml(name)} (${i}/${plots})" style="padding:0.4rem; font-size:0.85rem;">
+                    </div>
+                    <div style="width:90px;">
+                        <input type="number" id="${uniqueId}_val" class="form-input" step="0.01" min="0" value="${plotValue.toFixed(2)}" style="padding:0.4rem; font-size:0.85rem;">
+                    </div>
+                    <div style="width:130px;">
+                        <input type="date" id="${uniqueId}_date" class="form-input" value="${dateInputVal}" style="padding:0.4rem; font-size:0.85rem;">
+                    </div>
+                </div>`;
+            }
+            listDiv.innerHTML = html;
+            document.getElementById('cpPreviewContainer').style.display = 'flex';
+            document.getElementById('btnSaveCp').disabled = false;
+        }
+
+        function saveContaParcelada() {
+            if (!currentUser) { showNotification('Faça login para salvar', 'error'); return; }
+            
+            const category = document.getElementById('cpBillCategory').value;
+            const plots = parseInt(document.getElementById('cpBillInstallments').value);
+            
+            let parcelas = [];
+            let groupId = 'group_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            
+            for(let i = 1; i <= plots; i++){
+                let uniqueId = 'preview_' + i;
+                let iptName = document.getElementById(`${uniqueId}_name`);
+                let iptVal = document.getElementById(`${uniqueId}_val`);
+                let iptDate = document.getElementById(`${uniqueId}_date`);
+                
+                if(!iptName || !iptVal || !iptDate) continue;
+                
+                let plotName = iptName.value.trim();
+                let plotVal = parseFloat(iptVal.value);
+                let plotDate = iptDate.value; // yyyy-mm-dd
+                
+                if(!plotName || !plotVal || !plotDate) {
+                    showNotification('Preencha os dados de todas as parcelas.', 'error');
+                    return;
+                }
+                
+                let [y, m, d] = plotDate.split('-');
+                
+                parcelas.push({
+                    userId: currentUser.uid,
+                    name: plotName,
+                    value: plotVal,
+                    category: category,
+                    dueDay: parseInt(d),
+                    dueMonth: parseInt(m),
+                    dueYear: parseInt(y),
+                    isInstallment: true,
+                    installmentGroup: groupId,
+                    installmentIndex: i,
+                    installmentTotal: plots,
+                    fullDate: plotDate,
+                    paid: false,
+                    createdAt: new Date().toISOString()
+                });
+            }
+            
+            if(parcelas.length === 0) return;
+            
+            const batch = db.batch();
+            parcelas.forEach(p => {
+                const docRef = db.collection('contasFixas').doc();
+                batch.set(docRef, p);
+            });
+            
+            batch.commit()
+                .then(() => {
+                    showNotification(parcelas.length + ' parcelas adicionadas!', 'success');
+                    closeModal('addContaParceladaModal');
+                })
+                .catch(e => {
+                    console.error('Erro ao salvar parcelas:', e);
+                    showNotification('Erro ao salvar parcelas.', 'error');
+                });
+        }
+        // --- Fim Lógica Contas Parceladas ---
 
         function cfTogglePaid(id) {
             const cf = contasFixas.find(c => c.id === id);
@@ -6551,9 +7248,27 @@
         }
 
         function cfUpdateViews() {
-            const activeBills = contasFixas.filter(c => !c.deleted);
-            const totalBills = activeBills.reduce((s, c) => s + (c.value || 0), 0);
-            const paidTotal = activeBills.filter(c => c.paid).reduce((s, c) => s + (c.value || 0), 0);
+            const allActiveBills = contasFixas.filter(c => !c.deleted);
+            const activeBills = allActiveBills.filter(c => !c.isInstallment && !c.dueMonth);
+            const activeInstallments = allActiveBills.filter(c => c.isInstallment || c.dueMonth);
+
+            const now = new Date();
+            const currYear = now.getFullYear();
+            const currMonth = now.getMonth() + 1;
+            
+            // Only consider installments for progress/totals if they are from past or current months
+            const applicableInstallments = activeInstallments.filter(c => {
+                if(!c.dueYear || !c.dueMonth) return true;
+                if(c.dueYear < currYear) return true;
+                if(c.dueYear === currYear && c.dueMonth <= currMonth) return true;
+                return false;
+            });
+
+            // For calculations
+            const calcBills = [...activeBills, ...applicableInstallments];
+            
+            const totalBills = calcBills.reduce((s, c) => s + (c.value || 0), 0);
+            const paidTotal = calcBills.filter(c => c.paid).reduce((s, c) => s + (c.value || 0), 0);
             const remaining = Math.max(totalBills - paidTotal, 0);
             const pct = totalBills > 0 ? Math.min((paidTotal / totalBills) * 100, 100) : 0;
 
@@ -6630,47 +7345,136 @@
             }
 
             // Render bills list
-            cfRenderBills(activeBills);
+            cfRenderBills(activeBills, activeInstallments);
+            
+            // Scheduling
+            if (document.getElementById('cfNotifToggle')?.checked) {
+                scheduleBillsNotifications();
+            }
         }
 
-        function cfRenderBills(bills) {
-            const list = document.getElementById('cfBillsList');
-            if (!list) return;
-            if (bills.length === 0) {
-                list.innerHTML = '<div class="empty-state">Nenhuma conta fixa cadastrada</div>';
-                return;
+        function cfRenderBills(fixas, parceladas) {
+            const listFixas = document.getElementById('cfBillsList');
+            const listParceladas = document.getElementById('cpBillsList');
+            
+            if (listFixas) {
+                if (fixas.length === 0) {
+                    listFixas.innerHTML = '<div class="empty-state">Nenhuma conta fixa cadastrada</div>';
+                } else {
+                    const sortedFixas = [...fixas].sort((a, b) => (a.dueDay || 99) - (b.dueDay || 99));
+                    listFixas.innerHTML = sortedFixas.map(cfRenderItemHtml).join('');
+                }
             }
-            const sorted = [...bills].sort((a, b) => (a.dueDay || 99) - (b.dueDay || 99));
-            list.innerHTML = sorted.map(cf => {
-                const paidClass = cf.paid ? ' paid' : '';
-                const checkedClass = cf.paid ? ' checked' : '';
-                return `<div class="cf-bill-item${paidClass}">
-                    <button class="cf-bill-check${checkedClass}" onclick="cfTogglePaid('${cf.id}')" title="${cf.paid ? 'Marcar como não paga' : 'Marcar como paga'}">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
-                            <polyline points="20,6 9,17 4,12"/>
+            
+            if (listParceladas) {
+                if (parceladas.length === 0) {
+                    listParceladas.innerHTML = '<div class="empty-state">Nenhuma conta parcelada cadastrada</div>';
+                } else {
+                    // Inject style for grouping if not present
+                    if (!document.getElementById('cp-group-style')) {
+                        const style = document.createElement('style');
+                        style.id = 'cp-group-style';
+                        style.textContent = `
+                            .cp-month-group summary::-webkit-details-marker { display: none; }
+                            .cp-month-group summary { list-style: none; }
+                            .cp-month-group[open] summary .summary-chevron { transform: rotate(180deg); }
+                            .cp-month-group .cf-bill-item:last-child { border-bottom: none; }
+                        `;
+                        document.head.appendChild(style);
+                    }
+
+                    // Sort by year, month, day
+                    const sortedParc = [...parceladas].sort((a, b) => {
+                        if (a.dueYear !== b.dueYear) return (a.dueYear || 9999) - (b.dueYear || 9999);
+                        if (a.dueMonth !== b.dueMonth) return (a.dueMonth || 12) - (b.dueMonth || 12);
+                        return (a.dueDay || 99) - (b.dueDay || 99);
+                    });
+                    
+                    // Group by Month/Year
+                    const grouped = {};
+                    sortedParc.forEach(cf => {
+                        const mYearStr = `${String(cf.dueMonth||1).padStart(2,'0')}/${cf.dueYear||new Date().getFullYear()}`;
+                        if (!grouped[mYearStr]) grouped[mYearStr] = [];
+                        grouped[mYearStr].push(cf);
+                    });
+
+                    const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+                    
+                    let html = '';
+                    const nowY = new Date().getFullYear();
+                    const nowM = new Date().getMonth() + 1;
+
+                    Object.keys(grouped).forEach(k => {
+                        const [m, y] = k.split('/');
+                        const monthName = monthNames[parseInt(m)-1];
+                        const mTotal = grouped[k].reduce((acc, curr) => acc + (curr.value || 0), 0);
+                        const mStr = `${monthName} ${y}`;
+                        
+                        let isFuture = false;
+                        const thisY = parseInt(y);
+                        const thisM = parseInt(m);
+                        if (thisY > nowY || (thisY === nowY && thisM > nowM)) {
+                            isFuture = true;
+                        }
+                        const openAttr = isFuture ? '' : 'open';
+
+                        html += `
+                        <details class="cp-month-group" ${openAttr} style="margin-bottom:1rem; border:1px solid rgba(0,0,0,0.1); border-radius:12px; overflow:hidden; background:var(--bg-color);">
+                            <summary style="display:flex; justify-content:space-between; align-items:center; padding:1rem; cursor:pointer; background:rgba(0,0,0,0.03); font-weight:600; outline:none; user-select:none;">
+                                <div style="display:flex; align-items:center; gap:0.5rem; text-transform:capitalize;">
+                                    <svg class="summary-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transition: transform 0.2s;">
+                                        <polyline points="6 9 12 15 18 9"></polyline>
+                                    </svg>
+                                    ${mStr}
+                                </div>
+                                <div style="color:var(--text-color); font-size:1rem; opacity:0.9;">Total: ${formatCurrency(mTotal)}</div>
+                            </summary>
+                            <div style="padding:0.5rem 1rem 1rem 1rem; border-top:1px solid rgba(0,0,0,0.05);">
+                                ${grouped[k].map(cfRenderItemHtml).join('')}
+                            </div>
+                        </details>`;
+                    });
+
+                    listParceladas.innerHTML = html;
+                }
+            }
+        }
+
+        function cfRenderItemHtml(cf) {
+            const paidClass = cf.paid ? ' paid' : '';
+            const checkedClass = cf.paid ? ' checked' : '';
+            let dateLabel = `Vence dia ${cf.dueDay || '?'}`;
+            
+            if (cf.isInstallment && cf.dueMonth && cf.dueYear) {
+                dateLabel = `Vence em ${String(cf.dueDay).padStart(2,'0')}/${String(cf.dueMonth).padStart(2,'0')}/${cf.dueYear}`;
+            }
+            
+            return `<div class="cf-bill-item${paidClass}">
+                <button class="cf-bill-check${checkedClass}" onclick="cfTogglePaid('${cf.id}')" title="${cf.paid ? 'Marcar como não paga' : 'Marcar como paga'}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3">
+                        <polyline points="20,6 9,17 4,12"/>
+                    </svg>
+                </button>
+                <div class="cf-bill-info">
+                    <div class="cf-bill-name">${cf.category || '📦'} ${escapeHtml(cf.name)}</div>
+                    <div class="cf-bill-meta">${dateLabel} &bullet; ${cf.paid ? '✅ Paga' : '⏳ Pendente'}</div>
+                </div>
+                <div class="cf-bill-amount">${formatCurrency(cf.value)}</div>
+                <div class="transaction-actions">
+                    <button class="action-btn edit" onclick="editContaFixa('${cf.id}')" title="Editar">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
                         </svg>
                     </button>
-                    <div class="cf-bill-info">
-                        <div class="cf-bill-name">${cf.category || '📦'} ${escapeHtml(cf.name)}</div>
-                        <div class="cf-bill-meta">Vence dia ${cf.dueDay || '?'} &bullet; ${cf.paid ? '✅ Paga' : '⏳ Pendente'}</div>
-                    </div>
-                    <div class="cf-bill-amount">${formatCurrency(cf.value)}</div>
-                    <div class="transaction-actions">
-                        <button class="action-btn edit" onclick="editContaFixa('${cf.id}')" title="Editar">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                                <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                            </svg>
-                        </button>
-                        <button class="action-btn delete" onclick="deleteContaFixa('${cf.id}')" title="Excluir">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                                <polyline points="3 6 5 6 21 6"/>
-                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                            </svg>
-                        </button>
-                    </div>
-                </div>`;
-            }).join('');
+                    <button class="action-btn delete" onclick="deleteContaFixa('${cf.id}', ${cf.isInstallment})" title="Excluir">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                            <polyline points="3 6 5 6 21 6"/>
+                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                        </svg>
+                    </button>
+                </div>
+            </div>`;
         }
 
         // Show contas-fixas tab should also refresh views
@@ -6682,12 +7486,172 @@
                 cfUpdateViews();
             }
         };
+        
+        function showNotificationSettingsModal() {
+            showModal('notificationSettingsModal');
+        }
+        
+        let notificationsSupported = 'Notification' in window && 'serviceWorker' in navigator;
+
+        function toggleCfNotifications(cb) {
+            if (!currentUser) return;
+            const opt = document.getElementById('cfNotifOptionsModal');
+            const btn = document.getElementById('cfNotifBtn');
+            if (cb.checked) {
+                if (!notificationsSupported) {
+                    showNotification('Seu navegador não suporta notificações de app.', 'error');
+                    cb.checked = false;
+                    return;
+                }
+                Notification.requestPermission().then(perm => {
+                    if (perm === 'granted') {
+                        saveNotifPref(true);
+                        if (opt) opt.style.display = 'flex';
+                        if (btn) btn.classList.add('active');
+                        scheduleBillsNotifications();
+                        showNotification('Lembretes ativados!', 'success');
+                    } else {
+                        cb.checked = false;
+                        showNotification('Permissão negada.', 'warning');
+                    }
+                });
+            } else {
+                if (opt) opt.style.display = 'none';
+                if (btn) btn.classList.remove('active');
+                saveNotifPref(false);
+            }
+        }
+        
+        function updateCfNotifSettings() {
+            saveNotifPref(true);
+            scheduleBillsNotifications();
+        }
+        
+        async function testNotification() {
+            if (!notificationsSupported || Notification.permission !== 'granted') {
+                showNotification('Ative os alertas no interruptor primeiro!', 'warning');
+                return;
+            }
+            try {
+                const reg = await navigator.serviceWorker.ready;
+                reg.showNotification('Teste Funcional 🔔', {
+                    body: 'Seu sistema de avisos de Contas Fixas está operante.',
+                    icon: './icon-192.png',
+                    tag: 'cf_test_' + Date.now()
+                });
+            } catch(e) {
+                console.error('Erro ao enviar aviso teste', e);
+            }
+        }
+        
+        function saveNotifPref(enabled) {
+            if (!currentUser) return;
+            const mode = document.getElementById('cfNotifModeModal')?.value || 'both';
+            const time = document.getElementById('cfNotifTimeModal')?.value || '09:00';
+            db.collection('userSettings').doc(currentUser.uid).set({ 
+                cfNotificationsEnabled: enabled,
+                cfNotifMode: mode,
+                cfNotifTime: time
+            }, { merge: true }).catch(()=>{});
+        }
+
+        async function scheduleBillsNotifications() {
+            if (!notificationsSupported || Notification.permission !== 'granted') return;
+            if (!('showTrigger' in Notification.prototype)) {
+                // Silently return since we assume it isn't supported completely on iOS Safari etc.
+                return;
+            }
+            
+            try {
+                const reg = await navigator.serviceWorker.ready;
+                
+                const now = new Date();
+                const currYear = now.getFullYear();
+                const currMonth = now.getMonth() + 1;
+                
+                contasFixas.forEach(cf => {
+                    if (cf.deleted || cf.paid) return; // Ignora pagas
+                    
+                const nMode = document.getElementById('cfNotifModeModal')?.value || 'both';
+                const nTime = document.getElementById('cfNotifTimeModal')?.value || '09:00';
+                const [nHr, nMin] = nTime.split(':').map(Number);
+                    
+                    let targetDate;
+                    if (cf.isInstallment && cf.dueYear && cf.dueMonth) {
+                        if (cf.dueYear < currYear || (cf.dueYear === currYear && cf.dueMonth < currMonth)) return; 
+                        targetDate = new Date(cf.dueYear, cf.dueMonth - 1, cf.dueDay || 10, nHr, nMin, 0);
+                    } else if(cf.dueYear && cf.dueMonth) {
+                        // Fixed but single month
+                        if (cf.dueYear < currYear || (cf.dueYear === currYear && cf.dueMonth < currMonth)) return; 
+                        targetDate = new Date(cf.dueYear, cf.dueMonth - 1, cf.dueDay || 10, nHr, nMin, 0);
+                    } else {
+                        // Eternal recurring bills, schedule for current month or next
+                        targetDate = new Date(currYear, currMonth - 1, cf.dueDay || 10, nHr, nMin, 0);
+                        if (targetDate < now) {
+                            targetDate.setMonth(targetDate.getMonth() + 1);
+                        }
+                    }
+                    
+                    const dayBefore = new Date(targetDate.getTime());
+                    dayBefore.setDate(dayBefore.getDate() - 1);
+                    
+                    // Agenda véspera
+                    if (dayBefore > now && (nMode === 'both' || nMode === 'prev')) {
+                        reg.showNotification(`Vencimento Amanhã: ${cf.name}`, {
+                            body: `Sua conta no valor de ${formatCurrency(cf.value)} vence amanhã!`,
+                            icon: './icon-192.png',
+                            tag: `cf_${cf.id}_vesp_${targetDate.getTime()}`,
+                            showTrigger: new TimestampTrigger(dayBefore.getTime())
+                        });
+                    }
+                    
+                    // Agenda dia
+                    if (targetDate > now && (nMode === 'both' || nMode === 'day')) {
+                        reg.showNotification(`Vence Hoje: ${cf.name}`, {
+                            body: `Não esqueça de pagar sua conta de ${formatCurrency(cf.value)} hoje às ${nTime}.`,
+                            icon: './icon-192.png',
+                            tag: `cf_${cf.id}_hoje_${targetDate.getTime()}`,
+                            showTrigger: new TimestampTrigger(targetDate.getTime())
+                        });
+                    }
+                });
+            } catch(e) {
+                console.error('Erro ao agendar notificações Locais:', e);
+            }
+        }
     </script>
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('./sw.js');
         }
     </script>
+    <!-- Custom Calendar Modal -->
+    <div class="custom-cal-modal" id="customDateModal" onclick="if(event.target===this) closeCustomDateModal()">
+        <div class="custom-cal-container">
+            <div class="custom-cal-header">
+                <button type="button" class="custom-cal-today-btn" onclick="selectTodayCustomCal()" data-i18n="today">HOJE</button>
+                <div class="custom-cal-month-nav">
+                    <button type="button" class="custom-cal-nav-btn" onclick="changeCustomCalMonth(-1)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                    </button>
+                    <span id="customCalMonthYear">ABRIL</span>
+                    <button type="button" class="custom-cal-nav-btn" onclick="changeCustomCalMonth(1)">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                    </button>
+                </div>
+                <button type="button" class="custom-cal-close" onclick="closeCustomDateModal()">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                </button>
+            </div>
+            <div class="custom-cal-weekdays">
+                <div>DOM.</div><div>SEG.</div><div>TER.</div><div>QUA.</div><div>QUI.</div><div>SEX.</div><div>SÁB.</div>
+            </div>
+            <div class="custom-cal-days" id="customCalDays">
+                <!-- Days will be generated by JS -->
+            </div>
+        </div>
+    </div>
+
 </body>
 
 </html>
