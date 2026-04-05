@@ -28,6 +28,7 @@
             --primary-dark: #059669;
             --primary-glow: rgba(16, 185, 129, 0.3);
             --accent: #F59E0B;
+            --secondary: #F59E0B;
             --success: #10B981;
             --success-light: #34D399;
             --danger: #DC2626;
@@ -58,6 +59,7 @@
             --glass-border: rgba(255, 255, 255, 0.5);
             --glass-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.1);
             --blur: 20px;
+            --bg-color: rgba(255, 255, 255, 0.08);
             --ios-gray: #F2F2F7;
             --ios-gray-dark: #1C1C1E;
             --transition: 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
@@ -87,6 +89,7 @@
             color: var(--dark-text);
             --glass-bg: rgba(28, 28, 30, 0.7);
             --glass-border: rgba(255, 255, 255, 0.1);
+            --bg-color: rgba(255, 255, 255, 0.05);
             --ios-gray: #1C1C1E;
         }
 
@@ -3489,6 +3492,137 @@
             border-color: rgba(16, 185, 129, 0.2);
         }
 
+        .cf-header-actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .cf-header-btns {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+            min-width: 0;
+        }
+
+        .cf-balance-header {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .cf-bill-item {
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr) auto minmax(120px, 1fr);
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.85rem 1rem;
+            border-radius: var(--radius-sm);
+            margin-bottom: 0.5rem;
+            transition: all var(--transition);
+        }
+
+        .cf-bill-item .cf-bill-info {
+            min-width: 0;
+        }
+
+        .cf-bill-item .transaction-actions {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .cf-bill-item .cf-bill-name {
+            overflow-wrap: anywhere;
+            white-space: normal;
+        }
+
+        .cf-bill-amount {
+            min-width: 90px;
+            text-align: right;
+            font-feature-settings: 'pnum';
+            font-variant-numeric: tabular-nums;
+        }
+
+        .cf-bill-meta {
+            display: block;
+            font-size: 0.72rem;
+            opacity: 0.7;
+            word-break: break-word;
+            margin-top: 0.18rem;
+        }
+
+        .cf-bill-item .transaction-actions {
+            display: flex;
+            gap: 0.45rem;
+            flex-wrap: wrap;
+            justify-content: flex-end;
+        }
+
+        .cf-bill-item .transaction-actions .action-btn {
+            min-width: 2.7rem;
+            padding: 0.45rem 0.6rem;
+        }
+
+        .cp-preview-item {
+            display: grid;
+            grid-template-columns: 1fr 110px 130px;
+            align-items: center;
+            gap: 0.6rem;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            padding: 0.7rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .cp-preview-item input {
+            width: 100%;
+        }
+
+        .cp-month-group {
+            background: rgba(255, 255, 255, 0.06);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .cp-month-group summary {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1rem;
+            cursor: pointer;
+            font-weight: 700;
+            list-style: none;
+            background: rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .cp-month-group summary::-webkit-details-marker {
+            display: none;
+        }
+
+        .cp-month-group .summary-chevron {
+            transition: transform 0.2s ease;
+        }
+
+        .cp-month-group[open] .summary-chevron {
+            transform: rotate(180deg);
+        }
+
+        .cp-month-group .cf-bill-item {
+            margin-bottom: 0.5rem;
+        }
+
+        .cp-month-group .cf-bill-item:last-child {
+            margin-bottom: 0;
+        }
+
         .light .cf-balance-card.balance-goal {
             background: linear-gradient(145deg, #EEF2FF, #E0E7FF);
             border-color: rgba(99, 102, 241, 0.2);
@@ -3625,7 +3759,8 @@
         }
 
         .cf-bill-item {
-            display: flex;
+            display: grid;
+            grid-template-columns: auto minmax(0, 1fr) auto minmax(120px, 1fr);
             align-items: center;
             gap: 0.75rem;
             padding: 0.85rem 1rem;
@@ -3887,6 +4022,14 @@
                 font-size: 0.88rem;
             }
 
+            .cp-preview-item {
+                grid-template-columns: 1fr 110px 130px;
+            }
+
+            .cp-preview-item input {
+                font-size: 0.92rem;
+            }
+
             .cf-bill-amount {
                 font-size: 0.88rem;
             }
@@ -3969,7 +4112,8 @@
 
             /* Balance cards: stack vertically */
             .cf-balance-header {
-                flex-direction: column;
+                display: grid;
+                grid-template-columns: 1fr;
                 gap: 0.6rem;
             }
 
@@ -4024,8 +4168,10 @@
 
             /* Bill items: collapse actions to row below */
             .cf-bill-item {
-                flex-wrap: wrap;
-                gap: 0.5rem;
+                display: grid;
+                grid-template-columns: auto minmax(0, 1fr);
+                align-items: start;
+                gap: 0.65rem;
                 padding: 0.7rem;
             }
 
@@ -4036,7 +4182,6 @@
             }
 
             .cf-bill-info {
-                flex: 1;
                 min-width: 0;
             }
 
@@ -4053,10 +4198,19 @@
                 font-size: 0.9rem;
                 font-weight: 800;
                 margin-right: 0;
+                text-align: left;
+            }
+
+            .cp-preview-item {
+                grid-template-columns: 1fr;
+            }
+
+            .cp-preview-item input {
+                font-size: 0.92rem;
             }
 
             /* Actions: full width below */
-            .cf-bill-item>.transaction-actions {
+            .cf-bill-item > .transaction-actions {
                 width: 100%;
                 justify-content: flex-end;
                 gap: 0.5rem;
@@ -4321,6 +4475,14 @@
                     <line x1="12" y1="15" x2="12" y2="3" />
                 </svg>
                 <span data-i18n="menuBackup">Backup</span>
+            </button>
+            <button class="menu-item" onclick="showTab('sobre', this)">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="16" x2="12" y2="12" />
+                    <line x1="12" y1="8" x2="12.01" y2="8" />
+                </svg>
+                <span>Sobre</span>
             </button>
             <button class="menu-item"
                 onclick="window.open('https://api.whatsapp.com/send?phone=5567996376978&text=', '_blank')">
@@ -5009,6 +5171,179 @@
         </div>
 
         <!-- Backup Tab -->
+        <!-- Sobre Tab -->
+        <div id="sobre" class="tab-content">
+            <div class="card">
+                <div style="text-align: center; margin-bottom: 2rem; padding: 1rem 0;">
+                    <div style="width:80px; height:80px; background:linear-gradient(135deg, var(--primary), var(--primary-light)); border-radius:24px; display:flex; align-items:center; justify-content:center; margin:0 auto 1rem; box-shadow:0 0 40px var(--primary-glow);">
+                        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>
+                    </div>
+                    <h1 style="font-size:1.8rem; font-weight:800; margin-bottom:0.5rem; letter-spacing:-0.5px;">Controle Financeiro</h1>
+                    <p style="font-size:1rem; opacity:0.7; margin-bottom:2rem; line-height:1.6;">V 1.0 | Sua solução completa para organizar e controlar suas finanças</p>
+                </div>
+
+                <div style="background:rgba(16,185,129,0.08); border:1px solid rgba(16,185,129,0.15); border-radius:16px; padding:1.5rem; margin-bottom:2rem;">
+                    <h3 style="font-size:1.2rem; margin-bottom:1rem; color:var(--primary); font-weight:700;">📱 O que é?</h3>
+                    <p style="font-size:0.95rem; line-height:1.7; opacity:0.85;">
+                        Um aplicativo web moderno e responsivo desenvolvido para ajudar você a controlar todas as suas despesas e receitas de forma simples e intuitiva. 
+                        Com uma interface limpa e funcionalidades poderosas, o app sincroniza seus dados em tempo real através do Firebase, garantindo segurança e acesso de qualquer dispositivo.
+                    </p>
+                </div>
+
+                <h2 style="font-size:1.4rem; margin-bottom:1.5rem; font-weight:800; letter-spacing:-0.3px;">🎯 Funcionalidades Principais</h2>
+
+                <!-- Feature Cards -->
+                <div style="display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:1.2rem; margin-bottom:2rem;">
+                    
+                    <!-- Nova Transação -->
+                    <div style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:1.5rem;">
+                        <div style="font-size:2rem; margin-bottom:0.8rem;">➕</div>
+                        <h3 style="font-weight:700; margin-bottom:0.5rem; font-size:1.1rem;">Nova Transação</h3>
+                        <p style="font-size:0.85rem; opacity:0.75; line-height:1.6;">
+                            Registre receitas e despesas rapidamente. Escolha categorias, adicione descrições, defina datas e marque como favoritas. 
+                            Interface intuitiva com toggle de renda/despesa e cálculo dinâmico de valores.
+                        </p>
+                    </div>
+
+                    <!-- Contas Fixas -->
+                    <div style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:1.5rem;">
+                        <div style="font-size:2rem; margin-bottom:0.8rem;">💳</div>
+                        <h3 style="font-weight:700; margin-bottom:0.5rem; font-size:1.1rem;">Contas Fixas & Parceladas</h3>
+                        <p style="font-size:0.85rem; opacity:0.75; line-height:1.6;">
+                            Gerencie suas contas mensais e compras parceladas. Defina saldo base, visualize quanto resta pagar, rastreie progresso com barras de progresso 
+                            e receba notificações de vencimento configuráveis.
+                        </p>
+                    </div>
+
+                    <!-- Histórico de Transações -->
+                    <div style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:1.5rem;">
+                        <div style="font-size:2rem; margin-bottom:0.8rem;">📋</div>
+                        <h3 style="font-weight:700; margin-bottom:0.5rem; font-size:1.1rem;">Histórico de Transações</h3>
+                        <p style="font-size:0.85rem; opacity:0.75; line-height:1.6;">
+                            Visualize todas as suas transações organizadas por data. Edite ou delete transações conforme necessário. 
+                            Marque favoritas para acesso rápido e visualize resumo do dia atual.
+                        </p>
+                    </div>
+
+                    <!-- Busca Avançada -->
+                    <div style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:1.5rem;">
+                        <div style="font-size:2rem; margin-bottom:0.8rem;">🔍</div>
+                        <h3 style="font-weight:700; margin-bottom:0.5rem; font-size:1.1rem;">Busca Avançada</h3>
+                        <p style="font-size:0.85rem; opacity:0.75; line-height:1.6;">
+                            Encontre qualquer transação com filtros poderosos: por período, categoria, tipo (renda/despesa). 
+                            Selecione múltiplas categorias, defina intervalo de datas e veja resultados agrupados por período.
+                        </p>
+                    </div>
+
+                    <!-- Gráficos & Análises -->
+                    <div style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:1.5rem;">
+                        <div style="font-size:2rem; margin-bottom:0.8rem;">📊</div>
+                        <h3 style="font-weight:700; margin-bottom:0.5rem; font-size:1.1rem;">Gráficos & Análises</h3>
+                        <p style="font-size:0.85rem; opacity:0.75; line-height:1.6;">
+                            Visualize seus dados em gráficos de barras interativos. Analise despesas por categoria, compare períodos diferentes 
+                            e identifique padrões de gastos. Basados em Chart.js para melhor visualização.
+                        </p>
+                    </div>
+
+                    <!-- Resumos -->
+                    <div style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:1.5rem;">
+                        <div style="font-size:2rem; margin-bottom:0.8rem;">📑</div>
+                        <h3 style="font-weight:700; margin-bottom:0.5rem; font-size:1.1rem;">Resumos Mensais</h3>
+                        <p style="font-size:0.85rem; opacity:0.75; line-height:1.6;">
+                            Organize seu histórico em summarys expandíveis por período. Veja total de receitas, despesas e saldo líquido 
+                            para cada mês de forma clara e organizada.
+                        </p>
+                    </div>
+
+                    <!-- Metas Financeiras -->
+                    <div style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:1.5rem;">
+                        <div style="font-size:2rem; margin-bottom:0.8rem;">🎯</div>
+                        <h3 style="font-weight:700; margin-bottom:0.5rem; font-size:1.1rem;">Metas Financeiras</h3>
+                        <p style="font-size:0.85rem; opacity:0.75; line-height:1.6;">
+                            Defina objetivos e acompanhe seu progresso. Crie metas de economia, investimento ou qualquer propósito. 
+                            Visualize barras de progresso e receba motivação para alcançar seus objetivos.
+                        </p>
+                    </div>
+
+                    <!-- Lixeira -->
+                    <div style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:1.5rem;">
+                        <div style="font-size:2rem; margin-bottom:0.8rem;">🗑️</div>
+                        <h3 style="font-weight:700; margin-bottom:0.5rem; font-size:1.1rem;">Lixeira</h3>
+                        <p style="font-size:0.85rem; opacity:0.75; line-height:1.6;">
+                            Recupere transações deletadas. Todos os itens excluídos ficam na lixeira por um tempo antes de serem removidos permanentemente. 
+                            Restaure ou delete definitivamente conforme necessário.
+                        </p>
+                    </div>
+
+                    <!-- Backup & Exportação -->
+                    <div style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:1.5rem;">
+                        <div style="font-size:2rem; margin-bottom:0.8rem;">💾</div>
+                        <h3 style="font-weight:700; margin-bottom:0.5rem; font-size:1.1rem;">Backup & Importação</h3>
+                        <p style="font-size:0.85rem; opacity:0.75; line-height:1.6;">
+                            Exporte seus dados em JSON ou Excel. Importe backups anteriores. Sincronize com Firebase automaticamente. 
+                            Nunca perca seus dados com nossos múltiplos sistemas de backup.
+                        </p>
+                    </div>
+
+                    <!-- Sincronização em Nuvem -->
+                    <div style="background:rgba(255,255,255,0.06); border:1px solid rgba(255,255,255,0.08); border-radius:12px; padding:1.5rem;">
+                        <div style="font-size:2rem; margin-bottom:0.8rem;">☁️</div>
+                        <h3 style="font-weight:700; margin-bottom:0.5rem; font-size:1.1rem;">Sincronização em Nuvem</h3>
+                        <p style="font-size:0.85rem; opacity:0.75; line-height:1.6;">
+                            Acesse seus dados de qualquer dispositivo. Firebase sincroniza tudo em tempo real. Login seguro com Google. 
+                            Sua privacidade é protegida com criptografia padrão.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Technology Stack -->
+                <div style="background:rgba(59,130,246,0.08); border:1px solid rgba(59,130,246,0.15); border-radius:16px; padding:1.5rem; margin-bottom:2rem;">
+                    <h3 style="font-size:1.1rem; margin-bottom:1rem; font-weight:700;">🛠️ Tecnologias Utilizadas</h3>
+                    <div style="display:flex; flex-wrap:wrap; gap:0.75rem;">
+                        <span style="background:rgba(59,130,246,0.2); color:#60a5fa; padding:0.4rem 0.8rem; border-radius:50px; font-size:0.85rem; font-weight:600;">HTML5</span>
+                        <span style="background:rgba(59,130,246,0.2); color:#60a5fa; padding:0.4rem 0.8rem; border-radius:50px; font-size:0.85rem; font-weight:600;">CSS3</span>
+                        <span style="background:rgba(59,130,246,0.2); color:#60a5fa; padding:0.4rem 0.8rem; border-radius:50px; font-size:0.85rem; font-weight:600;">JavaScript</span>
+                        <span style="background:rgba(59,130,246,0.2); color:#60a5fa; padding:0.4rem 0.8rem; border-radius:50px; font-size:0.85rem; font-weight:600;">Firebase</span>
+                        <span style="background:rgba(59,130,246,0.2); color:#60a5fa; padding:0.4rem 0.8rem; border-radius:50px; font-size:0.85rem; font-weight:600;">Chart.js</span>
+                        <span style="background:rgba(59,130,246,0.2); color:#60a5fa; padding:0.4rem 0.8rem; border-radius:50px; font-size:0.85rem; font-weight:600;">XLSX</span>
+                        <span style="background:rgba(59,130,246,0.2); color:#60a5fa; padding:0.4rem 0.8rem; border-radius:50px; font-size:0.85rem; font-weight:600;">Service Workers</span>
+                        <span style="background:rgba(59,130,246,0.2); color:#60a5fa; padding:0.4rem 0.8rem; border-radius:50px; font-size:0.85rem; font-weight:600;">PWA</span>
+                    </div>
+                </div>
+
+                <!-- Key Features -->
+                <div style="background:rgba(168,85,247,0.08); border:1px solid rgba(168,85,247,0.15); border-radius:16px; padding:1.5rem;">
+                    <h3 style="font-size:1.1rem; margin-bottom:1rem; font-weight:700;">✨ Diferenciais</h3>
+                    <ul style="list-style:none; padding:0;">
+                        <li style="padding:0.6rem 0; font-size:0.95rem; opacity:0.85; display:flex; align-items:start; gap:0.75rem;">
+                            <span style="color:var(--primary); flex-shrink:0;">✓</span>
+                            <span><strong>100% Responsivo</strong> - Funciona perfeitamente em celular, tablet e desktop</span>
+                        </li>
+                        <li style="padding:0.6rem 0; font-size:0.95rem; opacity:0.85; display:flex; align-items:start; gap:0.75rem;">
+                            <span style="color:var(--primary); flex-shrink:0;">✓</span>
+                            <span><strong>Modo Offline</strong> - Continue usando mesmo sem conexão (sincroniza quando voltar)</span>
+                        </li>
+                        <li style="padding:0.6rem 0; font-size:0.95rem; opacity:0.85; display:flex; align-items:start; gap:0.75rem;">
+                            <span style="color:var(--primary); flex-shrink:0;">✓</span>
+                            <span><strong>Notificações</strong> - Receba alertas de vencimentos de contas e lembretes</span>
+                        </li>
+                        <li style="padding:0.6rem 0; font-size:0.95rem; opacity:0.85; display:flex; align-items:start; gap:0.75rem;">
+                            <span style="color:var(--primary); flex-shrink:0;">✓</span>
+                            <span><strong>Tema Dark/Light</strong> - Alterne entre modos escuro e claro</span>
+                        </li>
+                        <li style="padding:0.6rem 0; font-size:0.95rem; opacity:0.85; display:flex; align-items:start; gap:0.75rem;">
+                            <span style="color:var(--primary); flex-shrink:0;">✓</span>
+                            <span><strong>Múltiplos Idiomas</strong> - Suporte para português, inglês e mais</span>
+                        </li>
+                        <li style="padding:0.6rem 0; font-size:0.95rem; opacity:0.85; display:flex; align-items:start; gap:0.75rem;">
+                            <span style="color:var(--primary); flex-shrink:0;">✓</span>
+                            <span><strong>Segurança Firebase</strong> - Dados criptografados e seguros na nuvem</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
         <div id="backup" class="tab-content">
             <div class="card">
                 <h2 class="mb-2" data-i18n="backupExport">Backup e Exportacao</h2>
@@ -7127,8 +7462,8 @@
                 let uniqueId = 'preview_' + i;
                 
                 html += `
-                <div class="cp-preview-item" style="display:flex; gap:0.5rem; align-items:center; background:var(--bg-color); padding:0.5rem; border-radius:8px; border:1px solid rgba(0,0,0,0.05);">
-                    <div style="flex:1;">
+                <div class="cp-preview-item">
+                    <div>
                         <input type="text" id="${uniqueId}_name" class="form-input" value="${escapeHtml(name)} (${i}/${plots})" style="padding:0.4rem; font-size:0.85rem;">
                     </div>
                     <div style="width:90px;">
@@ -7419,7 +7754,7 @@
                         const openAttr = isFuture ? '' : 'open';
 
                         html += `
-                        <details class="cp-month-group" ${openAttr} style="margin-bottom:1rem; border:1px solid rgba(0,0,0,0.1); border-radius:12px; overflow:hidden; background:var(--bg-color);">
+                        <details class="cp-month-group" ${openAttr} style="margin-bottom:1rem; border:1px solid rgba(0,0,0,0.1); border-radius:12px; overflow:hidden;">
                             <summary style="display:flex; justify-content:space-between; align-items:center; padding:1rem; cursor:pointer; background:rgba(0,0,0,0.03); font-weight:600; outline:none; user-select:none;">
                                 <div style="display:flex; align-items:center; gap:0.5rem; text-transform:capitalize;">
                                     <svg class="summary-chevron" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="transition: transform 0.2s;">
@@ -7444,9 +7779,13 @@
             const paidClass = cf.paid ? ' paid' : '';
             const checkedClass = cf.paid ? ' checked' : '';
             let dateLabel = `Vence dia ${cf.dueDay || '?'}`;
+            let installmentLabel = '';
             
             if (cf.isInstallment && cf.dueMonth && cf.dueYear) {
                 dateLabel = `Vence em ${String(cf.dueDay).padStart(2,'0')}/${String(cf.dueMonth).padStart(2,'0')}/${cf.dueYear}`;
+                if (cf.installmentIndex && cf.installmentTotal) {
+                    installmentLabel = ` • ${cf.installmentIndex}/${cf.installmentTotal}`;
+                }
             }
             
             return `<div class="cf-bill-item${paidClass}">
@@ -7457,7 +7796,7 @@
                 </button>
                 <div class="cf-bill-info">
                     <div class="cf-bill-name">${cf.category || '📦'} ${escapeHtml(cf.name)}</div>
-                    <div class="cf-bill-meta">${dateLabel} &bullet; ${cf.paid ? '✅ Paga' : '⏳ Pendente'}</div>
+                    <div class="cf-bill-meta">${dateLabel}${installmentLabel} &bullet; ${cf.paid ? '✅ Paga' : '⏳ Pendente'}</div>
                 </div>
                 <div class="cf-bill-amount">${formatCurrency(cf.value)}</div>
                 <div class="transaction-actions">
@@ -7484,6 +7823,10 @@
             if (tabName === 'contas-fixas') {
                 cfLoadBalance();
                 cfUpdateViews();
+            }
+            // Close menu when clicking "Sobre"
+            if (tabName === 'sobre') {
+                closeMenu();
             }
         };
         
