@@ -474,8 +474,118 @@
         }
 
         @media(max-width:480px) {
+            #new-transaction .card {
+                padding: 1.1rem 1rem;
+                margin-bottom: 1rem;
+            }
+
+            #new-transaction .card h2.mb-2 {
+                font-size: 1.35rem;
+                margin-bottom: 0.6rem;
+            }
+
             .value-display-amount {
-                font-size: 2.5rem;
+                font-size: 1.8rem;
+            }
+
+            .value-display-section {
+                padding: 0.4rem 0;
+                margin-bottom: 0.6rem;
+            }
+
+            .value-display-label {
+                font-size: 0.6rem;
+                margin-bottom: 0.08rem;
+                letter-spacing: 0.7px;
+            }
+
+            .segmented-control-container {
+                height: 40px;
+                margin-bottom: 0.85rem;
+                padding: 2px;
+            }
+
+            .segmented-btn {
+                font-size: 0.85rem;
+                font-weight: 700;
+            }
+
+            .home-date-nav {
+                gap: 0.8rem;
+                margin-bottom: 0.75rem;
+            }
+
+            .home-date-arrow {
+                width: 26px;
+                height: 26px;
+            }
+
+            .home-date-arrow svg {
+                width: 18px;
+                height: 18px;
+            }
+
+            .home-date-pill {
+                font-size: 0.9rem;
+                padding: 5px 12px;
+                gap: 5px;
+            }
+
+            .home-date-pill svg {
+                width: 14px;
+                height: 14px;
+            }
+
+            .form-row-label {
+                font-size: 0.6rem;
+                margin-bottom: 0.12rem;
+                letter-spacing: 0.5px;
+                opacity: 0.7;
+            }
+
+            .form-row-styled {
+                padding: 0.6rem 0.75rem;
+                margin-bottom: 0.55rem;
+                gap: 7px;
+            }
+
+            .form-row-icon {
+                font-size: 1.1rem;
+            }
+
+            .favorite-row {
+                padding: 0.35rem 0;
+                margin-bottom: 0.35rem;
+                font-size: 0.8rem;
+                gap: 0.5rem;
+            }
+
+            .toggle-slider {
+                width: 38px;
+                height: 20px;
+            }
+
+            .toggle-slider::after {
+                width: 14px;
+                height: 14px;
+                top: 3px;
+                left: 3px;
+            }
+
+            .favorite-row input[type="checkbox"]:checked+.toggle-slider::after {
+                left: calc(100% - 17px);
+            }
+
+            .btn-save-transaction {
+                padding: 0.75rem 1rem;
+                font-size: 0.9rem;
+                gap: 0.4rem;
+                margin-top: 0.15rem;
+            }
+
+            .btn-save-transaction svg {
+                width: 16px;
+                height: 16px;
             }
         }
 
