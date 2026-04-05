@@ -245,8 +245,7 @@
             padding-left: max(1.25rem, env(safe-area-inset-left));
             padding-right: max(1.25rem, env(safe-area-inset-right));
             display: flex;
-            flex-wrap: nowrap;
-            /* Prevent wrapping */
+            flex-wrap: wrap;
             justify-content: space-between;
             align-items: center;
             gap: 0.5rem;
@@ -257,9 +256,11 @@
             backdrop-filter: blur(12px);
             /* Subtle blur */
             -webkit-backdrop-filter: blur(12px);
-            overflow: hidden;
-            /* Prevent content from overflowing header bounds */
+            overflow-x: auto;
+            overflow-y: hidden;
+            -webkit-overflow-scrolling: touch;
             box-shadow: 0 4px 30px rgba(0, 0, 0, 0.1);
+            min-height: 56px;
         }
 
         .light .header {
@@ -1012,17 +1013,19 @@
             position: fixed;
             top: 0;
             left: 0;
-            width: 300px;
+            width: min(300px, 80vw);
             height: 100%;
             z-index: 201;
             transform: translateX(-100%);
             transition: transform 0.4s cubic-bezier(0.16, 1, 0.3, 1);
             box-shadow: 4px 0 40px rgba(0, 0, 0, 0.2);
             overflow-y: auto;
+            overflow-x: hidden;
             background: var(--glass-bg);
             backdrop-filter: blur(var(--blur));
             -webkit-backdrop-filter: blur(var(--blur));
             border-right: 1px solid var(--glass-border);
+            -webkit-overflow-scrolling: touch;
         }
 
         .dark .side-menu {
@@ -3487,6 +3490,11 @@
             border: 1px solid rgba(99, 102, 241, 0.25);
         }
 
+        .cf-balance-card.balance-difference {
+            background: linear-gradient(145deg, #7c2d12, #92400e);
+            border: 1px solid rgba(251, 146, 60, 0.25);
+        }
+
         .light .cf-balance-card.balance-avail {
             background: linear-gradient(145deg, #ECFDF5, #D1FAE5);
             border-color: rgba(16, 185, 129, 0.2);
@@ -3500,6 +3508,24 @@
             justify-content: space-between;
         }
 
+        .cf-header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .cf-title-section {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .cf-title-section h2 {
+            margin: 0;
+        }
+
         .cf-header-btns {
             display: flex;
             gap: 0.5rem;
@@ -3510,7 +3536,7 @@
 
         .cf-balance-header {
             display: grid;
-            grid-template-columns: repeat(2, minmax(0, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
             gap: 1rem;
             margin-bottom: 1.25rem;
         }
@@ -3644,12 +3670,20 @@
             color: #c7d2fe;
         }
 
+        .cf-balance-card.balance-difference .cf-balance-label {
+            color: #fed7aa;
+        }
+
         .light .cf-balance-card.balance-avail .cf-balance-label {
             color: #065F46;
         }
 
         .light .cf-balance-card.balance-goal .cf-balance-label {
             color: #3730a3;
+        }
+
+        .light .cf-balance-card.balance-difference .cf-balance-label {
+            color: #92400e;
         }
 
         .cf-balance-value {
@@ -3667,12 +3701,20 @@
             color: #818cf8;
         }
 
+        .cf-balance-card.balance-difference .cf-balance-value {
+            color: #fb923c;
+        }
+
         .light .cf-balance-card.balance-avail .cf-balance-value {
             color: var(--primary-dark);
         }
 
         .light .cf-balance-card.balance-goal .cf-balance-value {
             color: #4338ca;
+        }
+
+        .light .cf-balance-card.balance-difference .cf-balance-value {
+            color: #d97706;
         }
 
         .cf-balance-sub {
@@ -3688,12 +3730,20 @@
             color: #c7d2fe;
         }
 
+        .cf-balance-card.balance-difference .cf-balance-sub {
+            color: #fed7aa;
+        }
+
         .light .cf-balance-card.balance-avail .cf-balance-sub {
             color: #065F46;
         }
 
         .light .cf-balance-card.balance-goal .cf-balance-sub {
             color: #3730a3;
+        }
+
+        .light .cf-balance-card.balance-difference .cf-balance-sub {
+            color: #92400e;
         }
 
         .cf-set-balance-row {
@@ -3904,14 +3954,6 @@
         }
 
         /* Notification Bell Button */
-        .cf-title-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            width: 100%;
-            margin-bottom: 0.5rem;
-        }
-
         .cf-notif-btn {
             display: inline-flex;
             align-items: center;
@@ -3925,10 +3967,7 @@
             cursor: pointer;
             transition: all var(--transition);
             flex-shrink: 0;
-            position: absolute;
-            top: 1.25rem;
-            right: 1.25rem;
-            z-index: 10;
+            position: relative;
             box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
 
@@ -3988,6 +4027,18 @@
 
         /* --- CF Responsive: 768px --- */
         @media(max-width:768px) {
+            .cf-header-top {
+                gap: 1rem;
+            }
+
+            .cf-title-section h2 {
+                font-size: 1.8rem;
+            }
+
+            .cf-header-btns {
+                gap: 0.5rem;
+            }
+
             .cf-balance-header {
                 gap: 0.75rem;
             }
@@ -4038,24 +4089,38 @@
         /* --- CF Responsive: 480px --- */
         @media(max-width:480px) {
 
-            /* Page header: keep title + button on the same row */
-            #contas-fixas .card>div:first-child {
-                flex-direction: row;
-                align-items: center;
+            /* Header layout on mobile */
+            .cf-header-top {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 0.75rem;
+                margin-bottom: 1rem;
+            }
+
+            .cf-title-section {
+                width: 100%;
                 gap: 0.5rem;
             }
 
-            /* Compact add buttons on mobile with visible labels */
-            .cf-add-btn {
-                padding: 0.4rem 0.6rem;
-                border-radius: 8px;
-                font-size: 0.75rem; 
-                gap: 0.3rem;
+            .cf-title-section h2 {
+                font-size: 1.4rem;
             }
 
-            .cf-add-btn-label {
-                display: inline;
-                font-weight: 700;
+            /* Compact add buttons on mobile */
+            .cf-header-btns {
+                width: 100%;
+                display: grid !important;
+                grid-template-columns: 1fr 1fr;
+                gap: 0.75rem;
+            }
+
+            .cf-add-btn {
+                justify-content: center;
+                padding: 0.85rem 0.5rem;
+                border-radius: 12px;
+                font-size: 0.8rem;
+                gap: 0.3rem;
+                box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
             }
 
             .cf-add-btn svg {
@@ -4063,45 +4128,20 @@
                 height: 16px;
             }
 
-            .cf-header-actions {
-                flex-direction: column;
-                align-items: stretch !important;
-                gap: 1.25rem;
-                padding-bottom: 1.25rem;
-                border-bottom: 1px solid rgba(0,0,0,0.06);
-                margin-bottom: 1.5rem !important;
-            }
-            .cf-header-btns {
-                display: grid !important;
-                grid-template-columns: 1fr 1fr;
-                gap: 0.75rem;
-                width: 100%;
-            }
-            .cf-add-btn {
-                justify-content: center;
-                padding: 1rem 0.5rem;
-                border: 1px solid rgba(0,0,0,0.05);
-                border-radius: 14px;
+            .cf-add-btn-label {
+                display: inline;
                 font-weight: 700;
-                box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
             }
-            .cf-title-row {
-                width: 100%;
-                justify-content: space-between;
-                margin-bottom: 0;
-            }
-            .cf-title-row h2 {
-                font-size: 1.6rem;
-                letter-spacing: -0.02em;
-            }
+
             .cf-notif-btn {
-                top: 1rem;
-                right: 1rem;
                 width: 36px;
                 height: 36px;
                 background: white;
                 box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+                position: relative;
+                flex-shrink: 0;
             }
+
             .dark .cf-notif-btn {
                 background: var(--ios-gray-dark);
             }
@@ -4502,6 +4542,7 @@
             </button>
         </div>
     </nav>
+            </nav>
 
     <!-- Main Content -->
     <main class="main-content">
@@ -5055,16 +5096,18 @@
 
         <!-- Contas Fixas Tab -->
         <div id="contas-fixas" class="tab-content">
-                <div class="card" style="position:relative;">
-                    <button class="cf-notif-btn" id="cfNotifBtn" onclick="showNotificationSettingsModal()" title="Configurar Lembretes">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
-                            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
-                        </svg>
-                    </button>
-                    <div class="flex justify-between items-center mb-4 cf-header-actions">
-                        <h2 style="margin:0;">Contas Fixas</h2>
-                        <div style="display:flex;gap:0.5rem" class="cf-header-btns">
+                <div class="card">
+                    <div class="cf-header-top">
+                        <div class="cf-title-section">
+                            <button class="cf-notif-btn" id="cfNotifBtn" onclick="showNotificationSettingsModal()" title="Configurar Lembretes">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                                    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+                                    <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+                                </svg>
+                            </button>
+                            <h2 style="margin:0;">Contas Fixas</h2>
+                        </div>
+                        <div style="display:flex;gap:0.5rem;align-items:center;" class="cf-header-btns">
                         <button class="cf-add-btn" onclick="showAddContaFixaModal()" title="Nova Conta Fixa">
                             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                                 stroke-width="2.5">
@@ -5120,6 +5163,11 @@
                         <div class="cf-balance-label">🎯 Restante Contas</div>
                         <div class="cf-balance-value" id="cfRemainingDisplay">R$ 0,00</div>
                         <div class="cf-balance-sub" id="cfRemainingSubtitle">a pagar este mês</div>
+                    </div>
+                    <div class="cf-balance-card balance-difference">
+                        <div class="cf-balance-label">💡 Diferença</div>
+                        <div class="cf-balance-value" id="cfDifferenceDisplay">R$ 0,00</div>
+                        <div class="cf-balance-sub" id="cfDifferenceSubtitle">falta para pagar</div>
                     </div>
                 </div>
 
@@ -5934,10 +5982,10 @@
         function logout() {
             if (confirm("Deseja realmente sair?")) {
                 auth.signOut().then(() => {
-                    if (unsubscribeTransactions) unsubscribeTransactions();
-                    if (unsubscribeGoals) unsubscribeGoals();
+                    cleanupFirestoreListeners();
                     transactions = [];
                     goals = [];
+                    contasFixas = [];
                     updateAllViews();
                     showNotification("Você saiu da conta", "info");
                 });
@@ -5947,6 +5995,23 @@
         // ==================== FIRESTORE REAL-TIME PERSISTENCE ====================
         let unsubscribeTransactions = null;
         let unsubscribeGoals = null;
+        let unsubscribeContasFixas = null;
+
+        // Cleanup function to prevent memory leaks
+        function cleanupFirestoreListeners() {
+            if (typeof unsubscribeTransactions === 'function') {
+                try { unsubscribeTransactions(); } catch(e) { console.error('Error unsubscribing transactions:', e); }
+                unsubscribeTransactions = null;
+            }
+            if (typeof unsubscribeGoals === 'function') {
+                try { unsubscribeGoals(); } catch(e) { console.error('Error unsubscribing goals:', e); }
+                unsubscribeGoals = null;
+            }
+            if (typeof unsubscribeContasFixas === 'function') {
+                try { unsubscribeContasFixas(); } catch(e) { console.error('Error unsubscribing contas fixas:', e); }
+                unsubscribeContasFixas = null;
+            }
+        }
 
         function setupFirestoreListeners(user) {
             if (!user) return;
@@ -6261,6 +6326,18 @@
             wi.value = `${y}-W${String(wn).padStart(2, '0')}`;
         }
 
+        function escapeHtml(text) {
+            if (!text) return '';
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return String(text).replace(/[&<>"']/g, m => map[m]);
+        }
+
         function addTransaction(type) {
             if (!currentUser) {
                 showNotification("Faça login para salvar", "error");
@@ -6272,10 +6349,30 @@
             const desc = document.getElementById('transactionDescription').value.trim();
             const f = document.getElementById('transactionFavorite').checked;
 
-            // Validate
-            if (!d || !v || v <= 0 || !c || !desc) {
+            // Validate - enhanced validation
+            if (!d || !v || !c || !desc) {
                 showNotification(t('fillAllFields'), 'error');
                 return;
+            }
+            
+            if (v <= 0 || !isFinite(v)) {
+                showNotification('Valor deve ser maior que zero', 'error');
+                return;
+            }
+            
+            if (desc.length < 2 || desc.length > 100) {
+                showNotification('Descrição deve ter entre 2 e 100 caracteres', 'error');
+                return;
+            }
+            
+            // Validate date is not in future unreasonably
+            const selectedDate = new Date(d + 'T00:00:00Z');
+            const today = new Date();
+            if (selectedDate > today) {
+                // Allow current day but warn about future dates
+                if (selectedDate > new Date(today.getTime() + 86400000 * 7)) {
+                    if (!confirm('Você está registrando uma transação muito no futuro. Continuar?')) return;
+                }
             }
 
             // Auto-generate time
@@ -6290,9 +6387,9 @@
                 type: type,
                 date: d,
                 time: currentTime, // Auto-generated
-                value: v,
-                category: c,
-                description: desc,
+                value: parseFloat(v.toFixed(2)), // Ensure proper decimal
+                category: String(c).substring(0, 50), // Limit category length
+                description: escapeHtml(String(desc)).substring(0, 100), // Escape and limit
                 favorite: !!f,
                 createdAt: new Date().toISOString(),
                 deleted: false
@@ -6301,7 +6398,7 @@
                 clearTransactionForm();
             }).catch(error => {
                 console.error("Erro ao adicionar transação: ", error);
-                showNotification("Erro ao salvar no servidor", "error");
+                showNotification("Erro ao salvar no servidor: " + (error.message || "desconhecido"), "error");
             });
         }
         function clearTransactionForm() {
@@ -6501,18 +6598,30 @@
             const d = document.getElementById('goalDescription').value.trim();
             const tg = parseFloat(document.getElementById('goalTarget').value);
             const c = parseFloat(document.getElementById('goalCurrent').value) || 0;
+            
             if (!d || !tg || tg <= 0) {
                 showNotification(t('fillGoalFields'), 'error');
                 return;
             }
+            
+            if (d.length < 2 || d.length > 100) {
+                showNotification('Descrição deve ter entre 2 e 100 caracteres', 'error');
+                return;
+            }
+            
             if (c > tg) {
                 showNotification(t('currentNotGreater'), 'error');
+                return;
+            }
+            
+            if (tg > 999999.99) {
+                showNotification('Meta não pode exceder 999.999,99', 'error');
                 return;
             }
 
             db.collection('goals').add({
                 userId: currentUser.uid,
-                description: d,
+                description: escapeHtml(d),
                 target: tg,
                 current: c,
                 order: goals.length,
@@ -6523,6 +6632,7 @@
                 document.getElementById('addGoalForm').reset();
             }).catch(error => {
                 console.error("Erro ao adicionar meta: ", error);
+                showNotification("Erro ao salvar no servidor: " + (error.message || "desconhecido"), "error");
             });
         }
         function editGoal(id) { const g = goals.find(g => g.id === id); if (!g) return; editingGoalId = id; document.getElementById('editGoalDescription').value = g.description; document.getElementById('editGoalTarget').value = g.target; document.getElementById('editGoalCurrent').value = g.current; showModal('editGoalModal'); }
@@ -6530,17 +6640,29 @@
             const d = document.getElementById('editGoalDescription').value.trim();
             const tg = parseFloat(document.getElementById('editGoalTarget').value);
             const c = parseFloat(document.getElementById('editGoalCurrent').value) || 0;
+            
             if (!d || !tg || tg <= 0) {
                 showNotification(t('fillGoalCorrect'), 'error');
                 return;
             }
+            
+            if (d.length < 2 || d.length > 100) {
+                showNotification('Descrição deve ter entre 2 e 100 caracteres', 'error');
+                return;
+            }
+            
             if (c > tg) {
                 showNotification(t('currentNotGreater'), 'error');
                 return;
             }
+            
+            if (tg > 999999.99) {
+                showNotification('Meta não pode exceder 999.999,99', 'error');
+                return;
+            }
 
             db.collection('goals').doc(editingGoalId).update({
-                description: d,
+                description: escapeHtml(d),
                 target: tg,
                 current: c,
                 userId: currentUser.uid
@@ -6549,7 +6671,7 @@
                 closeModal('editGoalModal');
             }).catch(e => {
                 console.error("Erro ao editar meta:", e);
-                showNotification("Erro ao salvar meta", "error");
+                showNotification("Erro ao salvar meta: " + (e.message || "desconhecido"), "error");
             });
         }
         function deleteGoal(id) {
@@ -6868,6 +6990,7 @@
         function showModal(id) { document.getElementById(id).classList.add('active'); }
         function closeModal(id) { document.getElementById(id).classList.remove('active'); }
         function showNotification(msg, type = 'info') { const n = document.getElementById('notifications'); const el = document.createElement('div'); el.className = `notification ${type}`; el.textContent = msg; n.appendChild(el); setTimeout(() => { el.remove(); }, 1500); }
+        function escapeHtml(text) { if (!text) return ''; const map = {'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#039;'}; return String(text).replace(/[&<>"']/g, m => map[m]); }
 
         let isSyncingFromRemote = false;
         async function loadDataFromFirebase() {
@@ -7200,7 +7323,6 @@
         let cfBalance = 0;                   // user's available balance (base)
         let cfBalanceSavedAt = null;         // ISO timestamp when cfBalance was last saved
         let editingContaFixaId = null;       // currently being edited
-        let unsubscribeContasFixas = null;   // Firestore listener
 
         const CF_MOTIVATIONAL_MESSAGES = [
             { icon: '🚀', text: 'Você está no controle! Continue assim e suas finanças vão decolar!' },
@@ -7379,11 +7501,30 @@
             const dueDay = parseInt(document.getElementById('cfBillDueDay').value) || 10;
             const monthVal = document.getElementById('cfBillMonth').value;
             
-            if (!name || !value || value <= 0) { showNotification('Preencha nome e valor!', 'error'); return; }
+            // Enhanced validation
+            if (!name || !value || value <= 0) { 
+                showNotification('Preencha nome e valor corretamente!', 'error'); 
+                return; 
+            }
+            
+            if (name.length < 2 || name.length > 100) {
+                showNotification('Nome deve ter entre 2 e 100 caracteres', 'error');
+                return;
+            }
+            
+            if (value > 999999.99) {
+                showNotification('Valor não pode exceder 999.999,99', 'error');
+                return;
+            }
+            
+            if (dueDay < 1 || dueDay > 31) {
+                showNotification('Dia do vencimento inválido (1-31)', 'error');
+                return;
+            }
 
             const data = {
                 userId: currentUser.uid,
-                name, value, category, dueDay,
+                name: escapeHtml(name), value, category, dueDay,
                 paid: false,
                 isInstallment: false,
                 createdAt: new Date().toISOString()
@@ -7399,7 +7540,7 @@
             }
 
             if (editingContaFixaId) {
-                db.collection('contasFixas').doc(editingContaFixaId).update({ name, value, category, dueDay, dueYear: data.dueYear, dueMonth: data.dueMonth })
+                db.collection('contasFixas').doc(editingContaFixaId).update({ name: escapeHtml(name), value, category, dueDay, dueYear: data.dueYear, dueMonth: data.dueMonth })
                     .then(() => { showNotification('Conta atualizada!', 'success'); closeModal('addContaFixaModal'); })
                     .catch(e => console.error(e));
             } else {
@@ -7485,6 +7626,12 @@
             const category = document.getElementById('cpBillCategory').value;
             const plots = parseInt(document.getElementById('cpBillInstallments').value);
             
+            // Validate plots
+            if (plots < 2 || plots > 360) {
+                showNotification('Número de parcelas deve estar entre 2 e 360', 'error');
+                return;
+            }
+            
             let parcelas = [];
             let groupId = 'group_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
             
@@ -7505,12 +7652,23 @@
                     return;
                 }
                 
+                // Enhanced validation for each installment
+                if (plotName.length < 2 || plotName.length > 100) {
+                    showNotification('Nome de parcela deve ter entre 2 e 100 caracteres', 'error');
+                    return;
+                }
+                
+                if (plotVal <= 0 || plotVal > 999999.99) {
+                    showNotification('Valor de parcela deve estar entre 0,01 e 999.999,99', 'error');
+                    return;
+                }
+                
                 let [y, m, d] = plotDate.split('-');
                 
                 parcelas.push({
                     userId: currentUser.uid,
-                    name: plotName,
-                    value: plotVal,
+                    name: escapeHtml(plotName),
+                    value: parseFloat(plotVal.toFixed(2)),
                     category: category,
                     dueDay: parseInt(d),
                     dueMonth: parseInt(m),
@@ -7540,7 +7698,7 @@
                 })
                 .catch(e => {
                     console.error('Erro ao salvar parcelas:', e);
-                    showNotification('Erro ao salvar parcelas.', 'error');
+                    showNotification('Erro ao salvar parcelas: ' + (e.message || 'desconhecido'), 'error');
                 });
         }
         // --- Fim Lógica Contas Parceladas ---
@@ -7628,6 +7786,8 @@
             const balSub = document.getElementById('cfBalanceDisplaySub');
             const remDisplay = document.getElementById('cfRemainingDisplay');
             const remSub = document.getElementById('cfRemainingSubtitle');
+            const diffDisplay = document.getElementById('cfDifferenceDisplay');
+            const diffSub = document.getElementById('cfDifferenceSubtitle');
             const progFill = document.getElementById('cfProgressFill');
             const progPct = document.getElementById('cfProgressPct');
             const motIcon = document.getElementById('cfMotivational')?.querySelector('.cf-motivational-icon');
@@ -7660,6 +7820,26 @@
                         ? 'sobram ' + formatCurrency(afterBills)
                         : 'faltam ' + formatCurrency(Math.abs(afterBills));
                     remSub.textContent = afterStr + ' após pagar tudo';
+                }
+            }
+            
+            // Update difference card
+            if (diffDisplay) {
+                if (afterBills >= 0) {
+                    diffDisplay.textContent = formatCurrency(afterBills);
+                    diffDisplay.style.color = 'var(--primary-light)';
+                } else {
+                    diffDisplay.textContent = formatCurrency(Math.abs(afterBills));
+                    diffDisplay.style.color = 'var(--danger-light)';
+                }
+            }
+            if (diffSub) {
+                if (totalBills === 0) {
+                    diffSub.textContent = 'nenhuma conta';
+                } else if (afterBills >= 0) {
+                    diffSub.textContent = 'sobram após pagar';
+                } else {
+                    diffSub.textContent = 'faltam para pagar';
                 }
             }
 
