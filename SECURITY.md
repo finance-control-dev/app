@@ -63,10 +63,13 @@ service cloud.firestore {
 ### Next Steps for Full Security
 
 1. **Update Firebase Rules** - Copy the rules template above into your Firestore console
-2. **Enable Authentication** - Ensure Google Sign-In is properly configured
-3. **Test Data Access** - Verify users can only access their own data
-4. **Setup Build Process** (Optional) - Move to Vite/Webpack for environment variable support
-5. **Monitor Console** - Regular security audits using Firebase Console
+2. **Enable Authentication** - Ensure Google Sign-In is properly configured. To enable passwordless login, open Firebase Console > Authentication > Sign-in method, enable **Email/Password**, and enable **Email link (passwordless sign-in)**.
+3. **Authorize domains** - In Authentication > Settings > Authorized domains, add `finance-control-dev.github.io` for the production app (and `localhost` or `127.0.0.1` for local development). The app sends production magic links back to `https://finance-control-dev.github.io/app/`; links tested locally will also return to production. Magic links will not work from `file://`.
+4. **Test Data Access** - Verify users can only access their own data
+5. **Setup Build Process** (Optional) - Move to Vite/Webpack for environment variable support
+6. **Monitor Console** - Regular security audits using Firebase Console
+
+To change the app name or Portuguese copy in Firebase sign-in emails, open Authentication > Templates > Email link sign-in and edit the template's sender name, subject, and message. Email delivery and spam placement are controlled by Firebase and the recipient's mail provider, not by the app's UI.
 
 ### Testing Firebase Rules
 

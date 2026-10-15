@@ -3758,6 +3758,58 @@
             transform: translateY(0) scale(0.98);
         }
 
+        .magic-link-form {
+            display: grid;
+            gap: 0.75rem;
+            margin-top: 1.25rem;
+        }
+
+        .magic-link-input {
+            width: 100%;
+            padding: 1rem;
+            border-radius: 16px;
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            background: rgba(7, 11, 20, 0.6);
+            color: var(--dark-text);
+            font: inherit;
+        }
+
+        .magic-link-input:focus {
+            outline: 2px solid var(--primary);
+            outline-offset: 2px;
+        }
+
+        .magic-link-btn {
+            width: 100%;
+            padding: 1rem;
+            border: 0;
+            border-radius: 16px;
+            background: var(--primary);
+            color: white;
+            font: inherit;
+            font-weight: 700;
+            cursor: pointer;
+            transition: filter 0.2s, transform 0.2s;
+        }
+
+        .magic-link-btn:hover {
+            filter: brightness(1.1);
+            transform: translateY(-1px);
+        }
+
+        .magic-link-btn:disabled {
+            cursor: wait;
+            opacity: 0.7;
+        }
+
+        .magic-link-status {
+            min-height: 1.5em;
+            margin: 0.25rem 0 0;
+            color: var(--dark-text-2);
+            font-size: 0.9rem;
+            line-height: 1.5;
+        }
+
         .login-loader {
             width: 36px;
             height: 36px;
@@ -4748,6 +4800,12 @@
                 </svg>
                 <span>Entrar com Google</span>
             </button>
+            <form class="magic-link-form" id="magicLinkForm">
+                <input class="magic-link-input" id="magicLinkEmail" type="email" name="email"
+                    autocomplete="email" placeholder="Seu e-mail" aria-label="Seu e-mail" required>
+                <button class="magic-link-btn" id="magicLinkBtn" type="submit">Enviar link de acesso</button>
+                <p class="magic-link-status" id="magicLinkStatus" role="status" aria-live="polite"></p>
+            </form>
             <div class="login-loader" id="loginLoader" style="display:none;"></div>
         </div>
     </div>
@@ -6281,6 +6339,8 @@
         const db = firebase.firestore();
         const googleProvider = new firebase.auth.GoogleAuthProvider();
         googleProvider.setCustomParameters({ prompt: 'select_account' });
+        const magicLinkEmailStorageKey = 'emailForSignIn';
+        const magicLinkContinueUrl = 'https://finance-control-dev.github.io/app/';
 
         // Handle redirect result
         auth.getRedirectResult().then((result) => {
@@ -6383,6 +6443,66 @@
                 btn.style.display = 'flex';
                 loader.style.display = 'none';
             });
+        }
+
+        async function handleMagicLinkLogin(event) {
+            event.preventDefault();
+            const emailInput = document.getElementById('magicLinkEmail');
+            const submitButton = document.getElementById('magicLinkBtn');
+            const status = document.getElementById('magicLinkStatus');
+            const email = emailInput.value.trim();
+            const completingSignIn = auth.isSignInWithEmailLink(window.location.href);
+
+            submitButton.disabled = true;
+            status.textContent = completingSignIn ? "Validando seu link de acesso..." : "Enviando link de acesso...";
+
+            try {
+                if (completingSignIn) {
+                    await auth.signInWithEmailLink(email, window.location.href);
+                    localStorage.removeItem(magicLinkEmailStorageKey);
+                    window.history.replaceState({}, document.title, window.location.pathname + window.location.hash);
+                    status.textContent = "Login realizado com sucesso.";
+                    return;
+                }
+
+                auth.languageCode = localStorage.getItem('lang') || 'pt-BR';
+                await auth.sendSignInLinkToEmail(email, {
+                    url: magicLinkContinueUrl,
+                    handleCodeInApp: true
+                });
+                localStorage.setItem(magicLinkEmailStorageKey, email);
+                status.textContent = "Se o endereço puder receber login, enviaremos um link. Abra o e-mail neste dispositivo ou informe o mesmo endereço ao voltar.";
+            } catch (error) {
+                console.error("Erro no login por link de e-mail:", error);
+                if (error.code === 'auth/invalid-action-code' || error.code === 'auth/expired-action-code') {
+                    status.textContent = "Este link expirou ou já foi usado. Solicite um novo link.";
+                } else if (error.code === 'auth/unauthorized-continue-uri' || error.code === 'auth/unauthorized-domain') {
+                    status.textContent = "Domínio não autorizado. Adicione este domínio em Authentication > Settings > Authorized domains no Firebase.";
+                } else if (error.code === 'auth/operation-not-allowed') {
+                    status.textContent = "Ative Email link (passwordless sign-in) em Authentication > Sign-in method no Firebase.";
+                } else {
+                    status.textContent = "Não foi possível concluir o login. Verifique o e-mail e tente novamente.";
+                }
+            } finally {
+                submitButton.disabled = false;
+            }
+        }
+
+        document.getElementById('magicLinkForm').addEventListener('submit', handleMagicLinkLogin);
+
+        if (auth.isSignInWithEmailLink(window.location.href)) {
+            const storedEmail = localStorage.getItem(magicLinkEmailStorageKey);
+            const emailInput = document.getElementById('magicLinkEmail');
+            const status = document.getElementById('magicLinkStatus');
+            document.getElementById('loginOverlay').style.display = 'flex';
+
+            if (storedEmail) {
+                emailInput.value = storedEmail;
+                document.getElementById('magicLinkForm').requestSubmit();
+            } else {
+                status.textContent = "Informe o e-mail em que recebeu o link para concluir o login.";
+                emailInput.focus();
+            }
         }
 
         function logout() {
