@@ -6360,6 +6360,7 @@
 
         // Auth State Listener
         auth.onAuthStateChanged((user) => {
+            user = user || auth.currentUser;
             console.log("Estado de autenticação alterado:", user ? "Logado" : "Deslogado");
             const loginOverlay = document.getElementById('loginOverlay');
             const splashScreen = document.getElementById('splashScreen');
@@ -6458,9 +6459,11 @@
 
             try {
                 if (completingSignIn) {
-                    await auth.signInWithEmailLink(email, window.location.href);
+                    const result = await auth.signInWithEmailLink(email, window.location.href);
                     localStorage.removeItem(magicLinkEmailStorageKey);
                     window.history.replaceState({}, document.title, window.location.pathname + window.location.hash);
+                    currentUser = result.user;
+                    document.getElementById('loginOverlay').style.display = 'none';
                     status.textContent = "Login realizado com sucesso.";
                     return;
                 }
@@ -6474,8 +6477,9 @@
                 status.textContent = "Se o endereço puder receber login, enviaremos um link. Abra o e-mail neste dispositivo ou informe o mesmo endereço ao voltar.";
             } catch (error) {
                 console.error("Erro no login por link de e-mail:", error);
-                if (error.code === 'auth/invalid-action-code' || error.code === 'auth/expired-action-code') {
-                    status.textContent = "Este link expirou ou já foi usado. Solicite um novo link.";
+                if (completingSignIn && (error.code === 'auth/invalid-action-code' || error.code === 'auth/expired-action-code')) {
+                    localStorage.removeItem(magicLinkEmailStorageKey);
+                    status.textContent = "Não foi possível validar este link. Ele pode ter expirado, já ter sido usado ou o e-mail informado pode não ser o mesmo que recebeu o link. Confira o e-mail e tente novamente; se necessário, solicite um novo link.";
                 } else if (error.code === 'auth/unauthorized-continue-uri' || error.code === 'auth/unauthorized-domain') {
                     status.textContent = "Domínio não autorizado. Adicione este domínio em Authentication > Settings > Authorized domains no Firebase.";
                 } else if (error.code === 'auth/operation-not-allowed') {
@@ -6495,14 +6499,15 @@
             const emailInput = document.getElementById('magicLinkEmail');
             const status = document.getElementById('magicLinkStatus');
             document.getElementById('loginOverlay').style.display = 'flex';
+            document.getElementById('magicLinkBtn').textContent = "Confirmar e entrar";
 
             if (storedEmail) {
                 emailInput.value = storedEmail;
-                document.getElementById('magicLinkForm').requestSubmit();
+                status.textContent = "Link reconhecido. Confirme se este é o mesmo e-mail que recebeu a mensagem e toque em “Confirmar e entrar”.";
             } else {
                 status.textContent = "Informe o e-mail em que recebeu o link para concluir o login.";
-                emailInput.focus();
             }
+            emailInput.focus();
         }
 
         function logout() {
