@@ -10,6 +10,8 @@
     <link rel="shortcut icon" type="image/png" href="./favicon.png">
     <script defer src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
@@ -89,6 +91,7 @@
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
     <style>
         :root {
             --primary: #10B981;
@@ -1705,6 +1708,11 @@
             color: var(--danger-light);
         }
 
+        .action-btn.receipt-btn {
+            background: rgba(59, 130, 246, 0.14);
+            color: #60A5FA;
+        }
+
         .action-btn svg {
             width: 16px;
             height: 16px;
@@ -2729,6 +2737,54 @@
             contain-intrinsic-size: auto 76px;
         }
 
+        .developer-support-layout {
+            display: grid;
+            grid-template-columns: minmax(0, 1fr) minmax(190px, 280px);
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .developer-support-copy p {
+            max-width: 38rem;
+            margin: 0.5rem 0 1.1rem;
+            color: var(--dark-text-2);
+            line-height: 1.6;
+        }
+
+        .developer-pix-key {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            flex-wrap: wrap;
+            margin-bottom: 1rem;
+        }
+
+        .developer-pix-key code {
+            padding: 0.65rem 0.8rem;
+            border: 1px solid var(--glass-border);
+            border-radius: 10px;
+            background: var(--bg-color);
+            color: inherit;
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .developer-pix-qr {
+            display: block;
+            width: min(100%, 280px);
+            aspect-ratio: 1;
+            justify-self: center;
+            padding: 10px;
+            border-radius: 16px;
+            background: #fff;
+            object-fit: contain;
+        }
+
+        @media (max-width: 600px) {
+            .developer-support-layout { grid-template-columns: minmax(0, 1fr); }
+            .developer-pix-qr { width: min(72vw, 260px); }
+        }
+
         @media (max-width: 700px) {
             .transaction-filters,
             .search-filters,
@@ -3091,6 +3147,96 @@
             visibility: visible;
         }
 
+        .receipt-review-overlay { z-index: 1100; }
+        .receipt-review-overlay [hidden] { display: none !important; }
+
+        .receipt-review-dialog {
+            width: min(920px, 100%);
+            max-height: 92vh;
+            max-height: 92dvh;
+            overflow-y: auto;
+            padding: clamp(1rem, 3vw, 1.6rem);
+            border: 1px solid var(--glass-border);
+            border-radius: 24px;
+            background: var(--glass-bg);
+            color: inherit;
+            box-shadow: 0 24px 70px rgba(0, 0, 0, 0.38);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+        }
+
+        .receipt-review-header,
+        .receipt-review-actions {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.8rem;
+        }
+
+        .receipt-review-header { margin-bottom: 1rem; }
+        .receipt-review-header p { margin-top: 0.25rem; color: var(--dark-text-3); font-size: 0.86rem; }
+        .receipt-review-close { width: 42px; height: 42px; border: 0; border-radius: 50%; background: var(--bg-color); color: inherit; font-size: 1.5rem; cursor: pointer; }
+
+        .receipt-review-grid {
+            display: grid;
+            grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+            gap: 1.2rem;
+            align-items: start;
+        }
+
+        .receipt-preview-panel {
+            display: grid;
+            place-items: center;
+            min-height: 260px;
+            overflow: hidden;
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            background: rgba(0, 0, 0, 0.12);
+        }
+
+        .receipt-preview-panel img { display: block; max-width: 100%; max-height: 420px; object-fit: contain; }
+        .receipt-preview-panel iframe { display: block; width: 100%; height: 420px; border: 0; background: white; }
+        .receipt-preview-placeholder { padding: 1.5rem; color: var(--dark-text-3); text-align: center; }
+        .receipt-review-form { display: grid; gap: 0.75rem; }
+        .receipt-review-form .form-group { margin: 0; }
+
+        .receipt-type-toggle {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0.5rem;
+        }
+
+        .receipt-type-toggle label {
+            display: grid;
+            place-items: center;
+            min-height: 46px;
+            border: 1px solid var(--glass-border);
+            border-radius: 12px;
+            background: var(--bg-color);
+            color: var(--dark-text-2);
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .receipt-type-toggle input { position: absolute; opacity: 0; pointer-events: none; }
+        .receipt-type-toggle label.selected-income { border-color: var(--success); background: rgba(16, 185, 129, 0.14); color: var(--success-light); }
+        .receipt-type-toggle label.selected-expense { border-color: var(--danger); background: rgba(239, 68, 68, 0.13); color: var(--danger-light); }
+        .receipt-confidence { display: inline-flex; padding: 0.3rem 0.55rem; border: 1px solid var(--glass-border); border-radius: 999px; color: var(--dark-text-2); font-size: 0.75rem; font-weight: 700; }
+        .receipt-review-message { padding: 0.7rem 0.8rem; border-radius: 12px; background: rgba(245, 158, 11, 0.12); color: #DDAA3A; font-size: 0.84rem; line-height: 1.4; }
+        .receipt-review-actions { justify-content: flex-end; margin-top: 0.25rem; }
+        .receipt-loading { display: grid; grid-template-columns: 20px 1fr auto; align-items: center; gap: 0.55rem; min-height: 64px; color: var(--dark-text-2); font-size: 0.86rem; }
+        .receipt-loading::before { content: ''; width: 18px; height: 18px; border: 2px solid var(--glass-border); border-top-color: var(--primary-light); border-radius: 50%; animation: spin 0.8s linear infinite; }
+        .receipt-progress-track { grid-column: 1 / -1; height: 7px; overflow: hidden; border-radius: 999px; background: var(--bg-color); }
+        .receipt-progress-fill { width: 0; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--primary-dark), var(--primary-light)); transition: width 0.15s ease; }
+
+        @media (max-width: 680px) {
+            .receipt-review-grid { grid-template-columns: 1fr; }
+            .receipt-preview-panel { min-height: 180px; max-height: 240px; }
+            .receipt-preview-panel img { max-height: 240px; }
+            .receipt-preview-panel iframe { height: 220px; }
+            .receipt-review-dialog { width: 100%; max-height: 94vh; max-height: 94dvh; }
+        }
+
         .modal-content,
         .modal {
             background: var(--light-card);
@@ -3270,6 +3416,40 @@
         .floating-calc-btn svg {
             width: 24px;
             height: 24px;
+        }
+
+        .floating-receipt-btn {
+            position: fixed;
+            right: 28px;
+            bottom: 100px;
+            z-index: 150;
+            display: grid;
+            place-items: center;
+            width: 56px;
+            height: 56px;
+            border: 1px solid var(--glass-border);
+            border-radius: 50%;
+            background: var(--glass-bg);
+            color: var(--primary-light);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.22);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            cursor: pointer;
+            transition: transform var(--transition), box-shadow var(--transition);
+        }
+
+        .floating-receipt-btn:hover {
+            transform: scale(1.08);
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.28);
+        }
+
+        .floating-receipt-btn svg {
+            width: 26px;
+            height: 26px;
+        }
+
+        @media (max-width: 480px) {
+            .floating-receipt-btn { right: 20px; bottom: 82px; width: 50px; height: 50px; }
         }
 
         .calc-overlay {
@@ -5276,8 +5456,7 @@
                 </svg>
                 <span>Sobre</span>
             </button>
-            <button class="menu-item"
-                onclick="window.open('https://api.whatsapp.com/send?phone=5567996376978&text=', '_blank')">
+            <button class="menu-item" onclick="showTab('contato', this)">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
                     <path
                         d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
@@ -6043,6 +6222,29 @@
                 <input type="file" id="importFile" accept=".json" style="display:none;" onchange="importData(event)">
             </div>
         </div>
+
+        <div id="contato" class="tab-content">
+            <section class="card developer-support-layout" aria-labelledby="developerSupportTitle">
+                <div class="developer-support-copy">
+                    <span class="chart-kind-label">PIX</span>
+                    <h2 id="developerSupportTitle" class="mb-2">Ajude o Desenvolvedor</h2>
+                    <p>Gostou do aplicativo? Sua contribuição ajuda a manter o projeto e desenvolver novas melhorias.</p>
+                    <div class="developer-pix-key">
+                        <span>Chave PIX (celular)</span>
+                        <code id="developerPixKey">67996651458</code>
+                        <button class="btn btn-secondary" type="button" onclick="copyDeveloperPixKey()" aria-label="Copiar chave PIX">
+                            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="8" y="8" width="13" height="13" rx="2"/><path d="M16 8V5a2 2 0 0 0-2-2H5a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h3"/></svg>
+                            Copiar chave
+                        </button>
+                    </div>
+                    <a class="btn btn-primary" href="https://api.whatsapp.com/send?phone=5567996376978" target="_blank" rel="noopener noreferrer">Falar pelo WhatsApp</a>
+                </div>
+                <figure style="margin:0;text-align:center;">
+                    <img class="developer-pix-qr" src="./pix-qr.png" alt="QR Code PIX para apoiar o desenvolvedor">
+                    <figcaption style="margin-top:0.6rem;color:var(--dark-text-3);font-size:0.8rem;">Escaneie com o app do seu banco</figcaption>
+                </figure>
+            </section>
+        </div>
     </main>
 
     <!-- Add/Edit Conta Fixa Modal -->
@@ -6441,6 +6643,62 @@
         </div>
     </div>
 
+    <!-- Floating Receipt Actions -->
+    <button class="floating-receipt-btn" id="receiptActionButton" type="button" aria-label="Inserir comprovante" title="Inserir comprovante" onclick="openReceiptPicker()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+    </button>
+    <input id="receiptUploadInput" type="file" accept="image/*,application/pdf" capture="environment" hidden onchange="handleReceiptFileSelection(event)">
+
+    <div class="modal-overlay receipt-review-overlay" id="receiptReviewModal" role="presentation" onclick="if(event.target === this && !receiptSaving) closeReceiptReview()">
+        <section class="receipt-review-dialog" role="dialog" aria-modal="true" aria-labelledby="receiptReviewTitle">
+            <header class="receipt-review-header">
+                <div>
+                    <h2 id="receiptReviewTitle">Revisar comprovante</h2>
+                    <p id="receiptFileName">Confira os dados antes de salvar.</p>
+                </div>
+                <button class="receipt-review-close" type="button" aria-label="Fechar" onclick="closeReceiptReview()">&times;</button>
+            </header>
+            <div class="receipt-review-grid">
+                <div>
+                    <div class="receipt-preview-panel">
+                        <p id="receiptPreviewPlaceholder" class="receipt-preview-placeholder">Prévia do comprovante</p>
+                        <img id="receiptPreviewImage" alt="Prévia do comprovante" hidden>
+                        <iframe id="receiptPreviewPdf" title="Prévia do comprovante PDF" hidden></iframe>
+                    </div>
+                    <div id="receiptLoading" class="receipt-loading" role="status" hidden><span id="receiptProgressLabel">Preparando leitura…</span><strong id="receiptProgressPercent">0%</strong><div class="receipt-progress-track" role="progressbar" aria-label="Progresso da leitura" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="receiptProgressFill" class="receipt-progress-fill"></div></div></div>
+                </div>
+                <div>
+                    <div id="receiptAnalysisMessage" class="receipt-review-message" role="status" hidden></div>
+                    <div id="receiptAnalysisError" class="receipt-review-message" role="alert" hidden></div>
+                    <button id="receiptManualEntryButton" class="btn btn-secondary" type="button" onclick="enableManualReceiptEntry()" hidden>Preencher manualmente</button>
+                    <form id="receiptReviewForm" class="receipt-review-form" onsubmit="event.preventDefault(); confirmReceipt()" hidden>
+                        <div class="form-group">
+                            <label class="form-label">Tipo</label>
+                            <div class="receipt-type-toggle">
+                                <label id="receiptIncomeLabel"><input type="radio" name="receiptReviewType" value="income" required onchange="updateReceiptTypeLabels()">Receita</label>
+                                <label id="receiptExpenseLabel"><input type="radio" name="receiptReviewType" value="expense" required onchange="updateReceiptTypeLabels()">Despesa</label>
+                            </div>
+                        </div>
+                        <div class="form-group"><label class="form-label" for="receiptAmount">Valor (R$)</label><input id="receiptAmount" class="form-input" type="number" min="0.01" step="0.01" inputmode="decimal" required></div>
+                        <div class="form-group"><label class="form-label" for="receiptDate">Data</label><input id="receiptDate" class="form-input" type="date" required></div>
+                        <div class="form-group"><label class="form-label" for="receiptDescription">Descrição (opcional)</label><input id="receiptDescription" class="form-input" type="text" maxlength="100"></div>
+                        <div class="form-group"><label class="form-label" for="receiptCategory">Categoria</label>
+                            <select id="receiptCategory" class="form-select" required>
+                                <option value="">Selecione uma categoria</option><option value="alimentacao">Alimentação</option><option value="mercado">Mercado</option><option value="combustivel">Combustível</option><option value="manutencao_veiculo">Manutenção de veículo</option><option value="transporte">Transporte</option><option value="moradia">Moradia</option><option value="saude">Saúde</option><option value="educacao">Educação</option><option value="lazer">Lazer</option><option value="salario">Salário</option><option value="freelance">Freelance</option><option value="investimentos">Investimentos</option><option value="outros">Outros</option>
+                            </select>
+                        </div>
+                        <span id="receiptConfidence" class="receipt-confidence" hidden></span>
+                        <div class="receipt-review-actions">
+                            <button id="receiptCancelButton" class="btn btn-secondary" type="button" onclick="closeReceiptReview()">Cancelar</button>
+                            <button id="receiptConfirmButton" class="btn btn-primary" type="submit">Confirmar e salvar</button>
+                        </div>
+                    </form>
+                    <p id="receiptSaveStatus" class="receipt-review-message" role="status" hidden>Salvando lançamento e comprovante…</p>
+                </div>
+            </div>
+        </section>
+    </div>
+
     <!-- Floating Calculator -->
     <button class="floating-calc-btn" onclick="toggleCalculator()" title="Calculadora">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -6517,6 +6775,13 @@
 
         const auth = firebase.auth();
         const db = firebase.firestore();
+        const storage = firebase.storage();
+        try {
+            storage.setMaxUploadRetryTime(8000);
+            storage.setMaxOperationRetryTime(8000);
+        } catch (storageConfigErr) {
+            console.warn("Aviso ao configurar retry time do Storage:", storageConfigErr);
+        }
         const googleProvider = new firebase.auth.GoogleAuthProvider();
         googleProvider.setCustomParameters({ prompt: 'select_account' });
 
@@ -6533,6 +6798,7 @@
         console.log("Auth e Firestore configurados.");
 
         let currentUser = null;
+        let pendingSharedReceiptFile = null;
         let transactions = []; let goals = []; let editingTransactionId = null; let editingGoalId = null; let lastSearchResults = []; let financeChartInstance = null; let currentChartType = 'bar';
         let lastBackupDate = localStorage.getItem('lastBackupDate') || '';
 
@@ -6562,6 +6828,7 @@
 
                 // INICIA LISTENERS FIRESTORE
                 setupFirestoreListeners(user);
+                processPendingSharedReceipt();
             } else {
                 currentUser = null;
                 // LIMPA DADOS E PARA LISTENERS
@@ -7589,6 +7856,7 @@
         function renderTransactionItem(tx) {
             const fav = tx.favorite ? `<svg class="favorited" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>` : `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`;
             const timeDisplay = tx.time ? ` \u2022 ${tx.time}` : '';
+            const receiptBtn = (tx.receiptBase64 || tx.receiptPath) ? `<button class="action-btn receipt-btn" onclick="viewTransactionReceipt('${tx.id}')" title="Ver comprovante anexado"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg></button>` : '';
             return `<div class="transaction-item">
                 <div class="transaction-info">
                     <div class="transaction-description">${escapeHtml(tx.description)}</div>
@@ -7596,12 +7864,36 @@
                 </div>
                 <div class="transaction-amount ${tx.type}">${tx.type === 'income' ? '+' : '-'}${formatCurrency(tx.value)}</div>
                 <div class="transaction-actions">
+                    ${receiptBtn}
                     <button class="action-btn favorite-btn" onclick="toggleFavorite('${tx.id}');updateAllViews();performSearch();" title="${tx.favorite ? 'Desfavoritar' : 'Favoritar'}">${fav}</button>
                     <button class="action-btn edit" onclick="editTransaction('${tx.id}')" title="${t('edit')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button>
-                    <button class="action-btn delete" onclick="deleteTransaction('${tx.id}')" title="${t('delete')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2-2v2"/></svg></button>
+                    <button class="action-btn delete" onclick="deleteTransaction('${tx.id}')" title="${t('delete')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg></button>
                 </div>
             </div>`;
         }
+
+        function viewTransactionReceipt(txId) {
+            const tx = transactions.find(t => String(t.id) === String(txId));
+            if (!tx) return;
+            if (tx.receiptBase64) {
+                const w = window.open('');
+                if (w) {
+                    w.document.write(`<!DOCTYPE html><html><head><title>Comprovante - ${escapeHtml(tx.description || 'Lançamento')}</title><meta name="viewport" content="width=device-width, initial-scale=1.0"><style>body{margin:0;background:#0b1120;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;padding:1rem;box-sizing:border-box;color:#e2e8f0;font-family:system-ui,-apple-system,sans-serif;}img{max-width:100%;max-height:88vh;object-fit:contain;border-radius:12px;box-shadow:0 12px 30px rgba(0,0,0,0.6);}.info{margin-top:0.75rem;font-size:0.9rem;opacity:0.8;}</style></head><body><img src="${tx.receiptBase64}" alt="Comprovante"><div class="info">${escapeHtml(tx.description || '')} - R$ ${Number(tx.value).toFixed(2).replace('.', ',')} (${tx.date})</div></body></html>`);
+                    w.document.close();
+                } else {
+                    showNotification('Permita pop-ups no navegador para visualizar o comprovante.', 'warning');
+                }
+            } else if (tx.receiptPath) {
+                showNotification('Carregando comprovante do Storage...', 'info');
+                storage.ref(tx.receiptPath).getDownloadURL().then(url => {
+                    window.open(url, '_blank');
+                }).catch(err => {
+                    console.error('Erro ao abrir comprovante do Storage:', err);
+                    showNotification('Não foi possível carregar o comprovante do Storage (CORS/permissão).', 'error');
+                });
+            }
+        }
+        window.viewTransactionReceipt = viewTransactionReceipt;
 
         // Logic for Transaction Type Toggle
         let currentTransactionType = 'income';
@@ -7694,6 +7986,26 @@
                 document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('active'));
                 document.getElementById('search').classList.add('active');
             }
+        }
+
+        function copyDeveloperPixKey() {
+            const key = document.getElementById('developerPixKey').textContent.trim();
+            const fallbackCopy = () => {
+                const input = document.createElement('textarea');
+                input.value = key;
+                input.style.position = 'fixed';
+                input.style.opacity = '0';
+                document.body.appendChild(input);
+                input.select();
+                const copied = document.execCommand('copy');
+                input.remove();
+                if (!copied) throw new Error('Clipboard unavailable');
+            };
+            const copy = navigator.clipboard && window.isSecureContext
+                ? navigator.clipboard.writeText(key)
+                : Promise.resolve().then(fallbackCopy);
+            copy.then(() => showNotification('Chave PIX copiada.', 'success'))
+                .catch(() => showNotification(`Chave PIX: ${key}`, 'info'));
         }
 
         function showModal(id) { document.getElementById(id).classList.add('active'); }
@@ -7856,6 +8168,534 @@
         function updateChart() { const cv = document.getElementById('financeChart'); if (!cv) return; const data = getChartData(); if (data.length === 0) { if (financeChartInstance) { financeChartInstance.destroy(); financeChartInstance = null; } return; } const isDark = document.body.classList.contains('dark'); const tc = isDark ? '#f1f5f9' : '#1e293b'; const gc = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'; if (financeChartInstance) financeChartInstance.destroy(); const cd = { labels: data.map(d => d.label), datasets: [{ data: data.map(d => d.value), backgroundColor: ['#0D9488', '#14B8A6', '#059669', '#F59E0B', '#DC2626', '#8B5CF6', '#EC4899', '#06B6D4', '#F97316', '#6366F1'], borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.8)', borderWidth: 2 }] }; const cfg = { type: currentChartType, data: cd, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom', labels: { color: tc, font: { size: 11, family: 'Inter' } } } }, scales: currentChartType === 'bar' ? { y: { beginAtZero: true, grid: { color: gc }, ticks: { color: tc } }, x: { grid: { color: gc }, ticks: { color: tc, maxRotation: 45 } } } : {} } }; financeChartInstance = new Chart(cv, cfg); }
 
         function toggleCalculator() { const o = document.getElementById('calcOverlay'); o.classList.toggle('active'); if (o.classList.contains('active')) calcClear(); }
+        function openReceiptPicker() {
+            if (!currentUser) {
+                showNotification('Entre na sua conta para inserir um comprovante.', 'error');
+                return;
+            }
+            getReceiptOcrWorker().catch(error => console.warn('Pré-carregamento do OCR indisponível:', error));
+            const input = document.getElementById('receiptUploadInput');
+            input.value = '';
+            input.click();
+        }
+
+        let selectedReceiptBlob = null;
+        let receiptPreviewUrl = null;
+        let receiptSaving = false;
+        let receiptTransactionRef = null;
+        let receiptTransactionCreated = false;
+        let receiptAttachmentSaved = false;
+
+        function updateReceiptTypeLabels() {
+            const type = document.querySelector('[name="receiptReviewType"]:checked')?.value;
+            document.getElementById('receiptIncomeLabel').classList.toggle('selected-income', type === 'income');
+            document.getElementById('receiptExpenseLabel').classList.toggle('selected-expense', type === 'expense');
+        }
+
+        function setReceiptPreview(blob) {
+            if (receiptPreviewUrl) URL.revokeObjectURL(receiptPreviewUrl);
+            receiptPreviewUrl = URL.createObjectURL(blob);
+            const image = document.getElementById('receiptPreviewImage');
+            const pdf = document.getElementById('receiptPreviewPdf');
+            const placeholder = document.getElementById('receiptPreviewPlaceholder');
+            const isPdf = blob.type === 'application/pdf';
+            image.hidden = isPdf;
+            pdf.hidden = !isPdf;
+            placeholder.hidden = true;
+            if (isPdf) pdf.src = receiptPreviewUrl;
+            else image.src = receiptPreviewUrl;
+        }
+
+        function preprocessReceiptCanvas(source, width, height) {
+            const maxDimension = 1400;
+            const scale = Math.min(1, maxDimension / Math.max(width, height));
+            const canvas = document.createElement('canvas');
+            canvas.width = Math.max(1, Math.round(width * scale));
+            canvas.height = Math.max(1, Math.round(height * scale));
+            const context = canvas.getContext('2d', { alpha: false });
+            context.filter = 'grayscale(1) contrast(1.32)';
+            context.drawImage(source, 0, 0, canvas.width, canvas.height);
+            context.filter = 'none';
+            return canvas;
+        }
+
+        function canvasToJpegBlob(canvas) {
+            return new Promise((resolve, reject) => {
+                canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Não foi possível otimizar a imagem.')), 'image/jpeg', 0.80);
+            });
+        }
+
+        function blobToBase64(blob) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onloadend = () => resolve(reader.result);
+                reader.onerror = reject;
+                reader.readAsDataURL(blob);
+            });
+        }
+
+        async function prepareReceiptForOcr(file) {
+            if (file.type === 'application/pdf') {
+                if (!window.pdfjsLib) throw new Error('O leitor de PDF não foi carregado. Recarregue a página e tente novamente.');
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
+                if (pdf.numPages > 5) throw new Error('O PDF tem mais de 5 páginas. Envie apenas as páginas do comprovante.');
+                const canvases = [];
+                for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
+                    const page = await pdf.getPage(pageNumber);
+                    const initialViewport = page.getViewport({ scale: 1 });
+                    const scale = Math.min(1.8, 1800 / Math.max(initialViewport.width, initialViewport.height));
+                    const viewport = page.getViewport({ scale });
+                    const rendered = document.createElement('canvas');
+                    rendered.width = Math.ceil(viewport.width);
+                    rendered.height = Math.ceil(viewport.height);
+                    await page.render({ canvasContext: rendered.getContext('2d'), viewport }).promise;
+                    canvases.push(preprocessReceiptCanvas(rendered, rendered.width, rendered.height));
+                    rendered.width = 0;
+                    rendered.height = 0;
+                }
+                return { blob: file, canvases };
+            }
+
+            const bitmap = await createImageBitmap(file);
+            if (bitmap.width * bitmap.height > 60000000) {
+                bitmap.close();
+                throw new Error('A imagem tem resolução muito alta. Reduza a imagem e tente novamente.');
+            }
+            const canvas = preprocessReceiptCanvas(bitmap, bitmap.width, bitmap.height);
+            bitmap.close();
+            return { blob: await canvasToJpegBlob(canvas), canvases: [canvas] };
+        }
+
+        let receiptOcrWorkerPromise = null;
+        let receiptOcrProgressHandler = null;
+
+        function setReceiptOcrProgress(percent, label) {
+            const safePercent = Math.max(0, Math.min(100, Math.round(percent)));
+            document.getElementById('receiptProgressPercent').textContent = `${safePercent}%`;
+            document.getElementById('receiptProgressFill').style.width = `${safePercent}%`;
+            document.querySelector('.receipt-progress-track').setAttribute('aria-valuenow', String(safePercent));
+            if (label) document.getElementById('receiptProgressLabel').textContent = label;
+        }
+
+        async function getReceiptOcrWorker() {
+            if (!window.Tesseract) throw new Error('O mecanismo OCR não carregou. Verifique sua conexão e tente novamente.');
+            if (!receiptOcrWorkerPromise) {
+                receiptOcrWorkerPromise = Tesseract.createWorker('por', 1, {
+                    langPath: 'https://tessdata.projectnaptha.com/4.0.0',
+                    logger: message => {
+                        if (receiptOcrProgressHandler) receiptOcrProgressHandler(message);
+                    }
+                }).then(async worker => {
+                    await worker.setParameters({
+                        tessedit_pageseg_mode: '11',
+                        preserve_interword_spaces: '1',
+                        user_defined_dpi: '300'
+                    });
+                    return worker;
+                }).catch(error => {
+                    receiptOcrWorkerPromise = null;
+                    throw error;
+                });
+            }
+            return receiptOcrWorkerPromise;
+        }
+
+        async function recognizeReceiptCanvases(canvases) {
+            let activePage = 0;
+            const pageCount = canvases.length;
+            receiptOcrProgressHandler = message => {
+                const phase = message.status === 'recognizing text' ? 'Reconhecendo texto' : 'Carregando OCR em português';
+                const localProgress = Number(message.progress) || 0;
+                setReceiptOcrProgress(10 + ((activePage + localProgress) / pageCount) * 85, phase);
+            };
+            try {
+                setReceiptOcrProgress(3, 'Carregando OCR em português…');
+                const worker = await getReceiptOcrWorker();
+                const textPages = [];
+                for (activePage = 0; activePage < pageCount; activePage += 1) {
+                    document.getElementById('receiptProgressLabel').textContent = pageCount > 1
+                        ? `Lendo página ${activePage + 1} de ${pageCount}…`
+                        : 'Lendo comprovante…';
+                    const result = await worker.recognize(canvases[activePage]);
+                    textPages.push(result.data.text || '');
+                    setReceiptOcrProgress(10 + ((activePage + 1) / pageCount) * 85, 'Extraindo dados do texto…');
+                }
+                return textPages.join('\n');
+            } finally {
+                receiptOcrProgressHandler = null;
+            }
+        }
+
+        function normalizeReceiptText(text) {
+            return String(text || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\u00a0/g, ' ');
+        }
+
+        function parseBrazilianAmount(value) {
+            let normalized = value.replace(/[^\d.,]/g, '');
+            if (normalized.includes(',') && normalized.includes('.')) normalized = normalized.replace(/\./g, '').replace(',', '.');
+            else if (normalized.includes(',')) normalized = normalized.replace(',', '.');
+            else if ((normalized.match(/\./g) || []).length > 1 || /\.\d{3}$/.test(normalized)) normalized = normalized.replace(/\./g, '');
+            const parsed = Number(normalized);
+            return Number.isFinite(parsed) ? Math.round(parsed * 100) / 100 : null;
+        }
+
+        function extractReceiptAmount(text) {
+            const lines = text.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+            const expression = /(?:R\s?\$\s*)?((?:\d{1,3}(?:\.\d{3})+|\d+)(?:,\d{2}|\.\d{2})?)/gi;
+            const candidates = [];
+            lines.forEach((line, lineIndex) => {
+                const normalizedLine = normalizeReceiptText(line);
+                const excluded = /\b(cpf|cnpj|documento|autenticacao|autentica[cç][aã]o|protocolo|identificador|codigo|agencia|conta|saldo|limite|horario|hora)\b/.test(normalizedLine);
+                expression.lastIndex = 0;
+                for (const match of line.matchAll(expression)) {
+                    const raw = match[1];
+                    const hasCurrency = /R\s?\$/i.test(match[0]);
+                    const hasCents = /[,.]\d{2}$/.test(raw);
+                    if (excluded || (!hasCurrency && !hasCents)) continue;
+                    const amount = parseBrazilianAmount(raw);
+                    if (!amount || amount <= 0) continue;
+                    let score = hasCurrency ? 6 : 2;
+                    if (/\b(valor|total|pago|pagamento|recebido|recebimento|transferencia|pix|compra)\b/.test(normalizedLine)) score += 3;
+                    if (/\b(taxa|tarifa|troco|desconto)\b/.test(normalizedLine)) score -= 2;
+                    candidates.push({ amount, score, lineIndex });
+                }
+            });
+            if (!candidates.length) return { value: null, confidence: 'baixa' };
+            candidates.sort((a, b) => b.score - a.score || b.lineIndex - a.lineIndex);
+            const top = candidates[0];
+            const ambiguous = candidates.filter(candidate => candidate.score === top.score && candidate.amount !== top.amount).length > 0;
+            return { value: top.amount, confidence: ambiguous ? 'baixa' : top.score >= 6 ? 'alta' : 'media' };
+        }
+
+        function parseReceiptDate(text) {
+            const datePattern = /\b(\d{1,2})[/.\-](\d{1,2})[/.\-](\d{2}|\d{4})\b/g;
+            const lines = text.split(/\r?\n/);
+            const candidates = [];
+            lines.forEach((line, index) => {
+                const normalizedLine = normalizeReceiptText(line);
+                for (const match of line.matchAll(datePattern)) {
+                    const day = Number(match[1]);
+                    const month = Number(match[2]);
+                    let year = Number(match[3]);
+                    if (year < 100) year += year < 80 ? 2000 : 1900;
+                    const date = new Date(Date.UTC(year, month - 1, day));
+                    if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) continue;
+                    let score = 1;
+                    if (/\b(data|transacao|pagamento|operacao)\b/.test(normalizedLine)) score += 3;
+                    if (/\b(vencimento|validade|nascimento)\b/.test(normalizedLine)) score -= 3;
+                    candidates.push({ value: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`, score, index });
+                }
+            });
+            candidates.sort((a, b) => b.score - a.score || a.index - b.index);
+            return candidates[0]?.value || '';
+        }
+
+        function extractReceiptData(text) {
+            const amount = extractReceiptAmount(text);
+            const date = parseReceiptDate(text);
+            return {
+                valor: amount.value || 0,
+                data: date,
+                confianca_extracao: amount.confidence === 'alta' && date ? 'alta' : 'baixa'
+            };
+        }
+
+        function fillReceiptReview(receipt) {
+            document.getElementById('receiptAmount').value = receipt.valor > 0 ? receipt.valor.toFixed(2) : '';
+            document.getElementById('receiptDate').value = receipt.data || '';
+            document.getElementById('receiptDescription').value = '';
+            document.getElementById('receiptCategory').value = '';
+            document.querySelectorAll('[name="receiptReviewType"]').forEach(input => { input.checked = false; });
+            updateReceiptTypeLabels();
+
+            const confidence = document.getElementById('receiptConfidence');
+            confidence.textContent = `Confiança ${receipt.confianca_extracao}`;
+            confidence.hidden = false;
+
+            const warnings = [];
+            if (receipt.confianca_extracao !== 'alta') warnings.push('Confira o valor e a data: a leitura não teve confiança alta.');
+            if (!receipt.valor) warnings.push('O valor não foi identificado; informe-o antes de confirmar.');
+            if (!receipt.data) warnings.push('A data não foi identificada; informe-a antes de confirmar.');
+            warnings.push('Escolha o tipo e a categoria. A descrição é opcional.');
+            const message = document.getElementById('receiptAnalysisMessage');
+            message.textContent = warnings.join(' ');
+            message.hidden = warnings.length === 0;
+            document.getElementById('receiptReviewForm').hidden = false;
+            document.getElementById('receiptManualEntryButton').hidden = true;
+        }
+
+        function enableManualReceiptEntry() {
+            document.getElementById('receiptAnalysisError').hidden = true;
+            document.getElementById('receiptAnalysisMessage').textContent = 'Preencha os dados manualmente e confira o comprovante antes de salvar.';
+            document.getElementById('receiptAnalysisMessage').hidden = false;
+            document.getElementById('receiptAmount').value = '';
+            document.getElementById('receiptDate').value = '';
+            document.getElementById('receiptDescription').value = '';
+            document.getElementById('receiptCategory').value = '';
+            document.getElementById('receiptConfidence').hidden = true;
+            document.querySelectorAll('[name="receiptReviewType"]').forEach(input => { input.checked = false; });
+            updateReceiptTypeLabels();
+            document.getElementById('receiptReviewForm').hidden = false;
+            document.getElementById('receiptManualEntryButton').hidden = true;
+            document.getElementById('receiptAmount').focus();
+        }
+
+        async function handleReceiptFileSelection(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+            if (!currentUser) {
+                showNotification('Entre na sua conta para inserir um comprovante.', 'error');
+                event.target.value = '';
+                return;
+            }
+            if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
+                showNotification('Selecione uma imagem ou arquivo PDF.', 'error');
+                event.target.value = '';
+                return;
+            }
+            if (file.size > 12 * 1024 * 1024) {
+                showNotification('O comprovante deve ter no máximo 12 MB antes da otimização.', 'error');
+                event.target.value = '';
+                return;
+            }
+            selectedReceiptBlob = null;
+            if (receiptPreviewUrl) URL.revokeObjectURL(receiptPreviewUrl);
+            receiptPreviewUrl = null;
+            document.getElementById('receiptPreviewImage').src = '';
+            document.getElementById('receiptPreviewImage').hidden = true;
+            document.getElementById('receiptPreviewPdf').src = 'about:blank';
+            document.getElementById('receiptPreviewPdf').hidden = true;
+            document.getElementById('receiptPreviewPlaceholder').hidden = false;
+            document.getElementById('receiptFileName').textContent = file.name;
+            document.getElementById('receiptAnalysisMessage').hidden = true;
+            document.getElementById('receiptAnalysisError').hidden = true;
+            document.getElementById('receiptReviewForm').hidden = true;
+            document.getElementById('receiptManualEntryButton').hidden = true;
+            document.getElementById('receiptLoading').hidden = false;
+            document.getElementById('receiptReviewModal').classList.add('active');
+
+            try {
+                setReceiptOcrProgress(0, 'Preparando comprovante…');
+                const prepared = await prepareReceiptForOcr(file);
+                selectedReceiptBlob = prepared.blob;
+                if (selectedReceiptBlob.size > 4 * 1024 * 1024) {
+                    throw new Error('O comprovante excede 4 MB. Escolha uma imagem menor ou reduza o PDF.');
+                }
+                setReceiptPreview(selectedReceiptBlob);
+                const rawText = await recognizeReceiptCanvases(prepared.canvases);
+                if (normalizeReceiptText(rawText).replace(/[^a-z0-9]/g, '').length < 4) {
+                    throw new Error('Não foi possível reconhecer texto nítido. Tente outra foto ou preencha os dados manualmente.');
+                }
+                fillReceiptReview(extractReceiptData(rawText));
+                setReceiptOcrProgress(100, 'Leitura concluída. Confira os campos.');
+            } catch (error) {
+                console.error('Erro ao analisar comprovante:', error);
+                document.getElementById('receiptAnalysisError').textContent = error.message || 'Não foi possível analisar o comprovante.';
+                document.getElementById('receiptAnalysisError').hidden = false;
+                document.getElementById('receiptManualEntryButton').hidden = false;
+            } finally {
+                document.getElementById('receiptLoading').hidden = true;
+            }
+        }
+
+        async function receiveSharedReceiptFromUrl() {
+            const url = new URL(window.location.href);
+            const shareId = url.searchParams.get('sharedReceipt');
+            const shareError = url.searchParams.get('sharedReceiptError');
+            if (shareError) {
+                const messages = {
+                    unsupported: 'O arquivo compartilhado precisa ser uma imagem ou PDF.',
+                    'too-large': 'O arquivo compartilhado excede 12 MB.',
+                    unavailable: 'Não foi possível receber o arquivo compartilhado. Tente usar o botão + do app.'
+                };
+                showNotification(messages[shareError] || messages.unavailable, 'error');
+            }
+            if (!shareId && !shareError) return;
+
+            url.searchParams.delete('sharedReceipt');
+            url.searchParams.delete('sharedReceiptError');
+            history.replaceState(null, '', `${url.pathname}${url.search}${url.hash}`);
+            if (!shareId) return;
+
+            try {
+                const cache = await caches.open('finance-shared-receipts-v1');
+                const cacheUrl = new URL(`__shared_receipts__/${encodeURIComponent(shareId)}`, new URL('./', window.location.href));
+                const response = await cache.match(cacheUrl);
+                if (!response) throw new Error('O arquivo compartilhado expirou. Compartilhe-o novamente.');
+
+                const blob = await response.blob();
+                await cache.delete(cacheUrl);
+                let fileName = response.headers.get('X-Shared-File-Name') || 'comprovante';
+                try { fileName = decodeURIComponent(fileName); } catch (_) { fileName = 'comprovante'; }
+                pendingSharedReceiptFile = new File([blob], fileName, {
+                    type: response.headers.get('Content-Type') || blob.type
+                });
+                if (currentUser) processPendingSharedReceipt();
+            } catch (error) {
+                console.error('Erro ao recuperar comprovante compartilhado:', error);
+                showNotification(error.message || 'Não foi possível recuperar o comprovante compartilhado.', 'error');
+            }
+        }
+
+        function processPendingSharedReceipt() {
+            if (!currentUser || !pendingSharedReceiptFile) return;
+            const file = pendingSharedReceiptFile;
+            pendingSharedReceiptFile = null;
+            handleReceiptFileSelection({ target: { files: [file], value: '' } });
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            receiveSharedReceiptFromUrl();
+        });
+
+        async function confirmReceipt() {
+            if (receiptSaving) return;
+            if (!currentUser) {
+                showNotification('Sua sessão expirou. Entre novamente para salvar.', 'error');
+                return;
+            }
+            const form = document.getElementById('receiptReviewForm');
+            if (!receiptTransactionCreated) {
+                if (!form.reportValidity()) return;
+                const type = document.querySelector('[name="receiptReviewType"]:checked')?.value;
+                const value = Number(document.getElementById('receiptAmount').value);
+                const date = document.getElementById('receiptDate').value;
+                const description = document.getElementById('receiptDescription').value.trim();
+                const category = document.getElementById('receiptCategory').value;
+                if (!['income', 'expense'].includes(type) || !Number.isFinite(value) || value <= 0 || !date || !category || description.length > 100) {
+                    showNotification('Confira tipo, valor, data e categoria antes de salvar.', 'error');
+                    return;
+                }
+            }
+
+            receiptSaving = true;
+            const confirmBtn = document.getElementById('receiptConfirmButton');
+            const cancelBtn = document.getElementById('receiptCancelButton');
+            confirmBtn.disabled = true;
+            confirmBtn.textContent = 'Salvando lançamento…';
+            document.getElementById('receiptSaveStatus').hidden = false;
+            document.getElementById('receiptSaveStatus').textContent = 'Salvando lançamento…';
+            document.getElementById('receiptAnalysisError').hidden = true;
+
+            try {
+                if (!selectedReceiptBlob) throw new Error('O comprovante não está disponível. Selecione-o novamente.');
+                if (!receiptTransactionCreated) {
+                    const type = document.querySelector('[name="receiptReviewType"]:checked').value;
+                    const value = Number(document.getElementById('receiptAmount').value);
+                    const date = document.getElementById('receiptDate').value;
+                    const description = document.getElementById('receiptDescription').value.trim();
+                    const category = document.getElementById('receiptCategory').value;
+                    receiptTransactionRef = db.collection('transactions').doc();
+                    const now = new Date();
+                    await receiptTransactionRef.set({
+                        userId: currentUser.uid,
+                        type,
+                        date,
+                        time: `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`,
+                        value: Number(value.toFixed(2)),
+                        category,
+                        description: escapeHtml(description),
+                        favorite: false,
+                        createdAt: now.toISOString(),
+                        deleted: false
+                    });
+                    receiptTransactionCreated = true;
+                    form.querySelectorAll('input, select').forEach(input => { input.disabled = true; });
+                    try { updateAllViews(); } catch (error) { console.warn('Transação salva; atualização da tela falhou:', error); }
+                }
+
+                document.getElementById('receiptSaveStatus').textContent = 'Lançamento salvo! Enviando comprovante…';
+                confirmBtn.textContent = 'Enviando comprovante…';
+
+                let uploadSuccessful = false;
+                const extension = selectedReceiptBlob.type === 'application/pdf' ? 'pdf' : 'jpg';
+
+                // Tentar enviar ao Firebase Storage com timeout controlado (evita travar por 2 minutos em caso de CORS)
+                try {
+                    const uploadedRef = storage.ref(`receipts/${currentUser.uid}/${receiptTransactionRef.id}.${extension}`);
+                    const uploadPromise = uploadedRef.put(selectedReceiptBlob, { contentType: selectedReceiptBlob.type });
+                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Storage upload timeout')), 7000));
+                    await Promise.race([uploadPromise, timeoutPromise]);
+                    await receiptTransactionRef.update({ receiptPath: uploadedRef.fullPath });
+                    uploadSuccessful = true;
+                    receiptAttachmentSaved = true;
+                } catch (storageErr) {
+                    console.warn('Falha no upload para o Firebase Storage (CORS ou timeout):', storageErr);
+                    // Fallback automático para Firestore se o arquivo for imagem e tamanho razoável (<= 500 KB)
+                    if (selectedReceiptBlob.type !== 'application/pdf' && selectedReceiptBlob.size <= 500 * 1024) {
+                        try {
+                            document.getElementById('receiptSaveStatus').textContent = 'Storage com bloqueio CORS. Salvando anexo diretamente no banco de dados…';
+                            const base64Data = await blobToBase64(selectedReceiptBlob);
+                            await receiptTransactionRef.update({ receiptBase64: base64Data });
+                            uploadSuccessful = true;
+                            receiptAttachmentSaved = true;
+                            console.log('Comprovante salvo com sucesso em Base64 no Firestore (fallback ativo).');
+                        } catch (fallbackErr) {
+                            console.error('Falha também no fallback Base64:', fallbackErr);
+                        }
+                    }
+                }
+
+                if (uploadSuccessful) {
+                    showNotification('Transação e comprovante salvos com sucesso!', 'success');
+                    closeReceiptReview(true);
+                    if (typeof performSearch === 'function') performSearch();
+                    try { updateAllViews(); } catch (e) { }
+                } else {
+                    document.getElementById('receiptAnalysisError').innerHTML =
+                        '<strong>O lançamento foi salvo com sucesso!</strong><br>' +
+                        'Porém, o comprovante não pôde ser enviado para o Firebase Storage devido a bloqueio de CORS na origem ou bucket não ativado.<br>' +
+                        '<small>O lançamento já está registrado no seu extrato. Você pode fechar com segurança ou tentar reenviar.</small>';
+                    document.getElementById('receiptAnalysisError').hidden = false;
+                    document.getElementById('receiptSaveStatus').textContent = 'Lançamento salvo no app. Anexo do comprovante pendente.';
+                    confirmBtn.textContent = 'Tentar reenviar comprovante';
+                    cancelBtn.textContent = 'Concluir sem comprovante';
+                    cancelBtn.onclick = () => closeReceiptReview(true);
+                    showNotification('Lançamento salvo! Comprovante pendente (CORS).', 'warning');
+                }
+            } catch (error) {
+                console.error('Erro ao salvar a transação do comprovante:', error);
+                if (receiptTransactionCreated) {
+                    document.getElementById('receiptAnalysisError').textContent = 'O lançamento foi salvo, mas houve erro no anexo: ' + (error.message || error);
+                    document.getElementById('receiptAnalysisError').hidden = false;
+                    confirmBtn.textContent = 'Tentar reenviar comprovante';
+                    cancelBtn.textContent = 'Concluir sem comprovante';
+                    cancelBtn.onclick = () => closeReceiptReview(true);
+                    showNotification('Lançamento salvo; comprovante pendente.', 'warning');
+                } else {
+                    showNotification(error.message || 'Não foi possível salvar a transação no Firestore.', 'error');
+                }
+            } finally {
+                receiptSaving = false;
+                confirmBtn.disabled = false;
+                document.getElementById('receiptSaveStatus').hidden = !receiptTransactionCreated || receiptAttachmentSaved;
+            }
+        }
+
+        function closeReceiptReview(force = false) {
+            if (receiptSaving && !force) return;
+            if (receiptTransactionCreated && !receiptAttachmentSaved && !force && !confirm('A transação já está salva, mas o comprovante ainda não foi anexado. Fechar mesmo assim?')) return;
+            document.getElementById('receiptReviewModal').classList.remove('active');
+            document.getElementById('receiptUploadInput').value = '';
+            if (receiptPreviewUrl) URL.revokeObjectURL(receiptPreviewUrl);
+            receiptPreviewUrl = null;
+            selectedReceiptFile = null;
+            selectedReceiptBlob = null;
+            receiptTransactionRef = null;
+            receiptTransactionCreated = false;
+            receiptAttachmentSaved = false;
+            document.getElementById('receiptConfirmButton').textContent = 'Confirmar e salvar';
+            const closeButton = document.getElementById('receiptCancelButton');
+            closeButton.textContent = 'Cancelar';
+            closeButton.onclick = () => closeReceiptReview();
+            document.getElementById('receiptSaveStatus').textContent = 'Salvando lançamento e comprovante…';
+            document.getElementById('receiptAnalysisError').hidden = true;
+            document.getElementById('receiptReviewForm').querySelectorAll('input, select').forEach(input => { input.disabled = false; });
+            document.getElementById('receiptPreviewImage').src = '';
+            document.getElementById('receiptPreviewPdf').src = 'about:blank';
+            try { updateAllViews(); } catch (e) { }
+        }
         let calcDisplayStr = '0'; let calcPrev = null; let calcOp = null; const CALC_MAX_DIGITS = 10;
         function countDigits(s) { return (s.match(/\d/g) || []).length; }
         function calcUpdateDisplay() { document.getElementById('calcDisplay').value = calcDisplayStr; }
