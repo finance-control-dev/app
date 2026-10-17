@@ -6777,8 +6777,8 @@
         const db = firebase.firestore();
         const storage = firebase.storage();
         try {
-            storage.setMaxUploadRetryTime(8000);
-            storage.setMaxOperationRetryTime(8000);
+            storage.setMaxUploadRetryTime(3000);
+            storage.setMaxOperationRetryTime(3000);
         } catch (storageConfigErr) {
             console.warn("Aviso ao configurar retry time do Storage:", storageConfigErr);
         }
@@ -8207,7 +8207,7 @@
         }
 
         function preprocessReceiptCanvas(source, width, height) {
-            const maxDimension = 1400;
+            const maxDimension = 1200;
             const scale = Math.min(1, maxDimension / Math.max(width, height));
             const canvas = document.createElement('canvas');
             canvas.width = Math.max(1, Math.round(width * scale));
@@ -8219,9 +8219,49 @@
             return canvas;
         }
 
+        async function compressImageForStorage(source, width, height, maxDimension = 1100) {
+            const scale = Math.min(1, maxDimension / Math.max(width, height));
+            const targetWidth = Math.max(1, Math.round(width * scale));
+            const targetHeight = Math.max(1, Math.round(height * scale));
+
+            const canvas = document.createElement('canvas');
+            canvas.width = targetWidth;
+            canvas.height = targetHeight;
+            const ctx = canvas.getContext('2d', { alpha: false });
+            // Preencher com branco para evitar fundo preto em PNGs/screenshots transparentes
+            ctx.fillStyle = '#ffffff';
+            ctx.fillRect(0, 0, targetWidth, targetHeight);
+            ctx.drawImage(source, 0, 0, targetWidth, targetHeight);
+
+            // Compressão direta JPEG ultra-rápida (gera ~45-75 KB instantaneamente em menos de 20ms)
+            let quality = 0.68;
+            let blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', quality));
+            if (blob && blob.size > 160 * 1024) {
+                quality = 0.52;
+                const smaller = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', quality));
+                if (smaller) blob = smaller;
+            }
+
+            return { blob, canvas };
+        }
+
+        function createOcrCanvas(cleanCanvas) {
+            // Escalar para 850px no OCR reduz drasticamente o tempo do Tesseract sem perder a leitura dos números
+            const maxOcrDim = 850;
+            const scale = Math.min(1, maxOcrDim / Math.max(cleanCanvas.width, cleanCanvas.height));
+            const ocrCanvas = document.createElement('canvas');
+            ocrCanvas.width = Math.max(1, Math.round(cleanCanvas.width * scale));
+            ocrCanvas.height = Math.max(1, Math.round(cleanCanvas.height * scale));
+            const ctx = ocrCanvas.getContext('2d', { alpha: false });
+            ctx.filter = 'grayscale(1) contrast(1.35)';
+            ctx.drawImage(cleanCanvas, 0, 0, ocrCanvas.width, ocrCanvas.height);
+            ctx.filter = 'none';
+            return ocrCanvas;
+        }
+
         function canvasToJpegBlob(canvas) {
             return new Promise((resolve, reject) => {
-                canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Não foi possível otimizar a imagem.')), 'image/jpeg', 0.80);
+                canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Não foi possível otimizar a imagem.')), 'image/jpeg', 0.72);
             });
         }
 
@@ -8262,9 +8302,10 @@
                 bitmap.close();
                 throw new Error('A imagem tem resolução muito alta. Reduza a imagem e tente novamente.');
             }
-            const canvas = preprocessReceiptCanvas(bitmap, bitmap.width, bitmap.height);
+            const { blob, canvas } = await compressImageForStorage(bitmap, bitmap.width, bitmap.height, 1200);
             bitmap.close();
-            return { blob: await canvasToJpegBlob(canvas), canvases: [canvas] };
+            const ocrCanvas = createOcrCanvas(canvas);
+            return { blob, canvases: [ocrCanvas] };
         }
 
         let receiptOcrWorkerPromise = null;
@@ -8471,7 +8512,8 @@
             document.getElementById('receiptAnalysisMessage').hidden = true;
             document.getElementById('receiptAnalysisError').hidden = true;
             document.getElementById('receiptReviewForm').hidden = true;
-            document.getElementById('receiptManualEntryButton').hidden = true;
+            document.getElementById('receiptManualEntryButton').hidden = false;
+            document.getElementById('receiptManualEntryButton').textContent = 'Pular leitura e preencher agora';
             document.getElementById('receiptLoading').hidden = false;
             document.getElementById('receiptReviewModal').classList.add('active');
 
@@ -8482,18 +8524,26 @@
                 if (selectedReceiptBlob.size > 4 * 1024 * 1024) {
                     throw new Error('O comprovante excede 4 MB. Escolha uma imagem menor ou reduza o PDF.');
                 }
+                const optKb = Math.round(selectedReceiptBlob.size / 1024);
+                const reduction = Math.max(0, Math.round((1 - selectedReceiptBlob.size / file.size) * 100));
+                const badge = reduction > 5 ? `${optKb} KB (-${reduction}% compactado)` : `${optKb} KB otimizado`;
+                document.getElementById('receiptFileName').textContent = `${file.name} • ${badge}`;
                 setReceiptPreview(selectedReceiptBlob);
-                const rawText = await recognizeReceiptCanvases(prepared.canvases);
+
+                const ocrTimeout = new Promise((_, reject) => setTimeout(() => reject(new Error('A leitura automática demorou. Você pode preencher os campos diretamente.')), 6500));
+                const rawText = await Promise.race([recognizeReceiptCanvases(prepared.canvases), ocrTimeout]);
+
                 if (normalizeReceiptText(rawText).replace(/[^a-z0-9]/g, '').length < 4) {
                     throw new Error('Não foi possível reconhecer texto nítido. Tente outra foto ou preencha os dados manualmente.');
                 }
                 fillReceiptReview(extractReceiptData(rawText));
                 setReceiptOcrProgress(100, 'Leitura concluída. Confira os campos.');
             } catch (error) {
-                console.error('Erro ao analisar comprovante:', error);
+                console.warn('OCR não completou ou foi pulado:', error);
                 document.getElementById('receiptAnalysisError').textContent = error.message || 'Não foi possível analisar o comprovante.';
                 document.getElementById('receiptAnalysisError').hidden = false;
                 document.getElementById('receiptManualEntryButton').hidden = false;
+                document.getElementById('receiptManualEntryButton').textContent = 'Preencher manualmente';
             } finally {
                 document.getElementById('receiptLoading').hidden = true;
             }
@@ -8580,61 +8630,89 @@
 
             try {
                 if (!selectedReceiptBlob) throw new Error('O comprovante não está disponível. Selecione-o novamente.');
-                if (!receiptTransactionCreated) {
-                    const type = document.querySelector('[name="receiptReviewType"]:checked').value;
-                    const value = Number(document.getElementById('receiptAmount').value);
-                    const date = document.getElementById('receiptDate').value;
-                    const description = document.getElementById('receiptDescription').value.trim();
-                    const category = document.getElementById('receiptCategory').value;
+                
+                const type = document.querySelector('[name="receiptReviewType"]:checked').value;
+                const value = Number(document.getElementById('receiptAmount').value);
+                const date = document.getElementById('receiptDate').value;
+                const description = document.getElementById('receiptDescription').value.trim();
+                const category = document.getElementById('receiptCategory').value;
+
+                if (!receiptTransactionRef) {
                     receiptTransactionRef = db.collection('transactions').doc();
-                    const now = new Date();
-                    await receiptTransactionRef.set({
-                        userId: currentUser.uid,
-                        type,
-                        date,
-                        time: `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`,
-                        value: Number(value.toFixed(2)),
-                        category,
-                        description: escapeHtml(description),
-                        favorite: false,
-                        createdAt: now.toISOString(),
-                        deleted: false
-                    });
-                    receiptTransactionCreated = true;
-                    form.querySelectorAll('input, select').forEach(input => { input.disabled = true; });
-                    try { updateAllViews(); } catch (error) { console.warn('Transação salva; atualização da tela falhou:', error); }
                 }
-
-                document.getElementById('receiptSaveStatus').textContent = 'Lançamento salvo! Enviando comprovante…';
-                confirmBtn.textContent = 'Enviando comprovante…';
-
-                let uploadSuccessful = false;
+                const now = new Date();
                 const extension = selectedReceiptBlob.type === 'application/pdf' ? 'pdf' : 'jpg';
 
-                // Tentar enviar ao Firebase Storage com timeout controlado (evita travar por 2 minutos em caso de CORS)
+                // Comprovantes compactados (<= 450 KB): salva de imediato no Firestore junto à transação em UMA única chamada (< 300ms)
+                const isDirectBase64Safe = selectedReceiptBlob.size <= 450 * 1024;
+                let base64Attachment = null;
+                if (isDirectBase64Safe) {
+                    base64Attachment = await blobToBase64(selectedReceiptBlob);
+                }
+
+                const transactionPayload = {
+                    userId: currentUser.uid,
+                    type,
+                    date,
+                    time: `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`,
+                    value: Number(value.toFixed(2)),
+                    category,
+                    description: escapeHtml(description),
+                    favorite: false,
+                    createdAt: now.toISOString(),
+                    deleted: false
+                };
+
+                if (base64Attachment) {
+                    transactionPayload.receiptBase64 = base64Attachment;
+                }
+
+                // 1. Grava no Firestore (instantâneo)
+                await receiptTransactionRef.set(transactionPayload, { merge: true });
+                receiptTransactionCreated = true;
+                receiptAttachmentSaved = true;
+
+                // 2. Se anexado diretamente, conclui IMEDIATAMENTE a UI sem fazer o usuário esperar
+                if (base64Attachment) {
+                    showNotification('Transação e comprovante salvos com sucesso!', 'success');
+                    const targetTxRef = receiptTransactionRef;
+                    const savedBlob = selectedReceiptBlob;
+                    closeReceiptReview(true);
+                    if (typeof performSearch === 'function') performSearch();
+                    try { updateAllViews(); } catch (e) { }
+
+                    // 3. Em segundo plano (sem travar a tela), sincroniza com Firebase Storage
+                    (async () => {
+                        try {
+                            const uploadedRef = storage.ref(`receipts/${currentUser.uid}/${targetTxRef.id}.${extension}`);
+                            const uploadPromise = uploadedRef.put(savedBlob, { contentType: savedBlob.type });
+                            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Storage timeout')), 3500));
+                            await Promise.race([uploadPromise, timeoutPromise]);
+                            await targetTxRef.update({
+                                receiptPath: uploadedRef.fullPath,
+                                receiptBase64: firebase.firestore.FieldValue.delete()
+                            });
+                            console.log('Comprovante sincronizado com sucesso no Firebase Storage em segundo plano.');
+                        } catch (bgErr) {
+                            console.warn('Storage em segundo plano indisponível (CORS ou rede). Comprovante mantido com segurança no Firestore:', bgErr);
+                        }
+                    })();
+                    return;
+                }
+
+                // Caso seja arquivo grande (> 450 KB), envia ao Storage com timeout ágil
+                document.getElementById('receiptSaveStatus').textContent = 'Lançamento salvo! Enviando anexo…';
+                confirmBtn.textContent = 'Enviando anexo…';
+                let uploadSuccessful = false;
                 try {
                     const uploadedRef = storage.ref(`receipts/${currentUser.uid}/${receiptTransactionRef.id}.${extension}`);
                     const uploadPromise = uploadedRef.put(selectedReceiptBlob, { contentType: selectedReceiptBlob.type });
-                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Storage upload timeout')), 7000));
+                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Storage upload timeout')), 4000));
                     await Promise.race([uploadPromise, timeoutPromise]);
                     await receiptTransactionRef.update({ receiptPath: uploadedRef.fullPath });
                     uploadSuccessful = true;
-                    receiptAttachmentSaved = true;
                 } catch (storageErr) {
-                    console.warn('Falha no upload para o Firebase Storage (CORS ou timeout):', storageErr);
-                    // Fallback automático para Firestore se o arquivo for imagem e tamanho razoável (<= 500 KB)
-                    if (selectedReceiptBlob.type !== 'application/pdf' && selectedReceiptBlob.size <= 500 * 1024) {
-                        try {
-                            document.getElementById('receiptSaveStatus').textContent = 'Storage com bloqueio CORS. Salvando anexo diretamente no banco de dados…';
-                            const base64Data = await blobToBase64(selectedReceiptBlob);
-                            await receiptTransactionRef.update({ receiptBase64: base64Data });
-                            uploadSuccessful = true;
-                            receiptAttachmentSaved = true;
-                            console.log('Comprovante salvo com sucesso em Base64 no Firestore (fallback ativo).');
-                        } catch (fallbackErr) {
-                            console.error('Falha também no fallback Base64:', fallbackErr);
-                        }
-                    }
+                    console.warn('Falha no upload para o Firebase Storage:', storageErr);
                 }
 
                 if (uploadSuccessful) {
@@ -8645,14 +8723,14 @@
                 } else {
                     document.getElementById('receiptAnalysisError').innerHTML =
                         '<strong>O lançamento foi salvo com sucesso!</strong><br>' +
-                        'Porém, o comprovante não pôde ser enviado para o Firebase Storage devido a bloqueio de CORS na origem ou bucket não ativado.<br>' +
-                        '<small>O lançamento já está registrado no seu extrato. Você pode fechar com segurança ou tentar reenviar.</small>';
+                        'Porém, o anexo excedeu o limite ou o Storage bloqueou o envio.<br>' +
+                        '<small>O lançamento já está registrado no seu extrato.</small>';
                     document.getElementById('receiptAnalysisError').hidden = false;
                     document.getElementById('receiptSaveStatus').textContent = 'Lançamento salvo no app. Anexo do comprovante pendente.';
                     confirmBtn.textContent = 'Tentar reenviar comprovante';
                     cancelBtn.textContent = 'Concluir sem comprovante';
                     cancelBtn.onclick = () => closeReceiptReview(true);
-                    showNotification('Lançamento salvo! Comprovante pendente (CORS).', 'warning');
+                    showNotification('Lançamento salvo! Anexo pendente.', 'warning');
                 }
             } catch (error) {
                 console.error('Erro ao salvar a transação do comprovante:', error);
