@@ -4,20 +4,88 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Controle Financeiro Aprimorado</title>
     <link rel="icon" type="image/png" href="./favicon.png">
     <link rel="shortcut icon" type="image/png" href="./favicon.png">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
         rel="stylesheet">
     <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#000000">
-    <link rel="apple-touch-icon" href="icon.png">
-    <!-- Firebase SDKs (v10 compat) -->
+    <template>
+                <div class="search-results">
+                    <div class="search-result-header"><h3 data-i18n="searchResults">Resultados</h3><span class="search-result-count" id="searchResultCount">0 transações</span></div>
+                    <div class="search-totals" aria-live="polite">
+                        <div class="search-total-income"><span>Receitas na busca</span><strong id="searchTotalIncome">R$ 0,00</strong></div>
+                        <div class="search-total-expense"><span>Despesas na busca</span><strong id="searchTotalExpense">R$ 0,00</strong></div>
+                    </div>
+                    <div id="searchResultsList"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- New Transaction Tab -->
+        <div id="new-transaction" class="tab-content active">
+            <div class="card">
+                <h2 class="mb-2" data-i18n="newTransaction">Nova Transacao</h2>
+                <form id="transactionForm">
+                    <div class="segmented-control-container">
+                        <div class="segmented-background" id="segmentedBackground"></div>
+                        <button type="button" class="segmented-btn active" id="btnIncome" onclick="setTransactionType('income')"><span data-i18n="gains">Ganho</span></button>
+                        <button type="button" class="segmented-btn" id="btnExpense" onclick="setTransactionType('expense')"><span data-i18n="spending">Gasto</span></button>
+                    </div>
+                    <div class="value-display-section" id="valueDisplaySection">
+                        <div class="value-display-label" data-i18n="value">VALOR DO LANCAMENTO</div>
+                        <div class="value-input-wrapper"><input type="number" id="transactionValue" class="value-display-amount" step="0.01" min="0" placeholder="0,00" required></div>
+                    </div>
+                    <div class="home-date-nav">
+                        <button type="button" class="home-date-arrow" onclick="event.stopPropagation();previousDay();" title="Dia anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+                        <button type="button" class="home-date-pill" id="datePillButton" onclick="event.stopPropagation();openCustomDateModal();" title="Calendário"><span id="datePillText">HOJE</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></button>
+                        <button type="button" class="home-date-arrow" onclick="event.stopPropagation();nextDay();" title="Próximo dia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+                    </div>
+                    <input type="date" id="transactionDate" required style="display:none;">
+                    <div class="form-row-label" data-i18n="category">CATEGORIA</div>
+                    <div class="form-row-styled"><div class="form-row-icon"><span class="form-icon">📋</span></div><select id="transactionCategory" class="form-select" required style="flex:1;"><option value="" data-i18n="selectCategory">Selecione uma categoria</option><option value="alimentacao">&#127869; Alimentacao</option><option value="mercado">&#128722; Mercado</option><option value="combustivel">&#9981; Combustivel</option><option value="manutencao_veiculo">&#128295; Manutencao Veiculo</option><option value="transporte">&#128663; Transporte</option><option value="moradia">&#127968; Moradia</option><option value="saude">&#127973; Saude</option><option value="educacao">&#128218; Educacao</option><option value="lazer">&#127918; Lazer</option><option value="salario">&#128188; Salario</option><option value="freelance">&#128187; Freelance</option><option value="investimentos">&#128200; Investimentos</option><option value="outros">&#128230; Outros</option></select></div>
+                    <div class="form-row-label" data-i18n="description">DESCRICAO</div>
+                    <div class="form-row-styled"><div class="form-row-icon"><span class="form-icon">📝</span></div><input type="text" id="transactionDescription" class="form-input" data-i18n-placeholder="placeholderDescShort" placeholder="Descrição da transação" required style="flex:1;"></div>
+                    <label class="favorite-row"><input type="checkbox" id="transactionFavorite"><span class="toggle-slider"></span><span style="font-size:0.9rem;font-weight:500;">&#11088; <span data-i18n="favoriteTransaction">Favoritar esta transação</span></span></label>
+                    <button type="button" class="btn-save-transaction" id="btnSaveTransaction" onclick="saveNewTransaction()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12" /></svg><span data-i18n="saveTransaction">Salvar Transacao</span></button>
+                </form>
+            </div>
+            <div class="card">
+                <h3 class="mb-2" data-i18n="dailyTransactions">Transacoes do Dia Selecionado</h3>
+                <div class="stats-grid mb-2">
+                    <div class="stat-card income"><div class="stat-icon">&#128176;</div><div class="stat-value" id="dailyIncome">R$ 0,00</div><div class="stat-label" data-i18n="gains">Ganhos</div></div>
+                    <div class="stat-card expense"><div class="stat-icon">&#128184;</div><div class="stat-value" id="dailyExpense">R$ 0,00</div><div class="stat-label" data-i18n="spending">Gastos</div></div>
+                    <div class="stat-card balance"><div class="stat-icon">&#128202;</div><div class="stat-value" id="dailyBalance">R$ 0,00</div><div class="stat-label" data-i18n="balance">Saldo</div></div>
+                </div>
+                <div id="dailyTransactionsList"></div>
+            </div>
+        </div>
+
+        <!-- Charts Tab -->
+        <div id="charts" class="tab-content">
+            <div class="card">
+                <div class="chart-heading"><div><h2 data-i18n="chartsTitle">Receitas e despesas</h2><p>Compare valores por categoria ou ao longo do tempo.</p></div><span class="chart-kind-label">Gráfico de barras</span></div>
+                <div class="chart-toolbar">
+                    <div class="form-group"><label class="form-label" for="chartPeriod">Período</label><select id="chartPeriod" class="form-select" onchange="toggleChartPeriodInputs()"><option value="last3">Últimos 3 meses</option><option value="last6">Últimos 6 meses</option><option value="month">Mês específico</option><option value="year">Ano específico</option><option value="custom">Intervalo personalizado</option></select></div>
+                    <div class="form-group chart-period-input" id="chartCustomGroup" style="display:none"><label class="form-label">Datas</label><div class="chart-date-range"><input type="date" id="chartStartDate" class="form-input" aria-label="Data inicial" onchange="updateChart()"><input type="date" id="chartEndDate" class="form-input" aria-label="Data final" onchange="updateChart()"></div></div>
+                    <div class="form-group chart-period-input" id="chartMonthGroup" style="display:none"><label class="form-label" for="chartMonth">Mês</label><input type="month" id="chartMonth" class="form-input" onchange="updateChart()"></div>
+                    <div class="form-group chart-period-input" id="chartYearGroup" style="display:none"><label class="form-label" for="chartYear">Ano</label><input type="number" id="chartYear" class="form-input" min="2020" max="2030" onchange="updateChart()"></div>
+                    <div class="form-group"><label class="form-label" for="chartTypeFilter">Movimento</label><select id="chartTypeFilter" class="form-select" onchange="updateChart()"><option value="both">Receitas e despesas</option><option value="expense">Despesas</option><option value="income">Receitas</option></select></div>
+                    <div class="form-group"><label class="form-label" for="chartFavorites">Favoritas</label><select id="chartFavorites" class="form-select" onchange="updateChart()"><option value="all">Todas</option><option value="favorites">Só favoritas</option><option value="nonfavorites">Sem favoritas</option></select></div>
+                    <div class="form-group"><label class="form-label" for="chartGroupBy">Agrupar por</label><select id="chartGroupBy" class="form-select" onchange="updateChart()"><option value="category">Categoria</option><option value="date">Dia</option></select></div>
+                    <button class="btn btn-secondary chart-category-filter" type="button" onclick="openCategorySelectionModal('chart')">Categorias <span id="chartCategorySummary">Todas</span></button>
+                </div>
+                <div class="chart-totals" aria-live="polite"><div><span>Receitas</span><strong id="chartTotalIncome">R$ 0,00</strong></div><div><span>Despesas</span><strong id="chartTotalExpense">R$ 0,00</strong></div><div><span>Saldo</span><strong id="chartTotalBalance">R$ 0,00</strong></div><div><span>Lançamentos</span><strong id="chartTransactionCount">0</strong></div></div>
+                <div class="chart-container-wrapper"><canvas id="financeChart" role="img" aria-label="Gráfico de barras de receitas e despesas"></canvas><div id="chartEmptyState" class="empty-state" hidden>Nenhum lançamento encontrado neste período.</div></div>
+            </div>
+        </div>
+    </template>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -43,15 +111,12 @@
             --dark-text-2: #94A3B8;
             --dark-text-3: #64748B;
             --light-bg: #E5E5EA;
-            /* iOS System Gray 5 */
             --light-surface: rgba(242, 242, 247, 0.8);
             --light-card: rgba(255, 255, 255, 0.55);
             --light-border: rgba(0, 0, 0, 0.05);
             --light-text: #000000;
             --light-text-2: #3C3C43;
-            /* iOS Label Color */
             --light-text-3: #8E8E93;
-            /* iOS Label Color 2 */
             --radius: 24px;
             --radius-sm: 16px;
             --radius-xs: 12px;
@@ -65,17 +130,8 @@
             --transition: 0.3s cubic-bezier(0.25, 0.1, 0.25, 1);
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        html {
-            scroll-behavior: smooth;
-            -webkit-tap-highlight-color: transparent;
-        }
-
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; -webkit-tap-highlight-color: transparent; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "SF Pro", "Inter", "Segoe UI", Helvetica, Arial, sans-serif;
             transition: background var(--transition), color var(--transition);
@@ -83,127 +139,47 @@
             min-height: 100vh;
             -webkit-font-smoothing: antialiased;
         }
-
         body.dark {
-            background: #000000;
+            background: linear-gradient(155deg, #151719 0%, #08090A 56%, #101312 100%);
             color: var(--dark-text);
             --glass-bg: rgba(28, 28, 30, 0.7);
             --glass-border: rgba(255, 255, 255, 0.1);
             --bg-color: rgba(255, 255, 255, 0.05);
             --ios-gray: #1C1C1E;
         }
-
-        body.light {
-            background: var(--light-bg);
-            color: var(--light-text);
+        body.light { background: linear-gradient(155deg, #F0F1F4 0%, #E2E5E9 56%, #ECEEF1 100%); color: var(--light-text); }
+        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px) } to { opacity: 1; transform: translateY(0) } }
+        @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
+        @keyframes scaleIn { from { opacity: 0; transform: scale(0.92) } to { opacity: 1; transform: scale(1) } }
+        @keyframes slideInRight { from { transform: translateX(120%); opacity: 0 } to { transform: translateX(0); opacity: 1 } }
+        @keyframes pulse-soft { 0%, 100% { transform: scale(1) } 50% { transform: scale(1.04) } }
+        @keyframes spin { to { transform: rotate(360deg) } }
+        @keyframes glow-ring { 0%, 100% { box-shadow: 0 0 0 0 var(--primary-glow) } 50% { box-shadow: 0 0 0 16px rgba(16, 185, 129, 0) } }
+        @keyframes coin-fall {
+            0% { top: -24px; opacity: 0; transform: translateX(0) rotate(0deg) scale(0.72); }
+            12% { opacity: 1; }
+            88% { opacity: 1; }
+            100% { top: calc(100% + 12px); opacity: 0; transform: translateX(var(--coin-drift, 0px)) rotate(390deg) scale(1); }
         }
-
-        @keyframes fadeInUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px)
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0)
-            }
+        @keyframes bill-fall {
+            0% { top: -20px; opacity: 0; transform: translateX(0) rotate(-18deg) scale(0.76); }
+            14% { opacity: 1; }
+            86% { opacity: 1; }
+            100% { top: calc(100% + 10px); opacity: 0; transform: translateX(var(--bill-drift, 0px)) rotate(34deg) scale(1); }
         }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0
-            }
-
-            to {
-                opacity: 1
-            }
-        }
-
-        @keyframes scaleIn {
-            from {
-                opacity: 0;
-                transform: scale(0.92)
-            }
-
-            to {
-                opacity: 1;
-                transform: scale(1)
-            }
-        }
-
-        @keyframes slideInRight {
-            from {
-                transform: translateX(120%);
-                opacity: 0
-            }
-
-            to {
-                transform: translateX(0);
-                opacity: 1
-            }
-        }
-
-        @keyframes pulse-soft {
-
-            0%,
-            100% {
-                transform: scale(1)
-            }
-
-            50% {
-                transform: scale(1.04)
-            }
-        }
-
-        @keyframes spin {
-            to {
-                transform: rotate(360deg)
-            }
-        }
-
-        @keyframes glow-ring {
-
-            0%,
-            100% {
-                box-shadow: 0 0 0 0 var(--primary-glow)
-            }
-
-            50% {
-                box-shadow: 0 0 0 16px rgba(16, 185, 129, 0)
-            }
-        }
-
-        /* SPLASH */
-        .splash-screen {
-            position: fixed;
-            inset: 0;
-            background: var(--dark-bg);
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 9999;
-            transition: opacity 0.6s ease, visibility 0.6s ease;
-        }
-
-        .splash-screen.hidden {
-            opacity: 0;
-            visibility: hidden;
-            pointer-events: none;
-        }
-
+        .splash-screen { position: fixed; inset: 0; background: var(--dark-bg); display: flex; flex-direction: column; justify-content: center; align-items: center; z-index: 9999; transition: opacity 0.6s ease, visibility 0.6s ease; }
+        .splash-screen.hidden { opacity: 0; visibility: hidden; pointer-events: none; }
         .splash-logo {
             width: 100px;
             height: 100px;
-            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            background: transparent;
             border-radius: 28px;
             display: flex;
             align-items: center;
             justify-content: center;
             margin-bottom: 28px;
             animation: pulse-soft 2s ease-in-out infinite;
-            box-shadow: 0 0 60px var(--primary-glow), 0 0 120px rgba(16, 185, 129, 0.1);
+            box-shadow: none;
         }
 
         .splash-logo svg {
@@ -1278,14 +1254,15 @@
         }
 
         .dark .card {
-            background: rgba(28, 28, 30, 0.6);
+            background: rgba(34, 36, 38, 0.62);
             border-color: var(--dark-border);
-            box-shadow: none;
-            /* Cleaner look in dark mode */
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06), 0 18px 48px rgba(0, 0, 0, 0.18);
         }
 
         .light .card {
-            background: rgba(255, 255, 255, 0.65);
+            background: rgba(255, 255, 255, 0.62);
+            border-color: rgba(255, 255, 255, 0.74);
+            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.8), 0 16px 42px rgba(28, 34, 42, 0.08);
         }
 
         .card:hover {
@@ -2523,13 +2500,305 @@
         .chart-container-wrapper {
             position: relative;
             width: 100%;
-            min-height: 280px;
+            height: 360px;
+            min-height: 290px;
             padding: 1rem 0;
         }
 
         .chart-container-wrapper canvas {
             max-width: 100%;
-            height: auto !important;
+            height: 100% !important;
+        }
+
+        .transaction-filters,
+        .search-filters,
+        .chart-toolbar {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            align-items: end;
+            gap: 0.75rem;
+        }
+
+        .transaction-filters {
+            grid-template-columns: minmax(180px, 2fr) repeat(2, minmax(140px, 1fr)) auto;
+            margin: 0.5rem 0 0.75rem;
+        }
+
+        .transaction-filters .form-input,
+        .transaction-filters .form-select {
+            min-width: 0;
+        }
+
+        .transaction-filter-count {
+            margin-bottom: 0.75rem;
+            color: var(--dark-text-3);
+            font-size: 0.82rem;
+        }
+
+        .search-filter-panel {
+            padding: 0;
+            border: 0;
+            background: transparent;
+            box-shadow: none;
+        }
+
+        .search-filters {
+            grid-template-columns: minmax(220px, 2fr) minmax(130px, 1fr) minmax(220px, 1.4fr);
+            gap: 0.8rem;
+        }
+
+        .search-filters .form-group {
+            min-width: 0;
+            margin-bottom: 0;
+        }
+
+        .date-range-filter {
+            gap: 0.5rem;
+        }
+
+        .date-range-filter .form-input {
+            min-width: 0;
+        }
+
+        .search-filter-actions,
+        .search-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.65rem;
+            flex-wrap: wrap;
+        }
+
+        .search-actions {
+            justify-content: flex-end;
+        }
+
+        .search-favorite-toggle {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.45rem;
+            min-height: 44px;
+            color: var(--dark-text-2);
+            font-size: 0.88rem;
+            white-space: nowrap;
+        }
+
+        .search-favorite-toggle input {
+            accent-color: var(--primary);
+        }
+
+        .filter-count {
+            display: inline-grid;
+            place-items: center;
+            min-width: 1.3rem;
+            height: 1.3rem;
+            margin-left: 0.25rem;
+            border-radius: 999px;
+            background: var(--primary);
+            color: #fff;
+            font-size: 0.72rem;
+        }
+
+        .filter-count.hidden {
+            display: none;
+        }
+
+        .chart-heading {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .chart-heading p {
+            margin-top: 0.35rem;
+            color: var(--dark-text-3);
+            font-size: 0.9rem;
+        }
+
+        .chart-kind-label {
+            flex: 0 0 auto;
+            padding: 0.45rem 0.7rem;
+            border-radius: 999px;
+            background: rgba(16, 185, 129, 0.12);
+            color: var(--primary-light);
+            font-size: 0.78rem;
+            font-weight: 650;
+        }
+
+        .chart-toolbar {
+            grid-template-columns: repeat(3, minmax(130px, 1fr)) minmax(180px, 1.2fr);
+            align-items: end;
+            gap: 0.75rem;
+            padding: 1rem;
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-sm);
+            background: var(--glass-bg);
+            backdrop-filter: blur(14px);
+            -webkit-backdrop-filter: blur(14px);
+        }
+
+        .chart-toolbar .form-group {
+            min-width: 0;
+            margin-bottom: 0;
+        }
+
+        .chart-category-filter {
+            min-height: 46px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .chart-totals {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+            gap: 0.65rem;
+            margin-top: 1rem;
+        }
+
+        .chart-totals > div {
+            display: grid;
+            gap: 0.35rem;
+            min-width: 0;
+            padding: 0.85rem 1rem;
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-sm);
+            background: var(--glass-bg);
+        }
+
+        .chart-totals span {
+            color: var(--dark-text-3);
+            font-size: 0.78rem;
+        }
+
+        .chart-totals strong {
+            overflow: hidden;
+            font-size: 1rem;
+            text-overflow: ellipsis;
+        }
+
+        .chart-totals > div:first-child strong {
+            color: var(--success-light);
+        }
+
+        .chart-totals > div:nth-child(2) strong {
+            color: var(--danger-light);
+        }
+
+        .search-totals {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 0.65rem;
+            margin: 0.75rem 0 1rem;
+        }
+
+        .search-totals > div {
+            display: grid;
+            gap: 0.35rem;
+            min-width: 0;
+            padding: 0.8rem 1rem;
+            border: 1px solid var(--glass-border);
+            border-radius: var(--radius-sm);
+            background: var(--glass-bg);
+        }
+
+        .search-totals span {
+            color: var(--dark-text-3);
+            font-size: 0.78rem;
+        }
+
+        .search-totals strong {
+            overflow: hidden;
+            font-size: 1rem;
+            text-overflow: ellipsis;
+        }
+
+        .search-total-income strong { color: var(--success-light); }
+        .search-total-expense strong { color: var(--danger-light); }
+
+        .chart-container-wrapper {
+            min-height: 340px;
+            margin-top: 0.5rem;
+        }
+
+        .transaction-item,
+        .search-result-card,
+        .search-results-date-group {
+            content-visibility: auto;
+            contain-intrinsic-size: auto 76px;
+        }
+
+        @media (max-width: 700px) {
+            .transaction-filters,
+            .search-filters,
+            .chart-toolbar {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .transaction-filters > :first-child,
+            .search-query-field,
+            .search-date-field,
+            .search-actions {
+                grid-column: 1 / -1;
+            }
+
+            .chart-toolbar #chartCustomGroup,
+            .chart-category-filter {
+                grid-column: 1 / -1;
+            }
+
+            .chart-totals {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .chart-container-wrapper {
+                height: 310px;
+                min-height: 290px;
+            }
+
+            .search-actions {
+                justify-content: stretch;
+            }
+
+            .search-actions .btn {
+                flex: 1;
+            }
+
+            .dark .card,
+            .light .card,
+            .chart-toolbar {
+                backdrop-filter: blur(10px);
+                -webkit-backdrop-filter: blur(10px);
+            }
+        }
+
+        @media (max-width: 420px) {
+            .transaction-filters,
+            .search-filters,
+            .chart-toolbar {
+                grid-template-columns: minmax(0, 1fr);
+            }
+
+            .transaction-filters > *,
+            .search-query-field,
+            .search-date-field,
+            .search-actions,
+            .chart-category-filter {
+                grid-column: 1;
+            }
+
+            .chart-heading {
+                flex-direction: column;
+            }
+
+            .date-range-filter {
+                flex-wrap: wrap;
+            }
+
+            .date-range-filter .form-input {
+                flex: 1 1 120px;
+            }
         }
 
         /* GOALS */
@@ -3703,15 +3972,101 @@
         .login-logo {
             width: 88px;
             height: 88px;
-            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            background: transparent;
             border-radius: 24px;
             display: flex;
             align-items: center;
             justify-content: center;
             margin: 0 auto 2rem;
             color: white;
-            box-shadow: 0 0 40px var(--primary-glow);
+            box-shadow: none;
             animation: pulse-soft 2s infinite ease-in-out;
+        }
+
+        .coin-rain {
+            position: relative;
+            width: 66px;
+            height: 66px;
+            overflow: hidden;
+            border-radius: 18px;
+            pointer-events: none;
+        }
+
+        .falling-coin {
+            position: absolute;
+            top: -24px;
+            left: var(--coin-left);
+            width: 19px;
+            aspect-ratio: 1;
+            border: 1px solid rgba(255, 245, 190, 0.9);
+            border-radius: 50%;
+            background: linear-gradient(145deg, #FFF3A6 0%, #E8B83E 48%, #B7791F 100%);
+            box-shadow: inset 0 0 0 2px rgba(124, 78, 14, 0.28), 0 2px 7px rgba(0, 0, 0, 0.22);
+            animation: coin-fall var(--coin-duration, 1.7s) linear var(--coin-delay, 0s) infinite;
+        }
+
+        .falling-coin::after {
+            content: '';
+            position: absolute;
+            inset: 4px;
+            border: 1px solid rgba(255, 250, 215, 0.72);
+            border-radius: 50%;
+        }
+
+        .falling-coin:nth-child(1) { --coin-left: 8%; --coin-delay: -1.15s; --coin-drift: 5px; }
+        .falling-coin:nth-child(2) { --coin-left: 37%; --coin-delay: -0.35s; --coin-duration: 1.45s; --coin-drift: -4px; }
+        .falling-coin:nth-child(3) { --coin-left: 68%; --coin-delay: -1.65s; --coin-duration: 1.9s; --coin-drift: 3px; }
+        .falling-coin:nth-child(4) { --coin-left: 21%; --coin-delay: -0.8s; --coin-duration: 1.6s; --coin-drift: -6px; }
+        .falling-coin:nth-child(5) { --coin-left: 79%; --coin-delay: -0.1s; --coin-duration: 1.8s; --coin-drift: 4px; }
+
+        .falling-bill {
+            position: absolute;
+            top: -20px;
+            left: var(--bill-left);
+            width: 25px;
+            height: 14px;
+            border: 1px solid rgba(218, 255, 224, 0.9);
+            border-radius: 3px;
+            background: linear-gradient(145deg, #B8F5C5 0%, #46B979 52%, #218A56 100%);
+            box-shadow: inset 0 0 0 1px rgba(20, 101, 58, 0.35), 0 2px 6px rgba(0, 0, 0, 0.2);
+            animation: bill-fall var(--bill-duration, 2s) linear var(--bill-delay, 0s) infinite;
+        }
+
+        .falling-bill::before {
+            content: '';
+            position: absolute;
+            inset: 2px;
+            border: 1px solid rgba(232, 255, 232, 0.72);
+            border-radius: 2px;
+        }
+
+        .falling-bill::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            width: 5px;
+            height: 5px;
+            border: 1px solid rgba(232, 255, 232, 0.82);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .falling-bill:nth-of-type(6) { --bill-left: 12%; --bill-delay: -1.35s; --bill-duration: 2.1s; --bill-drift: 7px; }
+        .falling-bill:nth-of-type(7) { --bill-left: 55%; --bill-delay: -0.55s; --bill-duration: 1.75s; --bill-drift: -8px; }
+        .falling-bill:nth-of-type(8) { --bill-left: 34%; --bill-delay: -1.8s; --bill-duration: 2.2s; --bill-drift: 5px; }
+
+        @media (prefers-reduced-motion: reduce) {
+            .falling-coin,
+            .falling-bill { animation: none; }
+            .falling-coin:nth-child(1) { top: 10%; }
+            .falling-coin:nth-child(2) { top: 34%; }
+            .falling-coin:nth-child(3) { top: 58%; }
+            .falling-coin:nth-child(4) { top: 75%; }
+            .falling-coin:nth-child(5) { top: 20%; }
+            .falling-bill:nth-of-type(6) { top: 44%; }
+            .falling-bill:nth-of-type(7) { top: 68%; }
+            .falling-bill:nth-of-type(8) { top: 4%; }
         }
 
         .login-title {
@@ -4711,10 +5066,7 @@
     <!-- Splash Screen -->
     <div class="splash-screen" id="splashScreen">
         <div class="splash-logo">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-            </svg>
+            <div class="coin-rain" aria-hidden="true"><span class="falling-coin"></span><span class="falling-coin"></span><span class="falling-coin"></span><span class="falling-coin"></span><span class="falling-coin"></span><span class="falling-bill"></span><span class="falling-bill"></span><span class="falling-bill"></span></div>
         </div>
         <div class="splash-title">Finance</div>
         <div class="splash-subtitle">Controle simplificado</div>
@@ -4725,9 +5077,7 @@
     <div class="login-overlay" id="loginOverlay" style="display:none;">
         <div class="login-card">
             <div class="login-logo">
-                <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                </svg>
+                <div class="coin-rain" aria-hidden="true"><span class="falling-coin"></span><span class="falling-coin"></span><span class="falling-coin"></span><span class="falling-coin"></span><span class="falling-coin"></span><span class="falling-bill"></span><span class="falling-bill"></span><span class="falling-bill"></span></div>
             </div>
             <h2 class="login-title">Bem-vindo ao Finanças</h2>
             <p class="login-subtitle">Acesse sua conta para sincronizar seus dados</p>
@@ -4952,6 +5302,17 @@
         <div id="transactions" class="tab-content">
             <div class="card">
                 <h2 class="mb-2" data-i18n="allTransactions">Todas as Transacoes</h2>
+                <div class="transaction-filters" role="search" aria-label="Filtrar transações">
+                    <input id="transactionsQuery" class="form-input" type="search" placeholder="Buscar descrição" aria-label="Buscar por descrição" oninput="scheduleTransactionFilter()">
+                    <select id="transactionsType" class="form-select" aria-label="Tipo de transação" onchange="updateTransactionsList()">
+                        <option value="">Todos os tipos</option>
+                        <option value="income">Receitas</option>
+                        <option value="expense">Despesas</option>
+                    </select>
+                    <input id="transactionsMonth" class="form-input" type="month" aria-label="Filtrar por mês" onchange="updateTransactionsList()">
+                    <button class="btn btn-secondary" type="button" onclick="clearTransactionFilters()">Limpar</button>
+                </div>
+                <div class="transaction-filter-count" id="transactionsFilterCount" aria-live="polite"></div>
                 <div id="transactionsList"></div>
             </div>
         </div>
@@ -4961,193 +5322,70 @@
             <div class="card">
                 <h2 class="mb-2" data-i18n="searchTransactions">Buscar Transacoes</h2>
                 <div class="search-section">
-                    <div class="search-panel-grid">
-                        <section class="search-filter-panel">
-                            <div class="search-panel-header">
-                                <div>
-                                    <h3>Filtros de busca</h3>
-                                    <p class="search-panel-description">Filtre transações por categoria, tipo, período e favoritos de forma clara.</p>
-                                </div>
-                                <button type="button" class="btn btn-secondary" onclick="performSearch()">
-                                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <circle cx="11" cy="11" r="8" />
-                                        <path d="m21 21-4.35-4.35" />
-                                    </svg>
-                                    Atualizar
-                                </button>
+                    <div class="search-filter-panel">
+                        <div class="search-filters">
+                            <div class="form-group search-query-field">
+                                <label class="form-label" for="searchDescription">Descrição</label>
+                                <input type="search" id="searchDescription" class="form-input" placeholder="Buscar por descrição ou categoria" oninput="scheduleSearch()" autocomplete="off">
                             </div>
-                            <div class="search-filters">
-                                <div class="form-group"><label class="form-label" data-i18n="searchByName">Buscar por nome/descricao</label><input type="text" id="searchDescription" class="form-input" data-i18n-placeholder="placeholderDesc" placeholder="Digite a descricao..." oninput="performSearch()"></div>
-                                <div class="form-group" style="grid-column: 1 / -1;">
-                                    <div class="search-category-panel">
-                                        <div class="search-category-header">
-                                            <div>
-                                                <label class="form-label" data-i18n="category">Categoria</label>
-                                                <p class="search-category-subtitle">Selecione categorias com mais precisão no painel dedicado.</p>
-                                            </div>
-                                            <div class="search-category-actions">
-                                                <button type="button" class="btn btn-secondary" onclick="openCategorySelectionModal('search')">Selecionar categorias</button>
-                                                <button type="button" class="btn btn-link" id="searchCategoryClearBtn" onclick="clearSearchCategories()" style="display:none;">Limpar</button>
-                                            </div>
-                                        </div>
-                                        <div class="search-category-summary" id="searchCategorySummary">Nenhuma selecionada</div>
-                                    </div>
+                            <div class="form-group">
+                                <label class="form-label" for="searchType">Tipo</label>
+                                <select id="searchType" class="form-select" onchange="performSearch()">
+                                    <option value="">Todos</option>
+                                    <option value="income">Receitas</option>
+                                    <option value="expense">Despesas</option>
+                                </select>
+                            </div>
+                            <div class="form-group search-date-field">
+                                <label class="form-label" for="searchStartDate">Período</label>
+                                <div class="date-range-filter">
+                                    <input type="date" id="searchStartDate" class="form-input" aria-label="Data inicial" onchange="performSearch()">
+                                    <input type="date" id="searchEndDate" class="form-input" aria-label="Data final" onchange="performSearch()">
                                 </div>
-                                <div class="form-group"><label class="form-label" data-i18n="type">Tipo</label>
-                                    <select id="searchType" class="form-select" onchange="performSearch()">
-                                        <option value="" data-i18n="allTypes">Todos os tipos</option>
-                                        <option value="income" data-i18n="income">Receita</option>
-                                        <option value="expense" data-i18n="expense">Despesa</option>
-                                    </select>
-                                </div>
-                                <div class="form-group"><label class="form-label" data-i18n="monthYear">Mes/Ano</label>
-                                    <div class="month-year-filters">
-                                        <div class="form-group" style="margin-bottom:0;"><label class="form-label" data-i18n="selectMonth" style="font-size:0.8rem;margin-bottom:0.3rem;">Mes</label>
-                                            <button type="button" class="form-input" id="monthPickerButton" onclick="showMonthPickerModal()" style="text-align:left;cursor:pointer;display:flex;align-items:center;justify-content:space-between;">
-                                                <span id="monthPickerButtonText" data-i18n="selectMonth">Selecionar Mes</span>
-                                                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                                    <polyline points="6,9 12,15 18,9"></polyline>
-                                                </svg>
-                                            </button>
-                                            <input type="hidden" id="selectedMonths" value="">
-                                        </div>
-                                        <div class="form-group" style="margin-bottom:0;"><label class="form-label" data-i18n="selectYear" style="font-size:0.8rem;margin-bottom:0.3rem;">Ano</label>
-                                            <select id="searchYear" class="form-select" onchange="performSearch()">
-                                                <option value="">Todos os anos</option>
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="form-group" style="grid-column: 1 / -1;">
-                                    <label class="form-label">
-                                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: -2px; margin-right: 4px;">
-                                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                                            <line x1="16" y1="2" x2="16" y2="6"/>
-                                            <line x1="8" y1="2" x2="8" y2="6"/>
-                                            <line x1="3" y1="10" x2="21" y2="10"/>
-                                        </svg>
-                                        Filtrar por Período (Dias)
-                                    </label>
-                                    <div class="date-range-filter">
-                                        <div class="form-group">
-                                            <label class="form-label" style="font-size:0.72rem; margin-bottom:0.3rem;">Data Inicial</label>
-                                            <input type="date" id="searchStartDate" class="form-input" onchange="performSearch()">
-                                        </div>
-                                        <div class="date-range-separator">até</div>
-                                        <div class="form-group">
-                                            <label class="form-label" style="font-size:0.72rem; margin-bottom:0.3rem;">Data Final</label>
-                                            <input type="date" id="searchEndDate" class="form-input" onchange="performSearch()">
-                                        </div>
-                                    </div>
-                                    <div class="date-range-quick-btns">
-                                        <button type="button" class="date-range-quick-btn" onclick="setQuickDateRange('today')" id="qdrToday">Hoje</button>
-                                        <button type="button" class="date-range-quick-btn" onclick="setQuickDateRange('yesterday')" id="qdrYesterday">Ontem</button>
-                                        <button type="button" class="date-range-quick-btn" onclick="setQuickDateRange('7days')" id="qdr7">7 dias</button>
-                                        <button type="button" class="date-range-quick-btn" onclick="setQuickDateRange('15days')" id="qdr15">15 dias</button>
-                                        <button type="button" class="date-range-quick-btn" onclick="setQuickDateRange('30days')" id="qdr30">30 dias</button>
-                                        <button type="button" class="date-range-quick-btn" onclick="setQuickDateRange('thisMonth')" id="qdrThisMonth">Este mês</button>
-                                        <button type="button" class="date-range-quick-btn" onclick="setQuickDateRange('lastMonth')" id="qdrLastMonth">Mês passado</button>
-                                        <button type="button" class="date-range-quick-btn" onclick="setQuickDateRange('clear')" id="qdrClear">✕ Limpar</button>
-                                    </div>
-                                </div>
-                                <div class="form-group form-group-checkbox"><label class="form-label form-label-checkbox"><input type="checkbox" id="searchFavorites" onchange="performSearch()"> &#11088; <span data-i18n="favoritesOnly">Apenas favoritas</span></label></div>
+                            </div>
+                            <div class="search-filter-actions">
+                                <button class="btn btn-secondary" type="button" onclick="openCategorySelectionModal('search')">Categoria <span id="searchCategoryCount" class="filter-count hidden">0</span></button>
+                                <label class="search-favorite-toggle"><input type="checkbox" id="searchFavorites" onchange="performSearch()"><span data-i18n="favoritesOnly">Apenas favoritas</span></label>
                             </div>
                             <div class="search-actions">
-                                <button class="btn btn-primary" onclick="performSearch()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <circle cx="11" cy="11" r="8" />
-                                        <path d="m21 21-4.35-4.35" />
-                                    </svg><span data-i18n="search">Buscar</span></button>
-                                <button class="btn btn-secondary" onclick="clearSearch()"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 512 512" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="32">
-                                        <path d="M112 112l24 24V400a48 48 0 0 0 48 48h192a48 48 0 0 0 48-48V136l24-24"></path>
-                                        <path d="M192 112V72a40 40 0 0 1 40-40h80a40 40 0 0 1 40 40v40"></path>
-                                        <path d="M160 112l192 0"></path>
-                                    </svg><span data-i18n="clearFilters">Limpar Filtros</span></button>
-                                <button class="btn btn-success" onclick="exportSearchResultsToExcel()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                                        <polyline points="7,10 12,15 17,10" />
-                                        <line x1="12" y1="15" x2="12" y2="3" />
-                                    </svg><span data-i18n="exportResults">Exportar Resultados</span></button>
+                                <button class="btn btn-secondary" type="button" onclick="clearSearch()">Limpar filtros</button>
+                                <button class="btn btn-primary" type="button" onclick="exportSearchResultsToExcel()"><span data-i18n="exportResults">Exportar resultados</span></button>
                             </div>
-                        </section>
-                        <aside class="search-summary-panel">
-                            <div class="search-summary-card">
-                                <div class="search-summary-title">Resumo de filtros</div>
-                                <div class="search-summary-row"><span>Categoria</span><strong id="searchSummaryCategories">Nenhuma selecionada</strong></div>
-                                <div class="search-summary-row"><span>Tipo</span><strong id="searchSummaryType">Todos</strong></div>
-                                <div class="search-summary-row"><span>Mês/Ano</span><strong id="searchSummaryPeriod">Todos</strong></div>
-                                <div class="search-summary-row"><span>Intervalo</span><strong id="searchSummaryRange">Sem limite</strong></div>
-                                <div class="search-summary-row"><span>Favoritas</span><strong id="searchSummaryFavorite">Todas</strong></div>
-                            </div>
-                        </aside>
+                        </div>
                     </div>
                 </div>
                 <div class="search-results">
                     <div class="search-result-header">
-                        <h3 data-i18n="searchResults">Resultados da Busca</h3><span class="search-result-count"
-                            id="searchResultCount">0 transacoes encontradas</span>
-                    </div>
-                    <div class="card mb-2" id="searchTotalsCard" style="display:none;">
-                        <div class="stats-grid">
-                            <div class="stat-card income">
-                                <div class="stat-value" id="searchTotalIncome">R$ 0,00</div>
-                                <div class="stat-label" data-i18n="searchIncome">Receitas na Busca</div>
-                            </div>
-                            <div class="stat-card expense">
-                                <div class="stat-value" id="searchTotalExpense">R$ 0,00</div>
-                                <div class="stat-label" data-i18n="searchExpense">Despesas na Busca</div>
-                            </div>
-                            <div class="stat-card balance">
-                                <div class="stat-value" id="searchTotalBalance">R$ 0,00</div>
-                                <div class="stat-label" data-i18n="searchBalance">Saldo da Busca</div>
-                            </div>
+                        <div class="chart-heading">
+                            <div><h2 data-i18n="chartsTitle">Receitas e despesas</h2><p>Compare valores por categoria ou ao longo do tempo.</p></div>
+                            <span class="chart-kind-label">Gráfico de barras</span>
                         </div>
-                    </div>
-                    <div id="searchResultsList"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- New Transaction Tab -->
-        <div id="new-transaction" class="tab-content active">
-            <div class="card">
-                <h2 class="mb-2" data-i18n="newTransaction">Nova Transacao</h2>
-                <form id="transactionForm">
-                    <!-- Segmented Control -->
-                    <div class="segmented-control-container">
-                        <div class="segmented-background" id="segmentedBackground"></div>
-                        <button type="button" class="segmented-btn active" id="btnIncome"
-                            onclick="setTransactionType('income')">
-                            <span data-i18n="gains">Ganho</span>
-                        </button>
-                        <button type="button" class="segmented-btn" id="btnExpense"
-                            onclick="setTransactionType('expense')">
-                            <span data-i18n="spending">Gasto</span>
-                        </button>
-                    </div>
-
-                    <!-- Value Display -->
-                    <div class="value-display-section" id="valueDisplaySection">
-                        <div class="value-display-label" data-i18n="value">VALOR DO LANCAMENTO</div>
-                        <div class="value-input-wrapper">
-                            <input type="number" id="transactionValue" class="value-display-amount" step="0.01" min="0"
-                                placeholder="0,00" required>
+                        <div class="chart-toolbar">
+                            <div class="form-group"><label class="form-label" for="chartPeriod">Período</label>
+                                <select id="chartPeriod" class="form-select" onchange="toggleChartPeriodInputs()">
+                                    <option value="last3">Últimos 3 meses</option>
+                                    <option value="last6">Últimos 6 meses</option>
+                                    <option value="month">Mês específico</option>
+                                    <option value="year">Ano específico</option>
+                                    <option value="custom">Intervalo personalizado</option>
+                                </select>
+                            </div>
+                            <div class="form-group chart-period-input" id="chartCustomGroup" style="display:none"><label class="form-label">Datas</label><div class="chart-date-range"><input type="date" id="chartStartDate" class="form-input" aria-label="Data inicial" onchange="updateChart()"><input type="date" id="chartEndDate" class="form-input" aria-label="Data final" onchange="updateChart()"></div></div>
+                            <div class="form-group chart-period-input" id="chartMonthGroup" style="display:none"><label class="form-label" for="chartMonth">Mês</label><input type="month" id="chartMonth" class="form-input" onchange="updateChart()"></div>
+                            <div class="form-group chart-period-input" id="chartWeekGroup" style="display:none"><label class="form-label" for="chartWeek">Semana</label><input type="week" id="chartWeek" class="form-input" onchange="updateChart()"></div>
+                            <div class="form-group chart-period-input" id="chartYearGroup" style="display:none"><label class="form-label" for="chartYear">Ano</label><input type="number" id="chartYear" class="form-input" min="2020" max="2030" onchange="updateChart()"></div>
+                            <div class="form-group"><label class="form-label" for="chartTypeFilter">Movimento</label><select id="chartTypeFilter" class="form-select" onchange="updateChart()"><option value="both">Receitas e despesas</option><option value="expense">Despesas</option><option value="income">Receitas</option></select></div>
+                            <div class="form-group"><label class="form-label" for="chartFavorites">Favoritas</label><select id="chartFavorites" class="form-select" onchange="updateChart()"><option value="all">Todas</option><option value="favorites">Só favoritas</option><option value="nonfavorites">Sem favoritas</option></select></div>
+                            <div class="form-group"><label class="form-label" for="chartGroupBy">Agrupar por</label><select id="chartGroupBy" class="form-select" onchange="updateChart()"><option value="category">Categoria</option><option value="date">Dia</option></select></div>
+                            <button class="btn btn-secondary chart-category-filter" type="button" onclick="openCategorySelectionModal('chart')">Categorias <span id="chartCategorySummary">Todas</span></button>
                         </div>
-                    </div>
-
-                    <!-- Date Row -->
-                    <div class="home-date-nav">
-                        <button type="button" class="home-date-arrow" onclick="event.stopPropagation();previousDay();" title="Dia anterior">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                        </button>
-                        
-                        <button type="button" class="home-date-pill" id="datePillButton" onclick="event.stopPropagation();openCustomDateModal();" title="Calendário">
-                            <span id="datePillText">HOJE</span>
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
-                                <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                                <line x1="16" y1="2" x2="16" y2="6"></line>
-                                <line x1="8" y1="2" x2="8" y2="6"></line>
-                                <line x1="3" y1="10" x2="21" y2="10"></line>
-                            </svg>
+                        <div class="chart-totals" aria-live="polite">
+                            <div><span>Receitas</span><strong id="chartTotalIncome">R$ 0,00</strong></div>
+                            <div><span>Despesas</span><strong id="chartTotalExpense">R$ 0,00</strong></div>
+                            <div><span>Saldo</span><strong id="chartTotalBalance">R$ 0,00</strong></div>
+                            <div><span>Lançamentos</span><strong id="chartTransactionCount">0</strong></div>
+                        </div>
+                        <div class="chart-container-wrapper"><canvas id="financeChart" role="img" aria-label="Gráfico de barras de receitas e despesas"></canvas><div id="chartEmptyState" class="empty-state" hidden>Nenhum lançamento encontrado neste período.</div></div>
                         </button>
 
                         <button type="button" class="home-date-arrow" onclick="event.stopPropagation();nextDay();" title="Próximo dia">
@@ -6295,7 +6533,7 @@
         console.log("Auth e Firestore configurados.");
 
         let currentUser = null;
-        let transactions = []; let goals = []; let editingTransactionId = null; let editingGoalId = null; let lastSearchResults = []; let financeChartInstance = null; let currentChartType = 'pie';
+        let transactions = []; let goals = []; let editingTransactionId = null; let editingGoalId = null; let lastSearchResults = []; let financeChartInstance = null; let currentChartType = 'bar';
         let lastBackupDate = localStorage.getItem('lastBackupDate') || '';
 
         // Auth State Listener
@@ -8617,7 +8855,271 @@
             }
         }
 
-        function clearChartCategories() { selectedChartCategories.clear(); updateCategorySummaryLabels(); updateChart(); }
+        let searchDebounceTimer = null;
+        let transactionFilterTimer = null;
+        function scheduleTransactionFilter() {
+            clearTimeout(transactionFilterTimer);
+            transactionFilterTimer = setTimeout(updateTransactionsList, 120);
+        }
+
+        function scheduleSearch() {
+            clearTimeout(searchDebounceTimer);
+            searchDebounceTimer = setTimeout(performSearch, 120);
+        }
+
+        function normalizeFilterText(value) {
+            return String(value || '').toLocaleLowerCase('pt-BR').normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim();
+        }
+
+        function performSearch() {
+            const query = normalizeFilterText(document.getElementById('searchDescription').value);
+            const terms = query.split(/\s+/).filter(Boolean);
+            const startDate = document.getElementById('searchStartDate').value;
+            const endDate = document.getElementById('searchEndDate').value;
+            const type = document.getElementById('searchType').value;
+            const favoritesOnly = document.getElementById('searchFavorites').checked;
+            const matches = getActiveTransactions().filter(tx => {
+                const searchable = normalizeFilterText(`${tx.description} ${getCategoryLabel(tx.category)}`);
+                return terms.every(term => searchable.includes(term)) &&
+                    (!selectedSearchCategories.size || selectedSearchCategories.has(tx.category)) &&
+                    (!type || tx.type === type) &&
+                    (!startDate || tx.date >= startDate) &&
+                    (!endDate || tx.date <= endDate) &&
+                    (!favoritesOnly || tx.favorite);
+            });
+            matches.sort((a, b) => b.date.localeCompare(a.date) || String(b.time || '').localeCompare(String(a.time || '')));
+            lastSearchResults = matches;
+            updateSearchResults(matches);
+            updateSearchCategoryUI();
+        }
+
+        function clearSearch() {
+            document.getElementById('searchDescription').value = '';
+            document.getElementById('searchType').value = '';
+            document.getElementById('searchFavorites').checked = false;
+            document.getElementById('searchStartDate').value = '';
+            document.getElementById('searchEndDate').value = '';
+            selectedSearchCategories.clear();
+            selectedMonths.clear();
+            clearQuickDateBtns();
+            updateSearchCategoryUI();
+            performSearch();
+        }
+
+        function updateTransactionsList() {
+            const list = document.getElementById('transactionsList');
+            const query = normalizeFilterText(document.getElementById('transactionsQuery')?.value);
+            const type = document.getElementById('transactionsType')?.value || '';
+            const month = document.getElementById('transactionsMonth')?.value || '';
+            const filtered = getActiveTransactions().filter(tx => {
+                const searchable = normalizeFilterText(`${tx.description} ${getCategoryLabel(tx.category)}`);
+                return (!query || searchable.includes(query)) && (!type || tx.type === type) && (!month || tx.date.startsWith(month));
+            }).sort((a, b) => b.date.localeCompare(a.date) || String(b.time || '').localeCompare(String(a.time || '')));
+            const count = document.getElementById('transactionsFilterCount');
+            if (count) count.textContent = `${filtered.length} de ${getActiveTransactions().length} lançamentos`;
+            if (!filtered.length) {
+                list.innerHTML = `<div class="empty-state">${getActiveTransactions().length ? 'Nenhum lançamento corresponde aos filtros.' : t('noTransactionsFoundShort')}</div>`;
+                return;
+            }
+            list.innerHTML = filtered.map(tx => renderTransactionItem(tx)).join('');
+        }
+
+        function clearTransactionFilters() {
+            document.getElementById('transactionsQuery').value = '';
+            document.getElementById('transactionsType').value = '';
+            document.getElementById('transactionsMonth').value = '';
+            updateTransactionsList();
+        }
+
+        function setChartType() {
+            currentChartType = 'bar';
+            updateChart();
+        }
+
+        function getChartData() {
+            const period = document.getElementById('chartPeriod').value;
+            const today = getTodayInBrasiliaISO();
+            let startDate;
+            let endDate;
+            if (period === 'custom') {
+                startDate = document.getElementById('chartStartDate').value;
+                endDate = document.getElementById('chartEndDate').value;
+                if (!startDate || !endDate || startDate > endDate) return { labels: [], income: [], expense: [], transactions: [] };
+            } else if (period === 'month') {
+                const month = document.getElementById('chartMonth').value;
+                if (!month) return { labels: [], income: [], expense: [], transactions: [] };
+                startDate = `${month}-01`;
+                const [year, monthNumber] = month.split('-').map(Number);
+                endDate = `${month}-${String(new Date(year, monthNumber, 0).getDate()).padStart(2, '0')}`;
+            } else if (period === 'week') {
+                const week = document.getElementById('chartWeek').value;
+                if (!week) return { labels: [], income: [], expense: [], transactions: [] };
+                const [year, weekNumber] = week.split('-W').map(Number);
+                const firstDay = new Date(Date.UTC(year, 0, 1 + (weekNumber - 1) * 7));
+                const weekday = firstDay.getUTCDay() || 7;
+                firstDay.setUTCDate(firstDay.getUTCDate() - weekday + 1);
+                const lastDay = new Date(firstDay);
+                lastDay.setUTCDate(lastDay.getUTCDate() + 6);
+                startDate = firstDay.toISOString().slice(0, 10);
+                endDate = lastDay.toISOString().slice(0, 10);
+            } else if (period === 'year') {
+                const year = document.getElementById('chartYear').value;
+                if (!year) return { labels: [], income: [], expense: [], transactions: [] };
+                startDate = `${year}-01-01`;
+                endDate = `${year}-12-31`;
+            } else {
+                const start = new Date(`${today}T12:00:00`);
+                start.setMonth(start.getMonth() - (period === 'last6' ? 6 : 3));
+                startDate = start.toISOString().slice(0, 10);
+                endDate = today;
+            }
+
+            let list = getActiveTransactions().filter(tx => tx.date >= startDate && tx.date <= endDate);
+            const type = document.getElementById('chartTypeFilter').value;
+            if (type !== 'both') list = list.filter(tx => tx.type === type);
+            const favorites = document.getElementById('chartFavorites').value;
+            if (favorites === 'favorites') list = list.filter(tx => tx.favorite);
+            if (favorites === 'nonfavorites') list = list.filter(tx => !tx.favorite);
+            if (selectedChartCategories.size) list = list.filter(tx => selectedChartCategories.has(tx.category));
+
+            const grouped = new Map();
+            list.forEach(tx => {
+                const key = document.getElementById('chartGroupBy').value === 'date' ? tx.date : tx.category;
+                if (!grouped.has(key)) grouped.set(key, { income: 0, expense: 0 });
+                grouped.get(key)[tx.type] += Number(tx.value) || 0;
+            });
+            const keys = Array.from(grouped.keys()).sort((a, b) => {
+                if (document.getElementById('chartGroupBy').value === 'date') return a.localeCompare(b);
+                const totalA = grouped.get(a).income + grouped.get(a).expense;
+                const totalB = grouped.get(b).income + grouped.get(b).expense;
+                return totalB - totalA;
+            });
+            const currency = value => formatCurrency(value);
+            const totalIncome = list.filter(tx => tx.type === 'income').reduce((sum, tx) => sum + (Number(tx.value) || 0), 0);
+            const totalExpense = list.filter(tx => tx.type === 'expense').reduce((sum, tx) => sum + (Number(tx.value) || 0), 0);
+            return {
+                labels: keys.map(key => document.getElementById('chartGroupBy').value === 'date' ? formatDateForDisplay(key) : getCategoryLabel(key)),
+                income: keys.map(key => grouped.get(key).income),
+                expense: keys.map(key => grouped.get(key).expense),
+                transactions: list,
+                totalIncome,
+                totalExpense,
+                currency
+            };
+        }
+
+        function updateChart() {
+            const canvas = document.getElementById('financeChart');
+            if (!canvas) return;
+            const data = getChartData();
+            const empty = document.getElementById('chartEmptyState');
+            const hasData = data.labels.length > 0;
+            canvas.style.display = hasData ? 'block' : 'none';
+            if (empty) empty.style.display = hasData ? 'none' : 'block';
+            document.getElementById('chartTotalIncome').textContent = formatCurrency(data.totalIncome || 0);
+            document.getElementById('chartTotalExpense').textContent = formatCurrency(data.totalExpense || 0);
+            document.getElementById('chartTotalBalance').textContent = formatCurrency((data.totalIncome || 0) - (data.totalExpense || 0));
+            document.getElementById('chartTransactionCount').textContent = String(data.transactions.length);
+            if (typeof Chart === 'undefined') return;
+            if (!hasData) {
+                if (financeChartInstance) {
+                    financeChartInstance.destroy();
+                    financeChartInstance = null;
+                }
+                return;
+            }
+            const dark = document.body.classList.contains('dark');
+            const textColor = dark ? '#F1F5F9' : '#30343B';
+            const gridColor = dark ? 'rgba(255,255,255,0.08)' : 'rgba(20,25,30,0.08)';
+            const type = document.getElementById('chartTypeFilter').value;
+            const datasets = [];
+            if (type === 'both' || type === 'income') datasets.push({ label: 'Receitas', data: data.income, backgroundColor: 'rgba(48, 190, 135, 0.82)', borderColor: '#30BE87', borderWidth: 1, borderRadius: 6, maxBarThickness: 38 });
+            if (type === 'both' || type === 'expense') datasets.push({ label: 'Despesas', data: data.expense, backgroundColor: 'rgba(255, 107, 107, 0.78)', borderColor: '#FF6B6B', borderWidth: 1, borderRadius: 6, maxBarThickness: 38 });
+            const chartData = { labels: data.labels, datasets };
+            const options = {
+                responsive: true,
+                maintainAspectRatio: false,
+                animation: false,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { position: 'top', align: 'start', labels: { color: textColor, usePointStyle: true, boxWidth: 8, padding: 18, font: { size: 12 } } },
+                    tooltip: { callbacks: { label: context => `${context.dataset.label}: ${formatCurrency(context.parsed.y || 0)}` } }
+                },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: textColor, callback: value => formatCurrency(value) } },
+                    x: { grid: { display: false }, ticks: { color: textColor, maxRotation: 35, autoSkip: true, maxTicksLimit: 12 } }
+                }
+            };
+            if (!financeChartInstance) {
+                financeChartInstance = new Chart(canvas, { type: 'bar', data: chartData, options });
+            } else {
+                financeChartInstance.data = chartData;
+                financeChartInstance.options = options;
+                financeChartInstance.update('none');
+            }
+        }
+
+        function updateSearchResults(filtered) {
+            const list = document.getElementById('searchResultsList');
+            const count = document.getElementById('searchResultCount');
+            const totalIncome = filtered.reduce((sum, tx) => sum + (tx.type === 'income' ? Number(tx.value) || 0 : 0), 0);
+            const totalExpense = filtered.reduce((sum, tx) => sum + (tx.type === 'expense' ? Number(tx.value) || 0 : 0), 0);
+            document.getElementById('searchTotalIncome').textContent = formatCurrency(totalIncome);
+            document.getElementById('searchTotalExpense').textContent = formatCurrency(totalExpense);
+            count.textContent = `${filtered.length} ${t('transactionsFound')}`;
+            if (!filtered.length) {
+                list.innerHTML = `<div class="empty-state">${t('noTransactionsFound')}</div>`;
+                return;
+            }
+            const byDate = {};
+            filtered.forEach(tx => (byDate[tx.date] ||= []).push(tx));
+            const dates = Object.keys(byDate).sort((a, b) => b.localeCompare(a));
+            list.innerHTML = '<div class="search-results-grouped">' + dates.map(date =>
+                `<section class="search-results-date-group"><h4 class="search-results-date-header">${formatDateForDisplay(date)}</h4><div class="search-results-date-list">${byDate[date].map(renderSearchResultCard).join('')}</div></section>`
+            ).join('') + '</div>';
+        }
+
+        function clearChartCategories() {
+            selectedChartCategories.clear();
+            updateCategorySummaryLabels();
+            updateChart();
+        }
+
+        function toggleChartPeriodInputs() {
+            const period = document.getElementById('chartPeriod').value;
+            const visibility = { custom: 'chartCustomGroup', month: 'chartMonthGroup', year: 'chartYearGroup' };
+            Object.entries(visibility).forEach(([key, id]) => {
+                const group = document.getElementById(id);
+                if (group) group.style.display = period === key ? 'block' : 'none';
+            });
+            initChartPeriodInputs();
+            updateChart();
+        }
+
+        function repairRedesignedTabs() {
+            const main = document.querySelector('.main-content');
+            const search = document.getElementById('search');
+            const templates = document.querySelector('template')?.content;
+            const transactionTemplate = templates?.querySelector('#new-transaction');
+            const chartTemplate = templates?.querySelector('#charts');
+            if (!main || !search || !transactionTemplate || !chartTemplate) return;
+
+            search.querySelectorAll('.tab-content').forEach(tab => main.appendChild(tab));
+            const searchCard = search.querySelector(':scope > .card');
+            const searchTitle = searchCard?.querySelector(':scope > h2');
+            const searchFilters = searchCard?.querySelector('.search-filter-panel');
+            const searchResults = templates.querySelector('.search-results')?.cloneNode(true);
+            if (searchCard && searchTitle && searchFilters && searchResults) {
+                searchCard.replaceChildren(searchTitle, searchFilters, searchResults);
+            }
+
+            const oldChart = document.getElementById('charts');
+            const chart = chartTemplate.cloneNode(true);
+            if (oldChart) oldChart.replaceWith(chart);
+            main.insertBefore(transactionTemplate.cloneNode(true), chart);
+        }
+
+        repairRedesignedTabs();
     </script>
     <script>
         if ('serviceWorker' in navigator) {
