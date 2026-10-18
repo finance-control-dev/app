@@ -1,0 +1,23 @@
+# Dependencies
+node_modules/
+package-lock.json
+
+# Staging & Web build outputs
+www/
+dist/
+*.zip
+
+# Android build outputs & local config
+android/
+.gradle/
+local.properties
+*.keystore
+*.jks
+
+# Bubblewrap temporary files
+.bubblewrap/
+
+# Logs and OS files
+*.log
+.DS_Store
+Thumbs.db

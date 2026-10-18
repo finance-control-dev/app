@@ -1,0 +1,25 @@
+{
+  "name": "finance-control",
+  "version": "1.0.0",
+  "description": "Finance Control - Aplicativo de Gestão Financeira PWA e Mobile",
+  "main": "index.html",
+  "scripts": {
+    "build": "mkdir -p www && cp -r index.html manifest.json sw.js favicon.png icon-192.png icon-512.png icon.png pix-qr.png assets css js www/",
+    "cap:sync": "npx cap sync android",
+    "cap:build": "npm run build && npx cap copy android && cd android && ./gradlew assembleDebug"
+  },
+  "dependencies": {
+    "@capacitor/android": "^6.1.2",
+    "@capacitor/cli": "^6.1.2",
+    "@capacitor/core": "^6.1.2"
+  },
+  "keywords": [
+    "pwa",
+    "finance",
+    "capacitor",
+    "android",
+    "firebase"
+  ],
+  "author": "Patrick",
+  "license": "MIT"
+}

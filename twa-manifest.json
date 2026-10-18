@@ -1,0 +1,36 @@
+{
+  "packageId": "com.financecontrol.app",
+  "host": "finance-control.web.app",
+  "name": "Finance Control",
+  "launcherName": "Finance",
+  "display": "standalone",
+  "themeColor": "#000000",
+  "themeColorDark": "#000000",
+  "navigationColor": "#000000",
+  "navigationColorDark": "#000000",
+  "navigationDividerColor": "#222222",
+  "navigationDividerColorDark": "#222222",
+  "backgroundColor": "#000000",
+  "enableNotifications": true,
+  "startUrl": "/",
+  "iconUrl": "assets/icons/icon-512.png",
+  "maskableIconUrl": "assets/icons/icon-512.png",
+  "splashScreenFadeOutDuration": 300,
+  "shortcuts": [],
+  "generatorApp": "bubblewrap-cli",
+  "webManifestUrl": "manifest.json",
+  "fallbackType": "customtabs",
+  "features": {
+    "locationDelegation": {
+      "enabled": false
+    },
+    "playBilling": {
+      "enabled": false
+    }
+  },
+  "alphaDependencies": {
+    "enabled": false
+  },
+  "isChromeOSOnly": false,
+  "isMetaQuest": false
+}

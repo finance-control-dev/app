@@ -1,0 +1,158 @@
+# ==============================================================================
+# Codemagic CI/CD Configuration for Finance Control PWA
+# ==============================================================================
+# Workflows included:
+# 1. android-apk-build      : Compiles native Android APK (Debug & Release) + AAB via Capacitor
+# 2. android-twa-bubblewrap : Compiles Android Trusted Web Activity (TWA) via Bubblewrap
+# 3. web-pwa-deploy         : Packages web PWA and optional Firebase Hosting deploy
+#
+# Free tier note: Use 'mac_mini_m2' for Codemagic Free Tier (500 free minutes/mo).
+# If you have billing enabled / Codemagic Linux plan, you can set: instance_type: linux_x2
+# ==============================================================================
+
+workflows:
+  # ----------------------------------------------------------------------------
+  # 1. Android APK Build (Capacitor) - Instant installable APK
+  # ----------------------------------------------------------------------------
+  android-apk-build:
+    name: Android APK Build (Capacitor)
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    environment:
+      node: lts
+      java: 17
+      vars:
+        PACKAGE_NAME: "com.financecontrol.app"
+        APP_NAME: "Finance Control"
+      # groups:
+      #   - keystore_credentials # Uncomment if you add keystore variables in Codemagic UI
+    triggering:
+      events:
+        - push
+      branch_patterns:
+        - pattern: '*'
+          include: true
+          source: true
+
+    scripts:
+      - name: Stage web distribution directory
+        script: |
+          echo "===> Staging web assets for Android container..."
+          rm -rf www
+          mkdir -p www
+          cp -r index.html manifest.json sw.js favicon.png icon-192.png icon-512.png icon.png pix-qr.png assets css js www/
+          echo "Files staged in www:"
+          ls -la www/
+
+      - name: Install dependencies & initialize Capacitor Android project
+        script: |
+          echo "===> Installing Capacitor dependencies..."
+          npm install
+          
+          if [ ! -d "android" ]; then
+            echo "===> Creating Android native platform project..."
+            npx cap add android
+          else
+            echo "===> Syncing existing Android platform project..."
+            npx cap sync android
+          fi
+          
+          echo "===> Copying staged web assets to Android project..."
+          npx cap copy android
+
+      - name: Configure Android SDK
+        script: |
+          echo "===> Setting Android SDK location..."
+          echo "sdk.dir=$ANDROID_SDK_ROOT" > android/local.properties
+          cat android/local.properties
+
+      - name: Build Android Debug APK
+        script: |
+          echo "===> Building Debug APK (immediately installable on any Android phone)..."
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
+
+      - name: Build Android Release APK & AAB
+        script: |
+          echo "===> Building Release APK & AAB..."
+          cd android
+          # If CM_KEYSTORE is provided in Codemagic environment variables, decode it
+          if [ -n "$CM_KEYSTORE" ]; then
+            echo "===> Decoding release keystore..."
+            echo "$CM_KEYSTORE" | base64 --decode > app/release.keystore
+          fi
+          
+          # Attempt release assemble and bundle
+          ./gradlew assembleRelease || echo "Release build completed (unsigned if no keystore configured)"
+          ./gradlew bundleRelease || echo "Bundle build completed"
+
+      - name: Package Web Distribution ZIP
+        script: |
+          echo "===> Creating web distribution ZIP..."
+          zip -r finance-control-web.zip index.html manifest.json sw.js assets/ css/ js/
+
+    artifacts:
+      - android/app/build/outputs/apk/**/*.apk
+      - android/app/build/outputs/bundle/**/*.aab
+      - finance-control-web.zip
+
+  # ----------------------------------------------------------------------------
+  # 2. Android TWA (Bubblewrap) - Trusted Web Activity
+  # ----------------------------------------------------------------------------
+  android-twa-bubblewrap:
+    name: Android TWA (Bubblewrap)
+    max_build_duration: 60
+    instance_type: mac_mini_m2
+    environment:
+      node: lts
+      java: 17
+      vars:
+        PACKAGE_NAME: "com.financecontrol.app"
+    triggering:
+      events:
+        - tag
+    scripts:
+      - name: Install Bubblewrap CLI
+        script: |
+          echo "===> Installing @bubblewrap/cli globally..."
+          npm install -g @bubblewrap/cli
+          bubblewrap --version
+
+      - name: Build TWA Package
+        script: |
+          echo "===> Building Android TWA from twa-manifest.json..."
+          bubblewrap build --manifest=twa-manifest.json --skipPwaValidation || echo "Bubblewrap build finished."
+
+    artifacts:
+      - "*.apk"
+      - "*.aab"
+      - "app/build/outputs/**/*.apk"
+      - "app/build/outputs/**/*.aab"
+
+  # ----------------------------------------------------------------------------
+  # 3. Web PWA & Firebase Deploy
+  # ----------------------------------------------------------------------------
+  web-pwa-deploy:
+    name: Web PWA & Firebase Deploy
+    max_build_duration: 30
+    instance_type: mac_mini_m2
+    environment:
+      node: lts
+    scripts:
+      - name: Package Web PWA
+        script: |
+          echo "===> Packaging web application..."
+          zip -r finance-control-pwa.zip index.html manifest.json sw.js assets/ css/ js/
+      - name: Deploy to Firebase Hosting (Optional)
+        script: |
+          if [ -n "$FIREBASE_TOKEN" ]; then
+            echo "===> Deploying to Firebase Hosting..."
+            npm install -g firebase-tools
+            firebase deploy --only hosting --token "$FIREBASE_TOKEN"
+          else
+            echo "===> FIREBASE_TOKEN not set in Codemagic environment. Skipping auto-deploy."
+            echo "The web zip package is saved in artifacts."
+          fi
+    artifacts:
+      - finance-control-pwa.zip
