@@ -3,22 +3,8 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport"
-        content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-    <title>Controle Financeiro Aprimorado</title>
-    <link rel="icon" type="image/png" href="./assets/icons/favicon.png">
-    <link rel="shortcut icon" type="image/png" href="./assets/icons/favicon.png">
-    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js"></script>
-    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
-        rel="stylesheet">
-    <link rel="manifest" href="./manifest.json">
     <script>
-        // Console Filter for Permissions-Policy, COOP window.closed, and AdBlocker WebChannel noise
+        // Console Filter for Permissions-Policy, Storage CORS, COOP window.closed, and AdBlocker WebChannel noise
         (function() {
             var filterKeywords = [
                 'Permissions-Policy',
@@ -29,7 +15,19 @@
                 'Cross-Origin-Opener-Policy',
                 'window.closed',
                 'ERR_BLOCKED_BY_CLIENT',
-                'webchannel_connection'
+                'webchannel_connection',
+                'enableMultiTabIndexedDbPersistence',
+                'will be deprecated in the future',
+                'firestoreSettings.cache',
+                'firebasestorage.googleapis.com',
+                'firebasestorage',
+                'storage/retry-limit-exceeded',
+                'ERR_FAILED',
+                'CORS policy',
+                'Access to XMLHttpRequest',
+                'has been blocked by CORS policy',
+                'A leitura automática demorou',
+                'OCR não completou ou foi pulado'
             ];
             function shouldFilter(args) {
                 try {
@@ -56,8 +54,18 @@
                 if (shouldFilter(arguments)) return;
                 origError.apply(console, arguments);
             };
+            var origInfo = console.info;
+            console.info = function() {
+                if (shouldFilter(arguments)) return;
+                origInfo.apply(console, arguments);
+            };
+            var origLog = console.log;
+            console.log = function() {
+                if (shouldFilter(arguments)) return;
+                origLog.apply(console, arguments);
+            };
             window.addEventListener('error', function(e) {
-                if (e && e.message && shouldFilter([e.message])) {
+                if (e && (shouldFilter([e.message]) || (e.error && shouldFilter([e.error])))) {
                     e.preventDefault();
                     e.stopImmediatePropagation();
                 }
@@ -70,6 +78,20 @@
             }, true);
         })();
     </script>
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Controle Financeiro Aprimorado</title>
+    <link rel="icon" type="image/png" href="./assets/icons/favicon.png">
+    <link rel="shortcut icon" type="image/png" href="./assets/icons/favicon.png">
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js"></script>
+    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <link rel="manifest" href="./manifest.json">
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -328,15 +350,6 @@
                 </svg>
                 <span data-i18n="menuContact">Contato</span>
             </button>
-            <div class="menu-font-control">
-                <span class="menu-font-label" data-i18n="fontSizeTitle">Tamanho do Texto</span>
-                <div class="menu-font-buttons">
-                    <button type="button" class="menu-font-btn" data-size="small" onclick="setFontSize('small')">A-</button>
-                    <button type="button" class="menu-font-btn active" data-size="normal" onclick="setFontSize('normal')">A</button>
-                    <button type="button" class="menu-font-btn" data-size="medium" onclick="setFontSize('medium')">A+</button>
-                    <button type="button" class="menu-font-btn" data-size="large" onclick="setFontSize('large')">A++</button>
-                </div>
-            </div>
             <button class="menu-item" onclick="logout()" style="margin-top: auto; color: var(--danger);">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -354,8 +367,18 @@
         <div id="new-transaction" class="tab-content active">
             <div class="card hero-transaction-card">
                 <div class="card-header-row">
-                    <h2 class="card-title" data-i18n="newTransaction">Nova Transação</h2>
-                    <span class="card-badge-pulse" aria-hidden="true"></span>
+                    <div class="card-header-left">
+                        <h2 class="card-title" data-i18n="newTransaction">Nova Transação</h2>
+                        <span class="card-badge-pulse" aria-hidden="true"></span>
+                    </div>
+                    <button type="button" class="btn-voice-header-shortcut" onclick="openVoiceTransactionModal()" title="Lançar transação por voz" aria-label="Lançar transação por voz">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                            <line x1="12" y1="19" x2="12" y2="23"/>
+                            <line x1="8" y1="23" x2="16" y2="23"/>
+                        </svg>
+                    </button>
                 </div>
                 <form id="transactionForm" onsubmit="event.preventDefault();">
                     <!-- Segmented Control Type Switcher -->
@@ -395,40 +418,43 @@
                     </div>
                     <input type="date" id="transactionDate" required style="display:none;">
 
-                    <!-- Category Field -->
-                    <div class="modern-field-group">
-                        <label class="form-row-label" for="transactionCategory" data-i18n="category">CATEGORIA</label>
-                        <div class="form-row-styled">
-                            <div class="form-row-icon">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+                    <!-- Fields Grid: Category + Description -->
+                    <div class="transaction-fields-grid">
+                        <!-- Category Field -->
+                        <div class="modern-field-group">
+                            <label class="form-row-label" for="transactionCategory" data-i18n="category">CATEGORIA</label>
+                            <div class="form-row-styled">
+                                <div class="form-row-icon">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
+                                </div>
+                                <select id="transactionCategory" class="form-select" required>
+                                    <option value="" data-i18n="selectCategory">Selecione uma categoria</option>
+                                    <option value="alimentacao">🍽️ Alimentação</option>
+                                    <option value="mercado">🛒 Mercado</option>
+                                    <option value="combustivel">⛽ Combustível</option>
+                                    <option value="manutencao_veiculo">🔧 Manutenção Veículo</option>
+                                    <option value="transporte">🚗 Transporte</option>
+                                    <option value="moradia">🏠 Moradia</option>
+                                    <option value="saude">🏥 Saúde</option>
+                                    <option value="educacao">📚 Educação</option>
+                                    <option value="lazer">🎮 Lazer</option>
+                                    <option value="salario">💼 Salário</option>
+                                    <option value="freelance">💻 Freelance</option>
+                                    <option value="investimentos">📈 Investimentos</option>
+                                    <option value="outros">📦 Outros</option>
+                                </select>
                             </div>
-                            <select id="transactionCategory" class="form-select" required>
-                                <option value="" data-i18n="selectCategory">Selecione uma categoria</option>
-                                <option value="alimentacao">🍽️ Alimentação</option>
-                                <option value="mercado">🛒 Mercado</option>
-                                <option value="combustivel">⛽ Combustível</option>
-                                <option value="manutencao_veiculo">🔧 Manutenção Veículo</option>
-                                <option value="transporte">🚗 Transporte</option>
-                                <option value="moradia">🏠 Moradia</option>
-                                <option value="saude">🏥 Saúde</option>
-                                <option value="educacao">📚 Educação</option>
-                                <option value="lazer">🎮 Lazer</option>
-                                <option value="salario">💼 Salário</option>
-                                <option value="freelance">💻 Freelance</option>
-                                <option value="investimentos">📈 Investimentos</option>
-                                <option value="outros">📦 Outros</option>
-                            </select>
                         </div>
-                    </div>
 
-                    <!-- Description Field -->
-                    <div class="modern-field-group">
-                        <label class="form-row-label" for="transactionDescription" data-i18n="description">DESCRIÇÃO</label>
-                        <div class="form-row-styled">
-                            <div class="form-row-icon">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                        <!-- Description Field -->
+                        <div class="modern-field-group">
+                            <label class="form-row-label" for="transactionDescription" data-i18n="description">DESCRIÇÃO</label>
+                            <div class="form-row-styled">
+                                <div class="form-row-icon">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                </div>
+                                <input type="text" id="transactionDescription" class="form-input" data-i18n-placeholder="placeholderDescShort" placeholder="Descrição da transação" required autocomplete="off">
                             </div>
-                            <input type="text" id="transactionDescription" class="form-input" data-i18n-placeholder="placeholderDescShort" placeholder="Descrição da transação" required autocomplete="off">
                         </div>
                     </div>
 
@@ -621,7 +647,27 @@
                             <button class="btn btn-secondary" type="button" onclick="clearChartCategories()">Limpar categorias</button>
                         </div>
                     </div>
+                <div class="stats-grid mb-2" id="chartTotalsCard" style="margin-top: 1rem;">
+                    <div class="stat-card income">
+                        <div class="stat-card-header">
+                            <span class="stat-label">Receitas</span>
+                        </div>
+                        <div class="stat-value" id="chartTotalIncome">R$ 0,00</div>
+                    </div>
+                    <div class="stat-card expense">
+                        <div class="stat-card-header">
+                            <span class="stat-label">Despesas</span>
+                        </div>
+                        <div class="stat-value" id="chartTotalExpense">R$ 0,00</div>
+                    </div>
+                    <div class="stat-card balance">
+                        <div class="stat-card-header">
+                            <span class="stat-label">Saldo</span>
+                        </div>
+                        <div class="stat-value" id="chartTotalBalance">R$ 0,00</div>
+                    </div>
                 </div>
+                <span id="chartTransactionCount" style="display:none;">0</span>
                 <div class="chart-container-wrapper"><canvas id="financeChart"></canvas></div>
             </div>
         </div>
@@ -1383,6 +1429,83 @@
                 <div class="form-group form-group-checkbox"><label class="form-label form-label-checkbox"><input
                             type="checkbox" id="editTransactionFavorite"> &#11088; <span
                             data-i18n="favoriteTransaction">Favoritar esta transacao</span></label></div>
+
+                <!-- Comprovante da Transação na Edição -->
+                <div class="form-group edit-receipt-section">
+                    <div class="edit-receipt-header">
+                        <label class="form-label edit-receipt-label">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                                <polyline points="14 2 14 8 20 8"></polyline>
+                                <line x1="16" y1="13" x2="8" y2="13"></line>
+                                <line x1="16" y1="17" x2="8" y2="17"></line>
+                            </svg>
+                            <span>Comprovante</span>
+                        </label>
+                        <span id="editReceiptBadge" class="receipt-status-pill none">Nenhum</span>
+                    </div>
+
+                    <!-- Card do Comprovante (Atual ou Selecionado) -->
+                    <div id="editReceiptCard" class="edit-receipt-card" style="display:none;">
+                        <div class="edit-receipt-card-left">
+                            <div class="edit-receipt-icon-wrap" id="editReceiptIconWrap">📄</div>
+                            <div class="edit-receipt-details">
+                                <div id="editReceiptTitle" class="edit-receipt-card-name">comprovante.jpg</div>
+                                <div id="editReceiptSub" class="edit-receipt-card-sub">Anexado à transação</div>
+                            </div>
+                        </div>
+                        <div class="edit-receipt-card-actions">
+                            <button type="button" class="btn-receipt-action" id="editReceiptViewBtn" onclick="viewEditingTransactionReceipt()" title="Visualizar comprovante">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                                    <circle cx="12" cy="12" r="3"></circle>
+                                </svg>
+                                <span>Ver</span>
+                            </button>
+                            <button type="button" class="btn-receipt-action btn-receipt-danger" id="editReceiptRemoveBtn" onclick="removeEditingTransactionReceipt()" title="Remover comprovante">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                    <polyline points="3 6 5 6 21 6"></polyline>
+                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                </svg>
+                                <span>Remover</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Botão de Upload / Trocar -->
+                    <div class="edit-receipt-upload-row">
+                        <label for="editReceiptInput" class="btn-receipt-upload">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                <polyline points="17 8 12 3 7 8"></polyline>
+                                <line x1="12" y1="3" x2="12" y2="15"></line>
+                            </svg>
+                            <span id="editReceiptUploadText">Anexar Comprovante</span>
+                        </label>
+                        <input type="file" id="editReceiptInput" accept="image/*,application/pdf" style="display:none;" onchange="handleEditReceiptFileSelected(event)">
+                    </div>
+
+                    <!-- Card de Leitura OCR Inteligente -->
+                    <div id="editReceiptOcrBox" class="edit-receipt-ocr-card" style="display:none;">
+                        <div class="edit-receipt-ocr-status-row">
+                            <span class="edit-ocr-spinner" id="editOcrSpinner"></span>
+                            <span id="editOcrStatusText" class="edit-ocr-status-text">Lendo comprovante com IA/OCR...</span>
+                        </div>
+                        <div id="editOcrSuggestions" class="edit-ocr-suggestions" style="display:none;">
+                            <div class="edit-ocr-tags-grid">
+                                <span class="edit-ocr-pill" id="editOcrPillDate" style="display:none;">📅 Data: <b></b></span>
+                                <span class="edit-ocr-pill" id="editOcrPillValue" style="display:none;">💰 Valor: <b></b></span>
+                                <span class="edit-ocr-pill" id="editOcrPillDesc" style="display:none;">🏢 Favorecido: <b></b></span>
+                                <span class="edit-ocr-pill" id="editOcrPillCat" style="display:none;">🏷️ Categoria: <b></b></span>
+                            </div>
+                            <button type="button" class="btn-apply-edit-ocr" onclick="applyEditReceiptOcrToForm()">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                                <span>Preencher dados lidos no formulário</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="btn-group">
                     <button type="button" class="btn btn-primary" onclick="saveTransactionEdit()"><svg
                             xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 512 512">
@@ -1600,11 +1723,201 @@
         </div>
     </div>
 
-    <!-- Floating Receipt Actions -->
-    <button class="floating-receipt-btn" id="receiptActionButton" type="button" aria-label="Inserir comprovante" title="Inserir comprovante" onclick="openReceiptPicker()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
-    </button>
+    <!-- Quick Add Floating Speed Dial Container -->
+    <div class="quick-add-container" id="quickAddContainer">
+        <div class="quick-add-backdrop" id="quickAddBackdrop" onclick="toggleQuickAddMenu(false)"></div>
+        <div class="quick-add-menu" id="quickAddMenu" role="menu" aria-label="Opções para adicionar lançamento">
+            <!-- Option 1: Por Voz -->
+            <button type="button" class="quick-add-item voice-option" onclick="handleQuickAddChoice('voice')" role="menuitem">
+                <div class="quick-add-text">
+                    <span class="quick-add-title">Por Voz</span>
+                    <span class="quick-add-subtitle">Fale o valor e descrição</span>
+                </div>
+                <div class="quick-add-icon voice-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                        <line x1="12" y1="19" x2="12" y2="23"/>
+                        <line x1="8" y1="23" x2="16" y2="23"/>
+                    </svg>
+                </div>
+            </button>
+
+            <!-- Option 2: Por Documento / Comprovante -->
+            <button type="button" class="quick-add-item receipt-option" onclick="handleQuickAddChoice('receipt')" role="menuitem">
+                <div class="quick-add-text">
+                    <span class="quick-add-title">Por Documento</span>
+                    <span class="quick-add-subtitle">Comprovante com leitura IA</span>
+                </div>
+                <div class="quick-add-icon receipt-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                        <polyline points="14 2 14 8 20 8"/>
+                        <line x1="16" y1="13" x2="8" y2="13"/>
+                        <line x1="16" y1="17" x2="8" y2="17"/>
+                        <polyline points="10 9 9 9 8 9"/>
+                    </svg>
+                </div>
+            </button>
+        </div>
+
+        <button class="floating-receipt-btn" id="receiptActionButton" type="button" aria-label="Adicionar transação" title="Adicionar transação" onclick="toggleQuickAddMenu()">
+            <svg class="fab-icon-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+        </button>
+    </div>
     <input id="receiptUploadInput" type="file" accept="image/*,application/pdf" capture="environment" hidden onchange="handleReceiptFileSelection(event)">
+
+    <!-- Voice Transaction Modal -->
+    <div class="modal-overlay voice-modal-overlay" id="voiceTransactionModal" role="presentation" onclick="if(event.target === this) closeVoiceModal()">
+        <section class="voice-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="voiceModalTitle">
+            <header class="voice-modal-header">
+                <div class="voice-modal-header-info">
+                    <div class="voice-header-badge">
+                        <span class="voice-live-dot"></span>
+                        <span>IA Reconhecimento de Voz</span>
+                    </div>
+                    <h2 id="voiceModalTitle">Lançamento por Voz</h2>
+                </div>
+                <button class="voice-modal-close" type="button" aria-label="Fechar" onclick="closeVoiceModal()">&times;</button>
+            </header>
+
+            <div class="voice-modal-body">
+                <!-- Visualizer and Main Mic Button Area -->
+                <div class="voice-visualizer-container">
+                    <!-- Dynamic Sound Wave Bars -->
+                    <div class="sound-wave-bars" id="soundWaveBars" aria-hidden="true">
+                        <span class="sound-bar b1"></span>
+                        <span class="sound-bar b2"></span>
+                        <span class="sound-bar b3"></span>
+                        <span class="sound-bar b4"></span>
+                        <span class="sound-bar b5"></span>
+                        <span class="sound-bar b6"></span>
+                        <span class="sound-bar b7"></span>
+                        <span class="sound-bar b8"></span>
+                    </div>
+
+                    <!-- Glowing Pulsing Mic Button -->
+                    <button type="button" class="voice-mic-main-btn" id="voiceMicMainBtn" onclick="toggleVoiceListening()" title="Toque para falar ou pausar">
+                        <div class="mic-ripple-ring ring1"></div>
+                        <div class="mic-ripple-ring ring2"></div>
+                        <div class="mic-inner-circle">
+                            <svg class="mic-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                                <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                                <line x1="12" y1="19" x2="12" y2="23"/>
+                                <line x1="8" y1="23" x2="16" y2="23"/>
+                            </svg>
+                        </div>
+                    </button>
+
+                    <div class="voice-status-label" id="voiceStatusLabel">Pressione o microfone para falar</div>
+                    <div class="voice-status-sub" id="voiceStatusSub">Fale naturalmente, por exemplo: "receita 30 reais categoria freelance e descrição teste"</div>
+                </div>
+
+                <!-- Live Transcription Speech Bubble -->
+                <div class="voice-transcription-box" id="voiceTranscriptionBox">
+                    <div class="transcription-header">
+                        <span class="transcription-tag">Transcrição do áudio</span>
+                        <button type="button" class="btn-clear-transcript" id="btnClearTranscript" onclick="clearVoiceTranscript()" title="Limpar">
+                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                        </button>
+                    </div>
+                    <p class="transcription-text" id="voiceTranscriptionText">Nenhuma fala capturada ainda. Toque no microfone e diga sua transação...</p>
+                </div>
+
+                <!-- Parsed Result Card -->
+                <div class="voice-parsed-card" id="voiceParsedCard" style="display: none;">
+                    <div class="parsed-header">
+                        <div class="parsed-title-group">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                            <span>Lançamento Identificado com IA</span>
+                        </div>
+                        <span class="parsed-badge income" id="voiceParsedTypeBadge">Receita</span>
+                    </div>
+
+                    <div class="parsed-grid">
+                        <div class="parsed-item item-value">
+                            <span class="parsed-item-label">Valor</span>
+                            <span class="parsed-item-val" id="voiceParsedVal">R$ 0,00</span>
+                        </div>
+                        <div class="parsed-item">
+                            <span class="parsed-item-label">Categoria</span>
+                            <span class="parsed-item-val" id="voiceParsedCat">—</span>
+                        </div>
+                        <div class="parsed-item">
+                            <span class="parsed-item-label">Data</span>
+                            <span class="parsed-item-val" id="voiceParsedDate">Hoje</span>
+                        </div>
+                        <div class="parsed-item item-desc">
+                            <span class="parsed-item-label">Descrição</span>
+                            <span class="parsed-item-val" id="voiceParsedDesc">—</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Spoken Command Hints -->
+                <div class="voice-hints-container" id="voiceHintsContainer">
+                    <span class="voice-hints-title">Toque em um exemplo para testar:</span>
+                    <div class="voice-hints-list">
+                        <button type="button" class="voice-hint-pill" onclick="simulateVoiceInput('receita 30 reais categoria freelance e descrição teste')">
+                            "receita 30 reais categoria freelance e descrição teste"
+                        </button>
+                        <button type="button" class="voice-hint-pill" onclick="simulateVoiceInput('gasto 45 reais e 50 centavos mercado descrição compras da semana')">
+                            "gasto 45 reais e 50 centavos mercado descrição compras da semana"
+                        </button>
+                        <button type="button" class="voice-hint-pill" onclick="simulateVoiceInput('ganhei 1200 reais categoria salário hoje')">
+                            "ganhei 1200 reais categoria salário hoje"
+                        </button>
+                        <button type="button" class="voice-hint-pill" onclick="simulateVoiceInput('despesa 80 reais combustível descrição gasolina aditivada')">
+                            "despesa 80 reais combustível descrição gasolina aditivada"
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Input Manual / Alternativo com Botão Analisar Responsivo -->
+                <div class="voice-text-fallback" id="voiceTextFallback">
+                    <div class="voice-fallback-label">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                        <span>Ou digite a frase para analisar:</span>
+                    </div>
+                    <div class="fallback-input-row">
+                        <div class="fallback-input-wrapper">
+                            <input 
+                                type="text" 
+                                id="voiceFallbackInput" 
+                                class="voice-fallback-input" 
+                                placeholder="Ex: receita 30 reais categoria freelance e descrição teste" 
+                                autocomplete="off"
+                                oninput="handleVoiceFallbackInputChange(this)"
+                                onkeydown="if(event.key === 'Enter') { event.preventDefault(); parseVoiceManualInput(); }">
+                            <button type="button" class="btn-clear-fallback" id="btnClearFallback" onclick="clearVoiceFallbackInput()" title="Limpar campo" style="display: none;">
+                                &times;
+                            </button>
+                        </div>
+                        <button type="button" class="btn-voice-analyze" id="btnVoiceAnalyze" onclick="parseVoiceManualInput()" title="Analisar frase com IA">
+                            <svg class="analyze-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                <circle cx="11" cy="11" r="8"></circle>
+                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                                <polyline points="11 8 13 11 10 11 12 14"></polyline>
+                            </svg>
+                            <span>Analisar</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <footer class="voice-modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeVoiceModal()">Cancelar</button>
+                <button type="button" class="btn btn-accent-outline" id="btnVoicePrefillForm" onclick="confirmVoiceTransaction(false)" disabled title="Preencher o formulário para revisar antes de salvar">
+                    <span>Revisar no Formulário</span>
+                </button>
+                <button type="button" class="btn btn-primary" id="btnVoiceConfirmAndSave" onclick="confirmVoiceTransaction(true)" disabled>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    <span>Salvar Transação</span>
+                </button>
+            </footer>
+        </section>
+    </div>
 
     <div class="modal-overlay receipt-review-overlay" id="receiptReviewModal" role="presentation" onclick="if(event.target === this && !receiptSaving) closeReceiptReview()">
         <section class="receipt-review-dialog" role="dialog" aria-modal="true" aria-labelledby="receiptReviewTitle">
