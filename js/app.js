@@ -1,3 +1,18 @@
+        // Console Filter for Permissions-Policy browser notifications
+        (function() {
+            const origWarn = console.warn;
+            const origError = console.error;
+            const filterKeywords = ['Permissions-Policy', 'attribution-reporting', 'private-aggregation', 'join-ad-interest-group', 'run-ad-auction'];
+            console.warn = function(...args) {
+                if (args.some(a => typeof a === 'string' && filterKeywords.some(k => a.includes(k)))) return;
+                origWarn.apply(console, args);
+            };
+            console.error = function(...args) {
+                if (args.some(a => typeof a === 'string' && filterKeywords.some(k => a.includes(k)))) return;
+                origError.apply(console, args);
+            };
+        })();
+
         // Firebase Configuration (Placeholder - User needs to fill this)
         const firebaseConfig = {
             apiKey: "AIzaSyAk_IhHTEBGrqucA6bADbFDTbTd2sN2yvk",
@@ -47,8 +62,10 @@
         let currentUser = null;
         let pendingSharedReceiptFile = null;
         let transactions = []; let goals = []; let editingTransactionId = null; let editingGoalId = null; let lastSearchResults = []; let financeChartInstance = null; let currentChartType = 'bar';
+        let contasFixas = []; let cfBalance = 0; let cfBalanceSavedAt = null; let editingContaFixaId = null;
         let lastBackupDate = localStorage.getItem('lastBackupDate') || '';
         let currentLang = localStorage.getItem('lang') || 'pt-BR';
+        let currentFontSize = localStorage.getItem('appFontSize') || 'normal';
 
         function getGreeting(lang) {
             const currentLanguage = lang || currentLang || localStorage.getItem('lang') || 'pt-BR';
@@ -91,7 +108,7 @@
 
             if (user) {
                 currentUser = user;
-                console.log("Usuário logado:", user.displayName, user.email);
+                console.log("Usuário autenticado com sucesso.");
                 updateHeaderGreeting();
 
                 const up = document.getElementById('userProfile');
@@ -253,27 +270,22 @@
 
         // Atualizar todas as views e garantir isolamento
         function updateAllViews() {
-            ensureUserDataIsolation();
-
-            // Atualizar lista de transações se existir
-            if (typeof updateTransactionsList === 'function') {
-                updateTransactionsList();
-            }
-
-            // Atualizar lista de goals se existir
-            if (typeof updateGoalsList === 'function') {
-                updateGoalsList();
-            }
-
-            // Atualizar resumo diário se existir
-            if (typeof updateDailySummary === 'function') {
-                updateDailySummary();
-            }
-
-            // Atualizar daily transactions se existir
-            if (typeof updateDailyTransactions === 'function') {
-                updateDailyTransactions();
-            }
+            try { ensureUserDataIsolation(); } catch (e) { console.error('Error in ensureUserDataIsolation:', e); }
+            try { if (typeof updateTransactionsList === 'function') updateTransactionsList(); } catch (e) { console.error('Error in updateTransactionsList:', e); }
+            try { if (typeof updateGoalsList === 'function') updateGoalsList(); } catch (e) { console.error('Error in updateGoalsList:', e); }
+            try { if (typeof updateDailyTransactions === 'function') updateDailyTransactions(); } catch (e) { console.error('Error in updateDailyTransactions:', e); }
+            try { if (typeof updateDailySummary === 'function') updateDailySummary(); } catch (e) { console.error('Error in updateDailySummary:', e); }
+            try { if (typeof updateWeeklySummary === 'function') updateWeeklySummary(); } catch (e) { console.error('Error in updateWeeklySummary:', e); }
+            try { if (typeof updateMonthlySummary === 'function') updateMonthlySummary(); } catch (e) { console.error('Error in updateMonthlySummary:', e); }
+            try { if (typeof updateYearlySummary === 'function') updateYearlySummary(); } catch (e) { console.error('Error in updateYearlySummary:', e); }
+            try { if (typeof updateTrashList === 'function') updateTrashList(); } catch (e) { console.error('Error in updateTrashList:', e); }
+            try { if (typeof updateHeaderBalance === 'function') updateHeaderBalance(); } catch (e) { console.error('Error in updateHeaderBalance:', e); }
+            try { if (typeof cfUpdateViews === 'function') cfUpdateViews(); } catch (e) { console.error('Error in cfUpdateViews:', e); }
+            try {
+                if (document.getElementById('search') && document.getElementById('search').classList.contains('active')) {
+                    if (typeof populateYearSelect === 'function') populateYearSelect();
+                }
+            } catch (e) { console.error('Error in populateYearSelect (search):', e); }
         }
         window.updateAllViews = updateAllViews;
         var trashStorageKey = 'financialTrash_v2';
@@ -282,10 +294,10 @@
         function getActiveTransactions() { return transactions.filter(function (t) { return !t.deleted; }); }
         function getTrashTransactions() { var fs = getTrashFromStorage(); var fm = transactions.filter(function (t) { return t.deleted === true || t.deleted === 'true' || t.deleted === 1; }); var seen = {}; var out = []; fs.forEach(function (t) { var k = String(t.id); if (!seen[k]) { seen[k] = true; out.push(t); } }); fm.forEach(function (t) { var k = String(t.id); if (!seen[k]) { seen[k] = true; out.push(t); } }); return out; }
 
-        const categories = { 'alimentacao': '\u{1F37D}\uFE0F Alimenta\u00E7\u00E3o', 'mercado': '\u{1F6D2} Mercado', 'combustivel': '\u26FD Combust\u00EDvel', 'manutencao_veiculo': '\u{1F527} Manuten\u00E7\u00E3o Ve\u00EDculo', 'transporte': '\u{1F697} Transporte', 'moradia': '\u{1F3E0} Moradia', 'saude': '\u{1F3E5} Sa\u00FAde', 'educacao': '\u{1F4DA} Educa\u00E7\u00E3o', 'lazer': '\u{1F3AE} Lazer', 'salario': '\u{1F4BC} Sal\u00E1rio', 'freelance': '\u{1F4BB} Freelance', 'investimentos': '\u{1F4C8} Investimentos', 'outros': '\u{1F4E6} Outros' };
+                const categories = { 'alimentacao': '\u{1F37D}\uFE0F Alimenta\u00E7\u00E3o', 'mercado': '\u{1F6D2} Mercado', 'combustivel': '\u26FD Combust\u00EDvel', 'manutencao_veiculo': '\u{1F527} Manuten\u00E7\u00E3o Ve\u00EDculo', 'transporte': '\u{1F697} Transporte', 'moradia': '\u{1F3E0} Moradia', 'saude': '\u{1F3E5} Sa\u00FAde', 'educacao': '\u{1F4DA} Educa\u00E7\u00E3o', 'lazer': '\u{1F3AE} Lazer', 'salario': '\u{1F4BC} Sal\u00E1rio', 'freelance': '\u{1F4BB} Freelance', 'investimentos': '\u{1F4C8} Investimentos', 'outros': '\u{1F4E6} Outros' };
         const categoryOrder = ['alimentacao', 'mercado', 'combustivel', 'manutencao_veiculo', 'transporte', 'moradia', 'saude', 'educacao', 'lazer', 'salario', 'freelance', 'investimentos', 'outros'];
-        const categoriesEn = { 'alimentacao': '\u{1F37D}\uFE0F Food', 'mercado': '\u{1F6D2} Groceries', 'combustivel': '\u26FD Fuel', 'manutencao_veiculo': '\u{1F527} Vehicle Maintenance', 'transporte': '\u{1F697} Transport', 'moradia': '\u{1F3E0} Housing', 'saude': '\u{1F3E5} Health', 'educacao': '\u{1F4DA} Education', 'lazer': '\u{1F3AE} Entertainment', 'salario': '\u{1F4BC} Salary', 'freelance': '\u{1F4BB} Freelance', 'investimentos': '\u{1F4C8} Investments', 'outros': '\u{1F4E6} Other' };
-        const categoriesEs = { 'alimentacao': '\u{1F37D}\uFE0F Alimentaci\u00F3n', 'mercado': '\u{1F6D2} Supermercado', 'combustivel': '\u26FD Combustible', 'manutencao_veiculo': '\u{1F527} Mantenimiento de Veh\u00EDculo', 'transporte': '\u{1F697} Transporte', 'moradia': '\u{1F3E0} Vivienda', 'saude': '\u{1F3E5} Salud', 'educacao': '\u{1F4DA} Educaci\u00F3n', 'lazer': '\u{1F3AE} Ocio', 'salario': '\u{1F4BC} Salario', 'freelance': '\u{1F4BB} Freelance', 'investimentos': '\u{1F4C8} Inversiones', 'outros': '\u{1F4E6} Otros' };
+        const categoriesEn = { 'alimentacao': '\u{1F37D}\uFE0F Food & Dining', 'mercado': '\u{1F6D2} Groceries', 'combustivel': '\u26FD Fuel', 'manutencao_veiculo': '\u{1F527} Vehicle Maintenance', 'transporte': '\u{1F697} Transportation', 'moradia': '\u{1F3E0} Housing', 'saude': '\u{1F3E5} Healthcare', 'educacao': '\u{1F4DA} Education', 'lazer': '\u{1F3AE} Leisure & Entertainment', 'salario': '\u{1F4BC} Salary', 'freelance': '\u{1F4BB} Freelance', 'investimentos': '\u{1F4C8} Investments', 'outros': '\u{1F4E6} Other' };
+        const categoriesEs = { 'alimentacao': '\u{1F37D}\uFE0F Alimentaci\u00F3n', 'mercado': '\u{1F6D2} Supermercado', 'combustivel': '\u26FD Combustible', 'manutencao_veiculo': '\u{1F527} Mantenimiento de Veh\u00EDculo', 'transporte': '\u{1F697} Transporte', 'moradia': '\u{1F3E0} Vivienda', 'saude': '\u{1F3E5} Salud', 'educacao': '\u{1F4DA} Educaci\u00F3n', 'lazer': '\u{1F3AE} Ocio y Entretenimiento', 'salario': '\u{1F4BC} Salario', 'freelance': '\u{1F4BB} Freelance', 'investimentos': '\u{1F4C8} Inversiones', 'outros': '\u{1F4E6} Otros' };
 
         function getCategoryLabel(cat) {
             const lang = currentLang || localStorage.getItem('lang') || 'pt-BR';
@@ -297,57 +309,178 @@
         const i18n = {
             'pt-BR': {
                 logout: 'Sair', pageTitle: 'Controle Financeiro Aprimorado', appTitle: 'Finan\u00E7as', saveTransaction: 'Salvar Transa\u00E7\u00E3o', placeholderDescShort: 'Descrição da sua transação', menuNewTransaction: 'Nova Transa\u00E7\u00E3o', menuTransactions: 'Transa\u00E7\u00F5es', menuSearch: 'Buscar', menuCharts: 'Gr\u00E1fico', menuSummaries: 'Resumos', menuGoals: 'Metas', menuTrash: 'Lixeira', menuBackup: 'Backup', menuFixedAccounts: 'Contas Fixas', menuAbout: 'Sobre', menuContact: 'Contato', menu: 'Menu', allTransactions: 'Todas as Transa\u00E7\u00F5es', searchTransactions: 'Buscar Transa\u00E7\u00F5es', searchByName: 'Buscar por nome/descri\u00E7\u00E3o', category: 'Categoria', type: 'Tipo', monthYear: 'M\u00EAs/Ano', allCategories: 'Todas as categorias', allTypes: 'Todos os tipos', income: 'Receita', expense: 'Despesa', favorites: 'Favoritas', favoritesOnly: 'Apenas favoritas', search: 'Buscar', clearFilters: 'Limpar Filtros', exportResults: 'Exportar Resultados', searchResults: 'Resultados da Busca', transactionsFound: 'transa\u00E7\u00F5es encontradas', searchIncome: 'Receitas na Busca', searchExpense: 'Despesas na Busca', searchBalance: 'Saldo da Busca', noTransactionsFound: 'Nenhuma transa\u00E7\u00E3o encontrada com os filtros aplicados', newTransaction: 'Nova Transa\u00E7\u00E3o', date: 'Data', value: 'Valor (R$)', description: 'Descri\u00E7\u00E3o', selectCategory: 'Selecione uma categoria', placeholderDesc: 'Descreva a transa\u00E7\u00E3o...', favoriteTransaction: 'Favoritar esta transa\u00E7\u00E3o', clear: 'Limpar', clearAll: 'Limpar Tudo', gains: 'Ganhos', spending: 'Gastos', balance: 'Saldo', dailyTransactions: 'Transa\u00E7\u00F5es do Dia Selecionado', chartsTitle: 'Gr\u00E1ficos de Receitas e Despesas', period: 'Per\u00EDodo', month: 'M\u00EAs', week: 'Semana', year: 'Ano', monthSpecific: 'M\u00EAs espec\u00EDfico', weekSpecific: 'Semana espec\u00EDfica', yearSpecific: 'Ano espec\u00EDfico', last3Months: '\u00DAltimos 3 meses', last6Months: '\u00DAltimos 6 meses', customPeriod: 'Personalizado', dateRange: 'Intervalo de Datas', startDate: 'Data Inicial', endDate: 'Data Final', today: 'Hoje', groupBy: 'Agrupar por', view: 'Visualizar', incomeExpense: 'Receitas e Despesas', expenseOnly: 'Apenas Despesas', incomeOnly: 'Apenas Receitas', chartType: 'Tipo de gr\u00E1fico', pie: 'Pizza', bar: 'Barras', line: 'Linhas', dailySummary: 'Resumo Di\u00E1rio', weeklySummary: 'Resumo Semanal', monthlySummary: 'Resumo Mensal', yearlySummary: 'Resumo Anual', selectDay: 'Selecionar Dia', selectWeek: 'Selecionar Semana', selectMonth: 'Selecionar M\u00EAs', selectYear: 'Selecionar Ano', allMonths: 'Todos os meses', financialGoals: 'Metas Financeiras', newGoal: 'Nova Meta', emptyTrash: 'Esvaziar lixeira', trashInfo: 'Transa\u00E7\u00F5es exclu\u00EDdas podem ser restauradas ou removidas permanentemente.', backupExport: 'Backup e Exporta\u00E7\u00E3o', exportJson: 'Exportar JSON', importJson: 'Importar JSON', exportExcel: 'Exportar Excel', manualSync: 'Sincronizar na nuvem',
-                editTransaction: 'Editar Transa\u00E7\u00E3o', save: 'Salvar', cancel: 'Cancelar', addGoal: 'Nova Meta', goalDescription: 'Descri\u00E7\u00E3o da Meta', goalTarget: 'Valor da Meta (R$)', goalCurrent: 'Valor Atual (R$)', saveGoal: 'Salvar Meta', editGoal: 'Editar Meta', exportToExcel: 'Exportar para Excel', allRecords: 'Todos os registros', onlyIncome: 'Apenas ganhos', onlyExpense: 'Apenas gastos', calculator: 'Calculadora', edit: 'Editar', delete: 'Excluir', deletePermanent: 'Excluir permanentemente', moveToTrash: 'Mover esta transa\u00E7\u00E3o para a lixeira?', movedToTrash: 'Transa\u00E7\u00E3o movida para a lixeira.', deletePermanentConfirm: 'Excluir permanentemente? Esta a\u00E7\u00E3o n\u00E3o pode ser desfeita.', trashEmpty: 'A lixeira j\u00E1 est\u00E1 vazia.', emptyTrashConfirm: 'Excluir permanentemente as', trashEmptyConfirm: 'transa\u00E7\u00F5es) da lixeira? Esta a\u00E7\u00E3o n\u00E3o pode ser desfeita.', trashEmptied: 'Lixeira esvaziada.', noTrash: 'Nenhuma transa\u00E7\u00E3o na lixeira', fillGoalFields: 'Por favor, preencha os campos da meta!', currentNotGreater: 'O valor atual n\u00E3o pode ser maior que a meta!', goalAdded: 'Meta adicionada!', goalEdited: 'Meta editada!', deleteGoalConfirm: 'Tem certeza que deseja excluir esta meta?', goalDeleted: 'Meta exclu\u00EDda!', noGoals: 'Nenhuma meta cadastrada', restore: 'Restaurar', saveError: 'Erro ao salvar dados!', goalPlaceholder: 'Ex: Comprar um carro', noExport: 'Nenhuma transa\u00E7\u00E3o para exportar!', fillAllFields: 'Por favor, preencha todos os campos!', transactionAdded: 'Transa\u00E7\u00E3o adicionada com sucesso!', transactionEdited: 'Transa\u00E7\u00E3o editada!', transactionRestored: 'Transa\u00E7\u00E3o restaurada!', transactionDeletedPerm: 'Transa\u00E7\u00E3o exclu\u00EDda permanentemente.', noTransactionsPeriod: 'Nenhuma transa\u00E7\u00E3o para este per\u00EDodo', noTransactionsDay: 'Nenhuma transa\u00E7\u00E3o para este dia', noTransactionsFilters: 'Nenhuma transa\u00E7\u00E3o encontrada com os filtros!', exportSuccess: 'Exportado para Excel com sucesso!', exportError: 'Erro ao exportar para Excel!', importConfirm: 'Importar este arquivo ir\u00E1 substituir todos os dados atuais. Deseja continuar?', importSuccess: 'Dados importados com sucesso!', clearConfirm: '\u26A0\uFE0F ATEN\u00C7\u00C3O: Esta a\u00E7\u00E3o ir\u00E1 apagar TODOS os dados. Deseja continuar?', allDataCleared: 'Todos os dados foram apagados!', backupExported: 'Backup JSON exportado!', backupExportError: 'Erro ao exportar o backup!', loadError: 'Erro ao carregar dados!', fillGoalCorrect: 'Preencha os campos corretamente!', noTransactionsFoundShort: 'Nenhuma transa\u00E7\u00E3o encontrada', viewReceipt: 'Ver comprovante anexado', viewReceiptModalTitle: 'Comprovante Anexado', downloadReceipt: 'Baixar Comprovante', openInNewTab: 'Abrir em Nova Aba', close: 'Fechar', receiptDownloaded: 'Comprovante baixado com sucesso!', receiptLoading: 'Carregando comprovante...'
+                editTransaction: 'Editar Transa\u00E7\u00E3o', save: 'Salvar', cancel: 'Cancelar', addGoal: 'Nova Meta', goalDescription: 'Descri\u00E7\u00E3o da Meta', goalTarget: 'Valor da Meta (R$)', goalCurrent: 'Valor Atual (R$)', saveGoal: 'Salvar Meta', editGoal: 'Editar Meta', exportToExcel: 'Exportar para Excel', allRecords: 'Todos os registros', onlyIncome: 'Apenas ganhos', onlyExpense: 'Apenas gastos', calculator: 'Calculadora', edit: 'Editar', delete: 'Excluir', deletePermanent: 'Excluir permanentemente', moveToTrash: 'Mover esta transa\u00E7\u00E3o para a lixeira?', movedToTrash: 'Transa\u00E7\u00E3o movida para a lixeira.', deletePermanentConfirm: 'Excluir permanentemente? Esta a\u00E7\u00E3o n\u00E3o pode ser desfeita.', trashEmpty: 'A lixeira j\u00E1 est\u00E1 vazia.', emptyTrashConfirm: 'Excluir permanentemente as', trashEmptyConfirm: 'transa\u00E7\u00F5es) da lixeira? Esta a\u00E7\u00E3o n\u00E3o pode ser desfeita.', trashEmptied: 'Lixeira esvaziada.', noTrash: 'Nenhuma transa\u00E7\u00E3o na lixeira', fillGoalFields: 'Por favor, preencha os campos da meta!', currentNotGreater: 'O valor atual n\u00E3o pode ser maior que a meta!', goalAdded: 'Meta adicionada!', goalEdited: 'Meta editada!', deleteGoalConfirm: 'Tem certeza que deseja excluir esta meta?', goalDeleted: 'Meta exclu\u00EDda!', noGoals: 'Nenhuma meta cadastrada', restore: 'Restaurar', saveError: 'Erro ao salvar dados!', goalPlaceholder: 'Ex: Comprar um carro', noExport: 'Nenhuma transa\u00E7\u00E3o para exportar!', fillAllFields: 'Por favor, preencha todos os campos!', transactionAdded: 'Transa\u00E7\u00E3o adicionada com sucesso!', transactionEdited: 'Transa\u00E7\u00E3o editada!', transactionRestored: 'Transa\u00E7\u00E3o restaurada!', transactionDeletedPerm: 'Transa\u00E7\u00E3o exclu\u00EDda permanentemente.', noTransactionsPeriod: 'Nenhuma transa\u00E7\u00E3o para este per\u00EDodo', noTransactionsDay: 'Nenhuma transa\u00E7\u00E3o para este dia', noTransactionsFilters: 'Nenhuma transa\u00E7\u00E3o encontrada com os filtros!', exportSuccess: 'Exportado para Excel com sucesso!', exportError: 'Erro ao exportar para Excel!', importConfirm: 'Importar este arquivo ir\u00E1 substituir todos os dados atuais. Deseja continuar?', importSuccess: 'Dados importados com sucesso!', clearConfirm: '\u26A0\uFE0F ATEN\u00C7\u00C3O: Esta a\u00E7\u00E3o ir\u00E1 apagar TODOS os dados. Deseja continuar?', allDataCleared: 'Todos os dados foram apagados!', backupExported: 'Backup JSON exportado!', backupExportError: 'Erro ao exportar o backup!', loadError: 'Erro ao carregar dados!', fillGoalCorrect: 'Preencha os campos corretamente!', noTransactionsFoundShort: 'Nenhuma transa\u00E7\u00E3o encontrada', viewReceipt: 'Ver comprovante anexado', viewReceiptModalTitle: 'Comprovante Anexado', downloadReceipt: 'Baixar Comprovante', openInNewTab: 'Abrir em Nova Aba', close: 'Fechar', receiptDownloaded: 'Comprovante baixado com sucesso!', receiptLoading: 'Carregando comprovante...', fontSizeTitle: 'Tamanho do Texto', fontSmall: 'Pequeno', fontNormal: 'Padrão', fontMedium: 'Médio', fontLarge: 'Grande'
             }, 'en': {
-                pageTitle: 'Financial Control - Enhanced', appTitle: 'Finances', saveTransaction: 'Save Transaction', placeholderDescShort: 'What are you thinking about?', menuNewTransaction: 'New Transaction', menuTransactions: 'Transactions', menuSearch: 'Search', menuCharts: 'Charts', menuSummaries: 'Summaries', menuGoals: 'Goals', menuTrash: 'Trash', menuBackup: 'Backup', menuFixedAccounts: 'Fixed Accounts', menuAbout: 'About', menuContact: 'Contact', menu: 'Menu', allTransactions: 'All Transactions', searchTransactions: 'Search Transactions', searchByName: 'Search by name/description', category: 'Category', type: 'Type', monthYear: 'Month/Year', allCategories: 'All categories', allTypes: 'All types', income: 'Income', expense: 'Expense', favorites: 'Favorites', favoritesOnly: 'Favorites only', search: 'Search', clearFilters: 'Clear Filters', exportResults: 'Export Results', searchResults: 'Search Results', transactionsFound: 'transactions found', searchIncome: 'Search Income', searchExpense: 'Search Expense', searchBalance: 'Search Balance', noTransactionsFound: 'No transactions found with the applied filters', newTransaction: 'New Transaction', date: 'Date', value: 'Value ($)', description: 'Description', selectCategory: 'Select a category', placeholderDesc: 'Describe the transaction...', favoriteTransaction: 'Favorite this transaction', clear: 'Clear', clearAll: 'Clear All', gains: 'Gains', spending: 'Spending', balance: 'Balance', dailyTransactions: 'Selected Day Transactions', chartsTitle: 'Income and Expense Charts', period: 'Period', month: 'Month', week: 'Week', year: 'Year', monthSpecific: 'Specific month', weekSpecific: 'Specific week', yearSpecific: 'Specific year', last3Months: 'Last 3 months', last6Months: 'Last 6 months', customPeriod: 'Custom', dateRange: 'Date Range', startDate: 'Start Date', endDate: 'End Date', today: 'Today', groupBy: 'Group by', view: 'View', incomeExpense: 'Income and Expenses', expenseOnly: 'Expenses only', incomeOnly: 'Income only', chartType: 'Chart type', logout: 'Logout', pie: 'Pie', bar: 'Bar', line: 'Line', dailySummary: 'Daily Summary', weeklySummary: 'Weekly Summary', monthlySummary: 'Monthly Summary', yearlySummary: 'Yearly Summary', selectDay: 'Select Day', selectWeek: 'Select Week', selectMonth: 'Select Month', selectYear: 'Select Year', allMonths: 'All months', financialGoals: 'Financial Goals', newGoal: 'New Goal', emptyTrash: 'Empty Trash', trashInfo: 'Deleted transactions can be restored or permanently removed.', backupExport: 'Backup and Export', exportJson: 'Export JSON', importJson: 'Import JSON', exportExcel: 'Export Excel', manualSync: 'Sync to Cloud',
-                editTransaction: 'Edit Transaction', save: 'Save', cancel: 'Cancel', addGoal: 'New Goal', goalDescription: 'Goal Description', goalTarget: 'Goal Value ($)', goalCurrent: 'Current Value ($)', saveGoal: 'Save Goal', editGoal: 'Edit Goal', exportToExcel: 'Export to Excel', allRecords: 'All records', onlyIncome: 'Income only', onlyExpense: 'Expenses only', calculator: 'Calculator', edit: 'Edit', delete: 'Delete', deletePermanent: 'Delete permanently', moveToTrash: 'Move this transaction to trash?', movedToTrash: 'Transaction moved to trash.', deletePermanentConfirm: 'Delete permanently? This action cannot be undone.', trashEmpty: 'Trash is already empty.', emptyTrashConfirm: 'Permanently delete the', trashEmptyConfirm: 'transaction(s) from trash? This action cannot be undone.', trashEmptied: 'Trash emptied.', noTrash: 'No transactions in trash', fillGoalFields: 'Please fill in the goal fields!', currentNotGreater: 'Current value cannot be greater than the goal!', goalAdded: 'Goal added!', goalEdited: 'Goal edited!', deleteGoalConfirm: 'Are you sure you want to delete this goal?', goalDeleted: 'Goal deleted!', noGoals: 'No goals registered', restore: 'Restore', saveError: 'Error saving data!', goalPlaceholder: 'E.g.: Buy a car', noExport: 'No transactions to export!', fillAllFields: 'Please fill in all fields!', transactionAdded: 'Transaction added successfully!', transactionEdited: 'Transaction edited!', transactionRestored: 'Transaction restored!', transactionDeletedPerm: 'Transaction permanently deleted.', noTransactionsPeriod: 'No transactions for this period', noTransactionsDay: 'No transactions for this day', noTransactionsFilters: 'No transactions found with the filters!', exportSuccess: 'Exported to Excel successfully!', exportError: 'Error exporting to Excel!', importConfirm: 'Importing this file will replace all current data. Continue?', importSuccess: 'Data imported successfully!', clearConfirm: '\u26A0\uFE0F WARNING: This will delete ALL data. Continue?', allDataCleared: 'All data has been cleared!', backupExported: 'JSON backup exported!', backupExportError: 'Error exporting backup!', loadError: 'Error loading data!', fillGoalCorrect: 'Fill in the fields correctly!', noTransactionsFoundShort: 'No transactions found', viewReceipt: 'View attached receipt', viewReceiptModalTitle: 'Attached Receipt', downloadReceipt: 'Download Receipt', openInNewTab: 'Open in New Tab', close: 'Close', receiptDownloaded: 'Receipt downloaded successfully!', receiptLoading: 'Loading receipt...'
+                pageTitle: 'Financial Management - Pro', appTitle: 'Finances', saveTransaction: 'Save Transaction', placeholderDescShort: 'Transaction description', menuNewTransaction: 'New Transaction', menuTransactions: 'Transactions', menuSearch: 'Search', menuCharts: 'Charts', menuSummaries: 'Summaries', menuGoals: 'Goals', menuTrash: 'Trash', menuBackup: 'Backup', menuFixedAccounts: 'Fixed Expenses', menuAbout: 'About', menuContact: 'Contact', menu: 'Menu', allTransactions: 'All Transactions', searchTransactions: 'Search Transactions', searchByName: 'Search by description or name', category: 'Category', type: 'Type', monthYear: 'Month/Year', allCategories: 'All categories', allTypes: 'All types', income: 'Income', expense: 'Expense', favorites: 'Favorites', favoritesOnly: 'Favorites only', search: 'Search', clearFilters: 'Clear Filters', exportResults: 'Export Results', searchResults: 'Search Results', transactionsFound: 'transactions found', searchIncome: 'Search Income', searchExpense: 'Search Expenses', searchBalance: 'Search Balance', noTransactionsFound: 'No transactions found matching the applied filters', newTransaction: 'New Transaction', date: 'Date', value: 'Amount ($)', description: 'Description', selectCategory: 'Select a category', placeholderDesc: 'Enter transaction description...', favoriteTransaction: 'Add to favorites', clear: 'Clear', clearAll: 'Clear All', gains: 'Income', spending: 'Expenses', balance: 'Balance', dailyTransactions: 'Transactions for Selected Day', chartsTitle: 'Income & Expense Charts', period: 'Period', month: 'Month', week: 'Week', year: 'Year', monthSpecific: 'Specific month', weekSpecific: 'Specific week', yearSpecific: 'Specific year', last3Months: 'Last 3 months', last6Months: 'Last 6 months', customPeriod: 'Custom range', dateRange: 'Date Range', startDate: 'Start Date', endDate: 'End Date', today: 'Today', groupBy: 'Group by', view: 'View', incomeExpense: 'Income and Expenses', expenseOnly: 'Expenses only', incomeOnly: 'Income only', chartType: 'Chart type', logout: 'Log Out', pie: 'Pie', bar: 'Bar', line: 'Line', dailySummary: 'Daily Summary', weeklySummary: 'Weekly Summary', monthlySummary: 'Monthly Summary', yearlySummary: 'Yearly Summary', selectDay: 'Select Day', selectWeek: 'Select Week', selectMonth: 'Select Month', selectYear: 'Select Year', allMonths: 'All months', financialGoals: 'Financial Goals', newGoal: 'New Goal', emptyTrash: 'Empty Trash', trashInfo: 'Deleted transactions can be restored or permanently removed.', backupExport: 'Backup and Export', exportJson: 'Export JSON', importJson: 'Import JSON', exportExcel: 'Export to Excel', manualSync: 'Sync to Cloud',
+                editTransaction: 'Edit Transaction', save: 'Save', cancel: 'Cancel', addGoal: 'New Goal', goalDescription: 'Goal Description', goalTarget: 'Target Amount ($)', goalCurrent: 'Current Amount ($)', saveGoal: 'Save Goal', editGoal: 'Edit Goal', exportToExcel: 'Export to Excel', allRecords: 'All records', onlyIncome: 'Income only', onlyExpense: 'Expenses only', calculator: 'Calculator', edit: 'Edit', delete: 'Delete', deletePermanent: 'Delete permanently', moveToTrash: 'Move this transaction to trash?', movedToTrash: 'Transaction moved to trash.', deletePermanentConfirm: 'Delete permanently? This action cannot be undone.', trashEmpty: 'Trash is already empty.', emptyTrashConfirm: 'Permanently delete the', trashEmptyConfirm: 'transaction(s) from trash? This action cannot be undone.', trashEmptied: 'Trash emptied.', noTrash: 'No transactions in trash', fillGoalFields: 'Please fill in all goal fields.', currentNotGreater: 'Current amount cannot exceed the target amount.', goalAdded: 'Goal created successfully!', goalEdited: 'Goal updated successfully!', deleteGoalConfirm: 'Are you sure you want to delete this goal?', goalDeleted: 'Goal deleted.', noGoals: 'No goals found', restore: 'Restore', saveError: 'Error saving data.', goalPlaceholder: 'e.g. Buy a car', noExport: 'No transactions to export.', fillAllFields: 'Please fill in all fields.', transactionAdded: 'Transaction added successfully!', transactionEdited: 'Transaction updated successfully!', transactionRestored: 'Transaction restored successfully.', transactionDeletedPerm: 'Transaction permanently deleted.', noTransactionsPeriod: 'No transactions found for this period', noTransactionsDay: 'No transactions found for this day', noTransactionsFilters: 'No transactions found matching the filters.', exportSuccess: 'Exported to Excel successfully!', exportError: 'Error exporting to Excel.', importConfirm: 'Importing this file will replace all current data. Do you want to continue?', importSuccess: 'Data imported successfully!', clearConfirm: '\u26A0\uFE0F WARNING: This action will permanently erase ALL data. Do you want to continue?', allDataCleared: 'All data has been cleared.', backupExported: 'JSON backup exported successfully!', backupExportError: 'Error exporting backup.', loadError: 'Error loading data.', fillGoalCorrect: 'Please fill in the fields correctly.', noTransactionsFoundShort: 'No transactions found', viewReceipt: 'View attached receipt', viewReceiptModalTitle: 'Attached Receipt', downloadReceipt: 'Download Receipt', openInNewTab: 'Open in New Tab', close: 'Close', receiptDownloaded: 'Receipt downloaded successfully!', receiptLoading: 'Loading receipt...', fontSizeTitle: 'Text Size', fontSmall: 'Small', fontNormal: 'Default', fontMedium: 'Medium', fontLarge: 'Large'
             }, 'es': {
-                logout: 'Cerrar sesi\u00F3n', pageTitle: 'Control Financiero Mejorado', appTitle: 'Finanzas', saveTransaction: 'Guardar Transacci\u00F3n', placeholderDescShort: '\u00BFEn qu\u00E9 est\u00E1s pensando?', menuNewTransaction: 'Nueva Transacci\u00F3n', menuTransactions: 'Transacciones', menuSearch: 'Buscar', menuCharts: 'Gr\u00E1ficos', menuSummaries: 'Res\u00FAmenes', menuGoals: 'Metas', menuTrash: 'Papelera', menuBackup: 'Copia de Seguridad', menuFixedAccounts: 'Cuentas Fijas', menuAbout: 'Acerca de', menuContact: 'Contacto', menu: 'Men\u00FA', allTransactions: 'Todas las Transacciones', searchTransactions: 'Buscar Transacciones', searchByName: 'Buscar por nombre/descripci\u00F3n', category: 'Categor\u00EDa', type: 'Tipo', monthYear: 'Mes/A\u00F1o', allCategories: 'Todas las categor\u00EDas', allTypes: 'Todos los tipos', income: 'Ingreso', expense: 'Gasto', favorites: 'Favoritas', favoritesOnly: 'Solo favoritas', search: 'Buscar', clearFilters: 'Limpiar Filtros', exportResults: 'Exportar Resultados', searchResults: 'Resultados de la B\u00FAsqueda', transactionsFound: 'transacciones encontradas', searchIncome: 'Ingresos en B\u00FAsqueda', searchExpense: 'Gastos en B\u00FAsqueda', searchBalance: 'Saldo de B\u00FAsqueda', noTransactionsFound: 'Ninguna transacci\u00F3n encontrada con los filtros aplicados', newTransaction: 'Nueva Transacci\u00F3n', date: 'Fecha', value: 'Valor (R$)', description: 'Descripci\u00F3n', selectCategory: 'Selecciona una categor\u00EDa', placeholderDesc: 'Describe la transacci\u00F3n...', favoriteTransaction: 'Marcar como favorita', clear: 'Limpiar', clearAll: 'Limpiar Todo', gains: 'Ingresos', spending: 'Gastos', balance: 'Saldo', dailyTransactions: 'Transacciones del D\u00EDa Seleccionado', chartsTitle: 'Gr\u00E1ficos de Ingresos y Gastos', period: 'Per\u00EDodo', month: 'Mes', week: 'Semana', year: 'A\u00F1o', monthSpecific: 'Mes espec\u00EDfico', weekSpecific: 'Semana espec\u00EDfica', yearSpecific: 'A\u00F1o espec\u00EDfico', last3Months: '\u00DAltimos 3 meses', last6Months: '\u00DAltimos 6 meses', customPeriod: 'Personalizado', dateRange: 'Rango de Fechas', startDate: 'Fecha Inicial', endDate: 'Fecha Final', today: 'Hoy', groupBy: 'Agrupar por', view: 'Visualizar', incomeExpense: 'Ingresos y Gastos', expenseOnly: 'Solo Gastos', incomeOnly: 'Solo Ingresos', chartType: 'Tipo de gr\u00E1fico', pie: 'Circular', bar: 'Barras', line: 'L\u00EDneas', dailySummary: 'Resumen Diario', weeklySummary: 'Resumen Semanal', monthlySummary: 'Resumen Mensual', yearlySummary: 'Resumen Anual', selectDay: 'Seleccionar D\u00EDa', selectWeek: 'Seleccionar Semana', selectMonth: 'Seleccionar Mes', selectYear: 'Seleccionar A\u00F1o', allMonths: 'Todos los meses', financialGoals: 'Metas Financieras', newGoal: 'Nueva Meta', emptyTrash: 'Vaciar papelera', trashInfo: 'Las transacciones eliminadas pueden restaurarse o eliminarse permanentemente.', backupExport: 'Copia de Seguridad y Exportaci\u00F3n', exportJson: 'Exportar JSON', importJson: 'Importar JSON', exportExcel: 'Exportar Excel', manualSync: 'Sincronizar en la nube',
-                editTransaction: 'Editar Transacci\u00F3n', save: 'Guardar', cancel: 'Cancelar', addGoal: 'Nueva Meta', goalDescription: 'Descripci\u00F3n de la Meta', goalTarget: 'Valor de la Meta (R$)', goalCurrent: 'Valor Actual (R$)', saveGoal: 'Guardar Meta', editGoal: 'Editar Meta', exportToExcel: 'Exportar a Excel', allRecords: 'Todos los registros', onlyIncome: 'Solo ingresos', onlyExpense: 'Solo gastos', calculator: 'Calculadora', edit: 'Editar', delete: 'Eliminar', deletePermanent: 'Eliminar permanentemente', moveToTrash: '\u00BFMover esta transacci\u00F3n a la papelera?', movedToTrash: 'Transacci\u00F3n movida a la papelera.', deletePermanentConfirm: '\u00BFEliminar permanentemente? Esta acci\u00F3n no se puede deshacer.', trashEmpty: 'La papelera ya est\u00E1 vac\u00EDa.', emptyTrashConfirm: '\u00BFEliminar permanentemente las', trashEmptyConfirm: 'transacciones) de la papelera? Esta acci\u00F3n no se puede deshacer.', trashEmptied: 'Papelera vaciada.', noTrash: 'Ninguna transacci\u00F3n en la papelera', fillGoalFields: '\u00A1Por favor, completa los campos de la meta!', currentNotGreater: '\u00A1El valor actual no puede ser mayor que la meta!', goalAdded: '\u00A1Meta a\u00F1adida!', goalEdited: '\u00A1Meta editada!', deleteGoalConfirm: '\u00BFEst\u00E1s seguro de que deseas eliminar esta meta?', goalDeleted: '\u00A1Meta eliminada!', noGoals: 'Ninguna meta registrada', restore: 'Restaurar', saveError: '\u00A1Error al guardar datos!', goalPlaceholder: 'Ej: Comprar un coche', noExport: '\u00A1Ninguna transacci\u00F3n para exportar!', fillAllFields: '\u00A1Por favor, completa todos los campos!', transactionAdded: '\u00A1Transacci\u00F3n a\u00F1adida con \u00E9xito!', transactionEdited: '\u00A1Transacci\u00F3n editada!', transactionRestored: '\u00A1Transacci\u00F3n restaurada!', transactionDeletedPerm: 'Transacci\u00F3n eliminada permanentemente.', noTransactionsPeriod: 'Ninguna transacci\u00F3n para este per\u00EDodo', noTransactionsDay: 'Ninguna transacci\u00F3n para este d\u00EDa', noTransactionsFilters: '\u00A1Ninguna transacci\u00F3n encontrada con los filtros!', exportSuccess: '\u00A1Exportado a Excel con \u00E9xito!', exportError: '\u00A1Error al exportar a Excel!', importConfirm: 'Importar este archivo reemplazar\u00E1 todos los datos actuales. \u00BFDeseas continuar?', importSuccess: '\u00A1Datos importados con \u00E9xito!', clearConfirm: '\u26A0\uFE0F ATENCI\u00D3N: Esta acci\u00F3n borrar\u00E1 TODOS los datos. \u00BFDeseas continuar?', allDataCleared: '\u00A1Todos los datos han sido borrados!', backupExported: '\u00A1Copia de seguridad JSON exportada!', backupExportError: '\u00A1Error al exportar la copia de seguridad!', loadError: '\u00A1Error al cargar datos!', fillGoalCorrect: '\u00A1Completa los campos correctamente!', noTransactionsFoundShort: 'Ninguna transacci\u00F3n encontrada', viewReceipt: 'Ver comprobante adjunto', viewReceiptModalTitle: 'Comprobante Adjunto', downloadReceipt: 'Descargar Comprobante', openInNewTab: 'Abrir en Nueva Pesta\u00F1a', close: 'Cerrar', receiptDownloaded: '\u00A1Comprobante descargado con \u00E9xito!', receiptLoading: 'Cargando comprobante...'
+                logout: 'Cerrar sesi\u00F3n', pageTitle: 'Control Financiero Avanzado', appTitle: 'Finanzas', saveTransaction: 'Guardar Transacci\u00F3n', placeholderDescShort: 'Descripci\u00F3n de la transacci\u00F3n', menuNewTransaction: 'Nueva Transacci\u00F3n', menuTransactions: 'Transacciones', menuSearch: 'Buscar', menuCharts: 'Gr\u00E1ficos', menuSummaries: 'Res\u00FAmenes', menuGoals: 'Metas', menuTrash: 'Papelera', menuBackup: 'Copia de Seguridad', menuFixedAccounts: 'Cuentas Fijas', menuAbout: 'Acerca de', menuContact: 'Contacto', menu: 'Men\u00FA', allTransactions: 'Todas las Transacciones', searchTransactions: 'Buscar Transacciones', searchByName: 'Buscar por nombre o descripci\u00F3n', category: 'Categor\u00EDa', type: 'Tipo', monthYear: 'Mes/A\u00F1o', allCategories: 'Todas las categor\u00EDas', allTypes: 'Todos los tipos', income: 'Ingreso', expense: 'Gasto', favorites: 'Favoritas', favoritesOnly: 'Solo favoritas', search: 'Buscar', clearFilters: 'Limpiar Filtros', exportResults: 'Exportar Resultados', searchResults: 'Resultados de la B\u00FAsqueda', transactionsFound: 'transacciones encontradas', searchIncome: 'Ingresos en B\u00FAsqueda', searchExpense: 'Gastos en B\u00FAsqueda', searchBalance: 'Saldo de B\u00FAsqueda', noTransactionsFound: 'Ninguna transacci\u00F3n encontrada con los filtros aplicados', newTransaction: 'Nueva Transacci\u00F3n', date: 'Fecha', value: 'Importe (R$)', description: 'Descripci\u00F3n', selectCategory: 'Selecciona una categor\u00EDa', placeholderDesc: 'Describe la transacci\u00F3n...', favoriteTransaction: 'A\u00F1adir a favoritas', clear: 'Limpiar', clearAll: 'Limpiar Todo', gains: 'Ingresos', spending: 'Gastos', balance: 'Saldo', dailyTransactions: 'Transacciones del D\u00EDa Seleccionado', chartsTitle: 'Gr\u00E1ficos de Ingresos y Gastos', period: 'Per\u00EDodo', month: 'Mes', week: 'Semana', year: 'A\u00F1o', monthSpecific: 'Mes espec\u00EDfico', weekSpecific: 'Semana espec\u00EDfica', yearSpecific: 'A\u00F1o espec\u00EDfico', last3Months: '\u00DAltimos 3 meses', last6Months: '\u00DAltimos 6 meses', customPeriod: 'Per\u00EDodo personalizado', dateRange: 'Rango de Fechas', startDate: 'Fecha Inicial', endDate: 'Fecha Final', today: 'Hoy', groupBy: 'Agrupar por', view: 'Visualizar', incomeExpense: 'Ingresos y Gastos', expenseOnly: 'Solo Gastos', incomeOnly: 'Solo Ingresos', chartType: 'Tipo de gr\u00E1fico', pie: 'Circular', bar: 'Barras', line: 'L\u00EDneas', dailySummary: 'Resumen Diario', weeklySummary: 'Resumen Semanal', monthlySummary: 'Resumen Mensual', yearlySummary: 'Resumen Anual', selectDay: 'Seleccionar D\u00EDa', selectWeek: 'Seleccionar Semana', selectMonth: 'Seleccionar Mes', selectYear: 'Seleccionar A\u00F1o', allMonths: 'Todos os meses', financialGoals: 'Metas Financieras', newGoal: 'Nueva Meta', emptyTrash: 'Vaciar papelera', trashInfo: 'Las transacciones eliminadas pueden restaurarse o eliminarse permanentemente.', backupExport: 'Copia de Seguridad y Exportaci\u00F3n', exportJson: 'Exportar JSON', importJson: 'Importar JSON', exportExcel: 'Exportar a Excel', manualSync: 'Sincronizar en la nube',
+                editTransaction: 'Editar Transacci\u00F3n', save: 'Guardar', cancel: 'Cancelar', addGoal: 'Nueva Meta', goalDescription: 'Descripci\u00F3n de la Meta', goalTarget: 'Importe de la Meta (R$)', goalCurrent: 'Importe Actual (R$)', saveGoal: 'Guardar Meta', editGoal: 'Editar Meta', exportToExcel: 'Exportar a Excel', allRecords: 'Todos los registros', onlyIncome: 'Solo ingresos', onlyExpense: 'Solo gastos', calculator: 'Calculadora', edit: 'Editar', delete: 'Eliminar', deletePermanent: 'Eliminar permanentemente', moveToTrash: '\u00BFMover esta transacci\u00F3n a la papelera?', movedToTrash: 'Transacci\u00F3n movida a la papelera.', deletePermanentConfirm: '\u00BFEliminar permanentemente? Esta acci\u00F3n no se puede deshacer.', trashEmpty: 'La papelera ya est\u00E1 vac\u00EDa.', emptyTrashConfirm: '\u00BFEliminar permanentemente las', trashEmptyConfirm: 'transacciones de la papelera? Esta acci\u00F3n no se puede deshacer.', trashEmptied: 'Papelera vaciada.', noTrash: 'Ninguna transacci\u00F3n en la papelera', fillGoalFields: '\u00A1Por favor, completa los campos de la meta!', currentNotGreater: '\u00A1El importe actual no puede superar la meta!', goalAdded: '\u00A1Meta creada con \u00E9xito!', goalEdited: '\u00A1Meta actualizada con \u00E9xito!', deleteGoalConfirm: '\u00BFEst\u00E1s seguro de que deseas eliminar esta meta?', goalDeleted: '\u00A1Meta eliminada!', noGoals: 'Ninguna meta registrada', restore: 'Restaurar', saveError: '\u00A1Error al guardar datos!', goalPlaceholder: 'Ej: Comprar un coche', noExport: '\u00A1Ninguna transacci\u00F3n para exportar!', fillAllFields: '\u00A1Por favor, completa todos los campos!', transactionAdded: '\u00A1Transacci\u00F3n a\u00F1adida con \u00E9xito!', transactionEdited: '\u00A1Transacci\u00F3n actualizada con \u00E9xito!', transactionRestored: '\u00A1Transacci\u00F3n restaurada!', transactionDeletedPerm: 'Transacci\u00F3n eliminada permanentemente.', noTransactionsPeriod: 'Ninguna transacci\u00F3n para este per\u00EDodo', noTransactionsDay: 'Ninguna transacci\u00F3n para este d\u00EDa', noTransactionsFilters: '\u00A1Ninguna transacci\u00F3n encontrada con los filtros!', exportSuccess: '\u00A1Exportado a Excel con \u00E9xito!', exportError: '\u00A1Error al exportar a Excel!', importConfirm: 'Importar este archivo reemplazar\u00E1 todos los datos actuales. \u00BFDeseas continuar?', importSuccess: '\u00A1Datos importados con \u00E9xito!', clearConfirm: '\u26A0\uFE0F ATENCI\u00D3N: Esta acci\u00F3n borrar\u00E1 TODOS los datos. \u00BFDeseas continuar?', allDataCleared: '\u00A1Todos los datos han sido borrados!', backupExported: '\u00A1Copia de seguridad JSON exportada!', backupExportError: '\u00A1Error al exportar la copia de seguridad!', loadError: '\u00A1Error al cargar datos!', fillGoalCorrect: '\u00A1Completa los campos correctamente!', noTransactionsFoundShort: 'Ninguna transacci\u00F3n encontrada', viewReceipt: 'Ver comprobante adjunto', viewReceiptModalTitle: 'Comprobante Adjunto', downloadReceipt: 'Descargar Comprobante', openInNewTab: 'Abrir en Nueva Pesta\u00F1a', close: 'Cerrar', receiptDownloaded: '\u00A1Comprobante descargado con \u00E9xito!', receiptLoading: 'Cargando comprobante...', fontSizeTitle: 'Tama\u00F1o del Texto', fontSmall: 'Peque\u00F1o', fontNormal: 'Normal', fontMedium: 'Medio', fontLarge: 'Grande'
             }
         };
 
         // currentLang is initialized at top of file
 
         function toggleLanguage() {
-            if (currentLang === 'pt-BR') {
-                setLanguage('en');
-            } else if (currentLang === 'en') {
-                setLanguage('es');
-            } else {
-                setLanguage('pt-BR');
+            try {
+                if (currentLang === 'pt-BR') {
+                    setLanguage('en');
+                } else if (currentLang === 'en') {
+                    setLanguage('es');
+                } else {
+                    setLanguage('pt-BR');
+                }
+            } catch (err) {
+                console.error("Erro ao alternar idioma:", err);
             }
         }
 
         function setLanguage(lang) {
-            currentLang = lang;
-            localStorage.setItem('lang', lang);
+            try {
+                currentLang = lang;
+                try {
+                    localStorage.setItem('lang', lang);
+                } catch (e) {}
 
-            // Update Single Button Icon: Show CURRENT language flag
-            const btn = document.getElementById('langToggleBtn');
-            if (btn) {
-                if (lang === 'pt-BR') {
-                    btn.innerHTML = '<img src="https://flagcdn.com/w40/br.png" alt="Bandeira do Brasil" style="width: 24px; height: 18px; border-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.3);">';
-                    btn.title = "Idioma: Português";
-                } else if (lang === 'es') {
-                    btn.innerHTML = '<img src="https://flagcdn.com/w40/es.png" alt="Bandera de España" style="width: 24px; height: 18px; border-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.3);">';
-                    btn.title = "Idioma: Español";
-                } else {
-                    btn.innerHTML = '<img src="https://flagcdn.com/w40/us.png" alt="USA Flag" style="width: 24px; height: 18px; border-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.3);">';
-                    btn.title = "Language: English";
+                // Update Single Button Icon: Show CURRENT language flag
+                const btn = document.getElementById('langToggleBtn');
+                if (btn) {
+                    if (lang === 'pt-BR') {
+                        btn.innerHTML = '<img src="https://flagcdn.com/w40/br.png" alt="Bandeira do Brasil" style="width: 24px; height: 18px; border-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.3);">';
+                        btn.title = "Idioma: Português";
+                    } else if (lang === 'es') {
+                        btn.innerHTML = '<img src="https://flagcdn.com/w40/es.png" alt="Bandera de España" style="width: 24px; height: 18px; border-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.3);">';
+                        btn.title = "Idioma: Español";
+                    } else {
+                        btn.innerHTML = '<img src="https://flagcdn.com/w40/us.png" alt="USA Flag" style="width: 24px; height: 18px; border-radius: 2px; box-shadow: 0 1px 3px rgba(0,0,0,0.3);">';
+                        btn.title = "Language: English";
+                    }
                 }
-            }
 
-            applyTranslations(lang);
-            updateClock();
+                applyTranslations(lang);
+                if (typeof updateClock === 'function') updateClock();
+            } catch (err) {
+                console.error("Erro no setLanguage:", err);
+            }
         }
         function t(key) { const lang = currentLang || localStorage.getItem('lang') || 'pt-BR'; return (i18n[lang] && i18n[lang][key]) ? i18n[lang][key] : key; }
-        function applyTranslations(lang) { document.querySelectorAll('[data-i18n]').forEach(el => { const key = el.getAttribute('data-i18n'); if (key === 'appTitle') return; if (i18n[lang] && i18n[lang][key]) el.textContent = i18n[lang][key]; }); document.querySelectorAll('[data-i18n-placeholder]').forEach(el => { const key = el.getAttribute('data-i18n-placeholder'); if (i18n[lang] && i18n[lang][key]) el.placeholder = i18n[lang][key]; }); document.querySelectorAll('[data-i18n-title]').forEach(el => { const key = el.getAttribute('data-i18n-title'); if (i18n[lang] && i18n[lang][key]) el.title = i18n[lang][key]; }); document.querySelectorAll('option[data-i18n]').forEach(el => { const key = el.getAttribute('data-i18n'); if (i18n[lang] && i18n[lang][key]) el.textContent = i18n[lang][key]; }); document.querySelectorAll('select#searchCategory option[value],select#transactionCategory option[value],select#editTransactionCategory option[value],select#exportCategory option[value]').forEach(opt => { if (opt.value && categoryOrder.includes(opt.value)) opt.textContent = getCategoryLabel(opt.value); }); document.title = i18n[lang] && i18n[lang].pageTitle ? i18n[lang].pageTitle : 'Controle Financeiro'; populateYearSelect(); updateMonthPickerButtonText(); updateAllViews(); updateTrashList(); performSearch(); updateHeaderGreeting(); }
+
+        function applyTranslations(lang) {
+            try {
+                document.querySelectorAll('[data-i18n]').forEach(el => {
+                    const key = el.getAttribute('data-i18n');
+                    if (key === 'appTitle') return;
+                    if (i18n[lang] && i18n[lang][key] !== undefined) {
+                        el.textContent = i18n[lang][key];
+                    }
+                });
+            } catch (e) { console.error('Error applying data-i18n:', e); }
+
+            try {
+                document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+                    const key = el.getAttribute('data-i18n-placeholder');
+                    if (i18n[lang] && i18n[lang][key] !== undefined) {
+                        el.placeholder = i18n[lang][key];
+                    }
+                });
+            } catch (e) { console.error('Error applying data-i18n-placeholder:', e); }
+
+            try {
+                document.querySelectorAll('[data-i18n-title]').forEach(el => {
+                    const key = el.getAttribute('data-i18n-title');
+                    if (i18n[lang] && i18n[lang][key] !== undefined) {
+                        el.title = i18n[lang][key];
+                    }
+                });
+            } catch (e) { console.error('Error applying data-i18n-title:', e); }
+
+            try {
+                document.querySelectorAll('option[data-i18n]').forEach(el => {
+                    const key = el.getAttribute('data-i18n');
+                    if (i18n[lang] && i18n[lang][key] !== undefined) {
+                        el.textContent = i18n[lang][key];
+                    }
+                });
+            } catch (e) { console.error('Error applying option data-i18n:', e); }
+
+            try {
+                document.querySelectorAll('select#searchCategory option[value],select#transactionCategory option[value],select#editTransactionCategory option[value],select#exportCategory option[value]').forEach(opt => {
+                    if (opt.value && categoryOrder.includes(opt.value)) {
+                        opt.textContent = getCategoryLabel(opt.value);
+                    }
+                });
+            } catch (e) { console.error('Error translating category options:', e); }
+
+            try {
+                document.title = (i18n[lang] && i18n[lang].pageTitle) ? i18n[lang].pageTitle : 'Controle Financeiro';
+            } catch (e) {}
+
+            try { if (typeof populateYearSelect === 'function') populateYearSelect(); } catch (e) { console.error('populateYearSelect error:', e); }
+            try { if (typeof updateMonthPickerButtonText === 'function') updateMonthPickerButtonText(); } catch (e) { console.error('updateMonthPickerButtonText error:', e); }
+            try { if (typeof updateAllViews === 'function') updateAllViews(); } catch (e) { console.error('updateAllViews error:', e); }
+            try { if (typeof updateTrashList === 'function') updateTrashList(); } catch (e) { console.error('updateTrashList error:', e); }
+            try { if (typeof performSearch === 'function') performSearch(); } catch (e) { console.error('performSearch error:', e); }
+            try { if (typeof updateHeaderGreeting === 'function') updateHeaderGreeting(); } catch (e) { console.error('updateHeaderGreeting error:', e); }
+            try { if (typeof updateDatePillText === 'function') updateDatePillText(); } catch (e) { console.error('updateDatePillText error:', e); }
+        }
+
+        // Font Size Management
+        function setFontSize(size) {
+            const validSizes = ['small', 'normal', 'medium', 'large'];
+            if (!validSizes.includes(size)) size = 'normal';
+            currentFontSize = size;
+            try {
+                localStorage.setItem('appFontSize', size);
+            } catch (e) {}
+
+            document.documentElement.setAttribute('data-font-size', size);
+
+            document.querySelectorAll('.font-size-btn, .menu-font-btn').forEach(btn => {
+                if (btn.getAttribute('data-size') === size) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+
+            setTimeout(function() {
+                if (typeof closeFontSizeMenu === 'function') closeFontSizeMenu();
+            }, 180);
+        }
+
+        function toggleFontSizeMenu(event) {
+            if (event) {
+                event.stopPropagation();
+            }
+            const popover = document.getElementById('fontSizePopover');
+            if (popover) {
+                popover.classList.toggle('active');
+            }
+        }
+
+        function closeFontSizeMenu() {
+            const popover = document.getElementById('fontSizePopover');
+            if (popover && popover.classList.contains('active')) {
+                popover.classList.remove('active');
+            }
+        }
+
+        document.addEventListener('click', function(e) {
+            const popover = document.getElementById('fontSizePopover');
+            const toggleBtn = document.getElementById('fontSizeToggleBtn');
+            if (popover && popover.classList.contains('active')) {
+                if (!popover.contains(e.target) && !toggleBtn?.contains(e.target)) {
+                    popover.classList.remove('active');
+                }
+            }
+        });
 
         let clockIntervalId = null;
         function startClock() { updateClock(); if (clockIntervalId) clearInterval(clockIntervalId); clockIntervalId = setInterval(updateClock, 1000); }
         document.addEventListener('DOMContentLoaded', function () {
             applyTheme();
+            var savedFontSize = localStorage.getItem('appFontSize') || 'normal';
+            setFontSize(savedFontSize);
             var savedLang = localStorage.getItem('lang') || 'pt-BR';
             setLanguage(savedLang);
             startClock();
@@ -364,11 +497,11 @@
             }, 1500);
             setCurrentDates();
             if (typeof updateDateDisplayText === 'function') updateDateDisplayText();
-            populateYearSelect();
-            initializeMonthPicker();
-            updateAllViews();
-            updateTrashList();
-            performSearch();
+            try { if (typeof populateYearSelect === 'function') populateYearSelect(); } catch(e) {}
+            try { if (typeof initializeMonthPicker === 'function') initializeMonthPicker(); } catch(e) {}
+            try { if (typeof updateAllViews === 'function') updateAllViews(); } catch(e) {}
+            try { if (typeof updateTrashList === 'function') updateTrashList(); } catch(e) {}
+            try { if (typeof performSearch === 'function') performSearch(); } catch(e) {}
         });
         window.addEventListener('load', updateClock);
         document.addEventListener('visibilitychange', function () { if (document.visibilityState === 'visible') { updateClock(); startClock(); } });
@@ -437,7 +570,7 @@
             if (lang === 'en') {
                 var ap = h >= 12 ? 'PM' : 'AM';
                 var h12 = h % 12 || 12;
-                te.textContent = h12 + ':' + mS;
+                te.textContent = h12 + ':' + mS + ' ' + ap;
                 de.textContent = monthNamesEn[mo] + ' ' + d + ', ' + y;
             } else if (lang === 'es') {
                 te.textContent = hS + ':' + mS;
@@ -545,7 +678,7 @@
                 <button class="${fc}" onclick="toggleFavorite('${tx.id}');performSearch();" title="${tx.favorite ? 'Desfavoritar' : 'Favoritar'}">${fi}</button>
                 <div class="transaction-info">
                     <div class="transaction-description">${escapeHtml(tx.description)}</div>
-                    <div class="transaction-meta">${getCategoryLabel(tx.category)} \u2022 ${tx.type === 'income' ? t('income') : t('expense')} \u2022 ${tx.time || ''}</div>
+                    <div class="transaction-meta">${getCategoryLabel(tx.category)} \u2022 ${tx.type === 'income' ? t('income') : t('expense')}${tx.time ? ` \u2022 ${formatTimeForDisplay(tx.time)}` : ''}</div>
                 </div>
                 <div class="transaction-amount ${tx.type}">${tx.type === 'income' ? '+' : '-'}${formatCurrency(tx.value)}</div>
                 <div class="transaction-actions">
@@ -977,22 +1110,22 @@
         function updateTransactionsList() { const l = document.getElementById('transactionsList'); const a = getActiveTransactions(); if (a.length === 0) { l.innerHTML = '<div class="empty-state">' + t('noTransactionsFoundShort') + '</div>'; return; } const s = [...a].sort((a, b) => new Date(b.date) - new Date(a.date)); l.innerHTML = s.map(tx => renderTransactionItem(tx)).join(''); }
         function updateGoalsList() {
             const l = document.getElementById('goalsList');
+            if (!l) return;
             if (goals.length === 0) {
                 l.innerHTML = '<div class="empty-state">' + t('noGoals') + '</div>';
                 return;
             }
             const s = [...goals].sort((a, b) => (a.order || 0) - (b.order || 0));
             l.innerHTML = s.map((g, i) => {
-                const p = Math.min((g.current / g.target) * 100, 100);
-                const r = Math.max(g.target - g.current, 0);
-                l.innerHTML = s.map((g, i) => {
-                    const p = Math.min((g.current / g.target) * 100, 100);
-                    const r = Math.max(g.target - g.current, 0);
-                    return `<div class="goal-item">
+                const target = g.target || 1;
+                const current = g.current || 0;
+                const p = Math.min((current / target) * 100, 100);
+                const r = Math.max(target - current, 0);
+                return `<div class="goal-item">
                     <div class="goal-header">
                         <div class="goal-info">
-                            <h3>${escapeHtml(g.description)}</h3>
-                            <div class="goal-values">${formatCurrency(g.current)} de ${formatCurrency(g.target)}</div>
+                            <h3>${escapeHtml(g.description || '')}</h3>
+                            <div class="goal-values">${formatCurrency(current)} de ${formatCurrency(target)}</div>
                         </div>
                         <div class="goal-actions">
                             ${i > 0 ? `<button class="action-btn move-up" onclick="moveGoal('${g.id}',-1)" title="Mover para cima"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="18 15 12 9 6 15"/></svg></button>` : ''}
@@ -1006,18 +1139,33 @@
                         <div class="progress-text"><span>${p.toFixed(1)}% conclu\u00EDdo</span><span>Faltam ${formatCurrency(r)}</span></div>
                     </div>
                 </div>`;
-                }).join('');
             }).join('');
         }
-        function updateDailyTransactions() { const sd = document.getElementById('transactionDate').value; const daily = getActiveTransactions().filter(t => t.date === sd); updateSummaryStats('daily', daily); const l = document.getElementById('dailyTransactionsList'); if (daily.length === 0) { l.innerHTML = '<div class="empty-state">' + t('noTransactionsDay') + '</div>'; return; } const sortedDaily = [...daily].sort((a, b) => { if (a.type !== b.type) return a.type === 'income' ? -1 : 1; return b.time.localeCompare(a.time); }); l.innerHTML = sortedDaily.map(tx => renderTransactionItem(tx)).join(''); }
+        function updateDailyTransactions() {
+            const dateInput = document.getElementById('transactionDate');
+            const sd = dateInput ? dateInput.value : '';
+            const daily = sd ? getActiveTransactions().filter(t => t.date === sd) : [];
+            updateSummaryStats('daily', daily);
+            const l = document.getElementById('dailyTransactionsList');
+            if (!l) return;
+            if (daily.length === 0) {
+                l.innerHTML = '<div class="empty-state">' + t('noTransactionsDay') + '</div>';
+                return;
+            }
+            const sortedDaily = [...daily].sort((a, b) => {
+                if (a.type !== b.type) return a.type === 'income' ? -1 : 1;
+                return String(b.time || '').localeCompare(String(a.time || ''));
+            });
+            l.innerHTML = sortedDaily.map(tx => renderTransactionItem(tx)).join('');
+        }
 
-        function toggleSummary(type) { const c = document.getElementById(type + 'SummaryContent'); const ic = c.previousElementSibling.querySelector('.expand-icon'); c.classList.toggle('expanded'); ic.classList.toggle('expanded'); }
-        function updateDailySummary() { const d = document.getElementById('dailySummaryDate').value; if (!d) return; const daily = getActiveTransactions().filter(t => t.date === d); updateSummaryView('dailySummary', daily); }
-        function updateWeeklySummary() { const wi = document.getElementById('weeklySummaryDate').value; if (!wi) return; const [yr, wn] = wi.split('-W'); if (!yr || !wn || isNaN(parseInt(wn, 10))) return; const fy = new Date(Date.UTC(parseInt(yr, 10), 0, 1)); const ds = (wn - 1) * 7; const sd = new Date(fy.getTime() + ds * 86400000); const dow = sd.getUTCDay(); const diff = sd.getUTCDate() - dow + (dow === 0 ? -6 : 1); const mon = new Date(sd.setUTCDate(diff)); const sun = new Date(mon); sun.setUTCDate(mon.getUTCDate() + 6); const ss = mon.toISOString().split('T')[0]; const es = sun.toISOString().split('T')[0]; const weekly = getActiveTransactions().filter(t => t.date >= ss && t.date <= es); updateSummaryView('weeklySummary', weekly); }
-        function updateMonthlySummary() { const m = document.getElementById('monthlySummaryDate').value; if (!m) return; const monthly = getActiveTransactions().filter(t => t.date.startsWith(m)); updateSummaryView('monthlySummary', monthly); }
-        function updateYearlySummary() { const y = document.getElementById('yearlySummaryDate').value; if (!y) return; const yearly = getActiveTransactions().filter(t => t.date.startsWith(y)); updateSummaryView('yearlySummary', yearly); }
-        function updateSummaryView(pfx, list) { updateSummaryStats(pfx, list); const l = document.getElementById(pfx + 'Transactions'); if (list.length === 0) { l.innerHTML = '<div class="empty-state">' + t('noTransactionsPeriod') + '</div>'; return; } const s = [...list].sort((a, b) => new Date(b.date) - new Date(a.date)); l.innerHTML = s.map(tx => renderTransactionItem(tx)).join(''); }
-        function updateSummaryStats(pfx, list) { const inc = list.filter(t => t.type === 'income').reduce((s, t) => s + t.value, 0); const exp = list.filter(t => t.type === 'expense').reduce((s, t) => s + t.value, 0); const bal = inc - exp; document.getElementById(pfx + 'Income').textContent = formatCurrency(inc); document.getElementById(pfx + 'Expense').textContent = formatCurrency(exp); document.getElementById(pfx + 'Balance').textContent = formatCurrency(bal); const incomeBreakdownEl = document.getElementById(pfx + 'IncomeBreakdown'); if (incomeBreakdownEl) { const incomeTxs = list.filter(t => t.type === 'income'); const breakdown = {}; incomeTxs.forEach(tx => { if (!breakdown[tx.category]) breakdown[tx.category] = 0; breakdown[tx.category] += tx.value; }); const sortedBreakdown = Object.entries(breakdown).filter(([cat, val]) => val > 0).sort((a, b) => b[1] - a[1]); const breakdownText = sortedBreakdown.map(([cat, val]) => `${getCategoryLabel(cat).split(' ')[1] || getCategoryLabel(cat)}: ${formatCurrency(val)}`).join(', '); incomeBreakdownEl.textContent = breakdownText; } }
+        function toggleSummary(type) { const c = document.getElementById(type + 'SummaryContent'); if (c && c.previousElementSibling) { const ic = c.previousElementSibling.querySelector('.expand-icon'); c.classList.toggle('expanded'); if (ic) ic.classList.toggle('expanded'); } }
+        function updateDailySummary() { const el = document.getElementById('dailySummaryDate'); if (!el || !el.value) return; const daily = getActiveTransactions().filter(t => t.date === el.value); updateSummaryView('dailySummary', daily); }
+        function updateWeeklySummary() { const el = document.getElementById('weeklySummaryDate'); if (!el || !el.value) return; const wi = el.value; const [yr, wn] = wi.split('-W'); if (!yr || !wn || isNaN(parseInt(wn, 10))) return; const fy = new Date(Date.UTC(parseInt(yr, 10), 0, 1)); const ds = (wn - 1) * 7; const sd = new Date(fy.getTime() + ds * 86400000); const dow = sd.getUTCDay(); const diff = sd.getUTCDate() - dow + (dow === 0 ? -6 : 1); const mon = new Date(sd.setUTCDate(diff)); const sun = new Date(mon); sun.setUTCDate(mon.getUTCDate() + 6); const ss = mon.toISOString().split('T')[0]; const es = sun.toISOString().split('T')[0]; const weekly = getActiveTransactions().filter(t => t.date >= ss && t.date <= es); updateSummaryView('weeklySummary', weekly); }
+        function updateMonthlySummary() { const el = document.getElementById('monthlySummaryDate'); if (!el || !el.value) return; const monthly = getActiveTransactions().filter(t => t.date.startsWith(el.value)); updateSummaryView('monthlySummary', monthly); }
+        function updateYearlySummary() { const el = document.getElementById('yearlySummaryDate'); if (!el || !el.value) return; const yearly = getActiveTransactions().filter(t => t.date.startsWith(el.value)); updateSummaryView('yearlySummary', yearly); }
+        function updateSummaryView(pfx, list) { updateSummaryStats(pfx, list); const l = document.getElementById(pfx + 'Transactions'); if (!l) return; if (list.length === 0) { l.innerHTML = '<div class="empty-state">' + t('noTransactionsPeriod') + '</div>'; return; } const s = [...list].sort((a, b) => new Date(b.date) - new Date(a.date)); l.innerHTML = s.map(tx => renderTransactionItem(tx)).join(''); }
+        function updateSummaryStats(pfx, list) { const inc = list.filter(t => t.type === 'income').reduce((s, t) => s + (t.value || 0), 0); const exp = list.filter(t => t.type === 'expense').reduce((s, t) => s + (t.value || 0), 0); const bal = inc - exp; const incEl = document.getElementById(pfx + 'Income'); if (incEl) incEl.textContent = formatCurrency(inc); const expEl = document.getElementById(pfx + 'Expense'); if (expEl) expEl.textContent = formatCurrency(exp); const balEl = document.getElementById(pfx + 'Balance'); if (balEl) balEl.textContent = formatCurrency(bal); const incomeBreakdownEl = document.getElementById(pfx + 'IncomeBreakdown'); if (incomeBreakdownEl) { const incomeTxs = list.filter(t => t.type === 'income'); const breakdown = {}; incomeTxs.forEach(tx => { if (!breakdown[tx.category]) breakdown[tx.category] = 0; breakdown[tx.category] += (tx.value || 0); }); const sortedBreakdown = Object.entries(breakdown).filter(([cat, val]) => val > 0).sort((a, b) => b[1] - a[1]); const breakdownText = sortedBreakdown.map(([cat, val]) => `${(getCategoryLabel(cat) || '').split(' ')[1] || getCategoryLabel(cat)}: ${formatCurrency(val)}`).join(', '); incomeBreakdownEl.textContent = breakdownText; } }
 
         function showExportExcelModal() { document.getElementById('exportExcelForm').reset(); document.getElementById('exportDateGroup').style.display = 'none'; showModal('exportExcelModal'); }
         function updateExportDateField() {
@@ -1122,7 +1270,7 @@
 
                 const td = data.map(tx => ({
                     [cD]: formatDateForDisplay(tx.date),
-                    [cTi]: tx.time || '',
+                    [cTi]: formatTimeForDisplay(tx.time),
                     [cT]: tx.type === 'income' ? t('income') : t('expense'),
                     [cV]: tx.value,
                     [cC]: getCategoryLabel(tx.category),
@@ -1164,10 +1312,34 @@
 
         function formatCurrency(v) { const f = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(v || 0); return f.replace(/\u00A0/g, ''); }
         function escapeHtml(text) { if (text == null || typeof text !== 'string') return ''; const d = document.createElement('div'); d.textContent = text; return d.innerHTML; }
-        function formatDateForDisplay(ds) { if (!ds || typeof ds !== 'string') return ''; const p = ds.split('-'); if (p.length !== 3) return ds; return `${p[2]}/${p[1]}/${p[0]}`; }
+        function formatDateForDisplay(ds) {
+            if (!ds || typeof ds !== 'string') return '';
+            const p = ds.split('-');
+            if (p.length !== 3) return ds;
+            var lang = (typeof currentLang !== 'undefined' ? currentLang : null) || localStorage.getItem('lang') || 'pt-BR';
+            if (lang === 'en') {
+                return `${p[1]}/${p[2]}/${p[0]}`;
+            }
+            return `${p[2]}/${p[1]}/${p[0]}`;
+        }
+        function formatTimeForDisplay(timeStr) {
+            if (!timeStr || typeof timeStr !== 'string') return '';
+            var lang = (typeof currentLang !== 'undefined' ? currentLang : null) || localStorage.getItem('lang') || 'pt-BR';
+            if (lang !== 'en') return timeStr;
+            var clean = timeStr.trim();
+            if (/am|pm/i.test(clean)) return clean;
+            var parts = clean.split(':');
+            if (parts.length < 2) return clean;
+            var h = parseInt(parts[0], 10);
+            var m = parts[1].slice(0, 2);
+            if (isNaN(h)) return clean;
+            var ap = h >= 12 ? 'PM' : 'AM';
+            var h12 = h % 12 || 12;
+            return h12 + ':' + m + ' ' + ap;
+        }
         function renderTransactionItem(tx) {
             const fav = tx.favorite ? `<svg class="favorited" width="18" height="18" viewBox="0 0 24 24" fill="currentColor" stroke="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>` : `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>`;
-            const timeDisplay = tx.time ? ` \u2022 ${tx.time}` : '';
+            const timeDisplay = tx.time ? ` \u2022 ${formatTimeForDisplay(tx.time)}` : '';
             const receiptBtn = (tx.receiptBase64 || tx.receiptPath) ? `<button class="action-btn receipt-btn" onclick="viewTransactionReceipt('${tx.id}')" title="${t('viewReceipt')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg></button>` : '';
             return `<div class="transaction-item">
                 <div class="transaction-info">
@@ -1468,7 +1640,7 @@
             }
         }
 
-        function updateAllViews() { updateTransactionsList(); updateGoalsList(); updateDailyTransactions(); updateDailySummary(); updateWeeklySummary(); updateMonthlySummary(); updateYearlySummary(); updateTrashList(); updateHeaderBalance(); if (typeof cfUpdateViews === 'function') cfUpdateViews(); if (document.getElementById('search') && document.getElementById('search').classList.contains('active')) populateYearSelect(); }
+        // updateAllViews is defined at line 257 with full error protection and user isolation
 
         function toggleSearch() {
             const searchTabBtn = document.querySelector('.menu-item[onclick*="showTab(\'search\'"]');
@@ -2580,21 +2752,37 @@
             const tomStr = tom.getFullYear() + '-' + String(tom.getMonth()+1).padStart(2,'0') + '-' + String(tom.getDate()).padStart(2,'0');
             
             const valStr = di.value;
+            var lang = (typeof currentLang !== 'undefined' ? currentLang : null) || localStorage.getItem('lang') || 'pt-BR';
+            var todayLabel = lang === 'en' ? 'TODAY' : (lang === 'es' ? 'HOY' : 'HOJE');
+            var yestLabel = lang === 'en' ? 'YESTERDAY' : (lang === 'es' ? 'AYER' : 'ONTEM');
+            var tomLabel = lang === 'en' ? 'TOMORROW' : (lang === 'es' ? 'MAÑANA' : 'AMANHÃ');
+
+            var monthNames = ["JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"];
+            if (lang === 'en') {
+                monthNames = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+            } else if (lang === 'es') {
+                monthNames = ["ENE", "FEB", "MAR", "ABR", "MAY", "JUN", "JUL", "AGO", "SEP", "OCT", "NOV", "DIC"];
+            }
+
             if (valStr === todayStr) {
-                dt.textContent = 'HOJE';
+                dt.textContent = todayLabel;
             } else if (valStr === yestStr) {
-                dt.textContent = 'ONTEM';
+                dt.textContent = yestLabel;
             } else if (valStr === tomStr) {
-                dt.textContent = 'AMANHÃ';
+                dt.textContent = tomLabel;
             } else {
                 const parts = valStr.split('-');
                 const d = new Date(valStr + 'T00:00:00Z');
-                const monthNames = ["JAN", "FEV", "MAR", "ABR", "MAI", "JUN", "JUL", "AGO", "SET", "OUT", "NOV", "DEZ"];
-                dt.textContent = d.getUTCDate() + ' ' + monthNames[d.getUTCMonth()] + '.';
+                if (lang === 'en') {
+                    dt.textContent = monthNames[d.getUTCMonth()] + ' ' + d.getUTCDate();
+                } else {
+                    dt.textContent = d.getUTCDate() + ' ' + monthNames[d.getUTCMonth()] + '.';
+                }
             }
         }
         function updateDateDisplayText() { updateDatePillText(); }
-        document.getElementById('transactionDate').addEventListener('change', function () { updateDailyTransactions(); updateDatePillText(); });
+        const tdEl = document.getElementById('transactionDate');
+        if (tdEl) tdEl.addEventListener('change', function () { updateDailyTransactions(); updateDatePillText(); });
 
         let customCalDate = new Date();
         function openCustomDateModal() {
@@ -2633,7 +2821,13 @@
             const year = customCalDate.getUTCFullYear();
             const month = customCalDate.getUTCMonth();
             
-            const monthNames = ["JANEIRO", "FEVEREIRO", "MARÇO", "ABRIL", "MAIO", "JUNHO", "JULHO", "AGOSTO", "SETEMBRO", "OUTUBRO", "NOVEMBRO", "DEZEMBRO"];
+            var lang = (typeof currentLang !== 'undefined' ? currentLang : null) || localStorage.getItem('lang') || 'pt-BR';
+            let monthNames = ["JANEIRO", "FEVEREIRO", "MARÇO", "ABRIL", "MAIO", "JUNHO", "JULHO", "AGOSTO", "SETEMBRO", "OUTUBRO", "NOVEMBRO", "DEZEMBRO"];
+            if (lang === 'en') {
+                monthNames = ["JANUARY", "FEBRUARY", "MARCH", "APRIL", "MAY", "JUNE", "JULY", "AUGUST", "SEPTEMBER", "OCTOBER", "NOVEMBER", "DECEMBER"];
+            } else if (lang === 'es') {
+                monthNames = ["ENERO", "FEBRERO", "MARZO", "ABRIL", "MAYO", "JUNIO", "JULIO", "AGOSTO", "SEPTIEMBRE", "OCTUBRE", "NOVIEMBRE", "DICIEMBRE"];
+            }
             const monthSpan = document.getElementById('customCalMonthYear');
             if(monthSpan) monthSpan.textContent = monthNames[month] + (year !== new Date().getFullYear() ? " " + year : "");
 
@@ -2693,10 +2887,7 @@
         function previousDay() { const di = document.getElementById('transactionDate'); const cd = new Date(di.value + 'T00:00:00Z'); cd.setUTCDate(cd.getUTCDate() - 1); di.value = cd.toISOString().split('T')[0]; updateDailyTransactions(); }
         function nextDay() { const di = document.getElementById('transactionDate'); const cd = new Date(di.value + 'T00:00:00Z'); cd.setUTCDate(cd.getUTCDate() + 1); di.value = cd.toISOString().split('T')[0]; updateDailyTransactions(); }
         // ==================== CONTAS FIXAS ====================
-        let contasFixas = [];                // loaded from Firestore
-        let cfBalance = 0;                   // user's available balance (base)
-        let cfBalanceSavedAt = null;         // ISO timestamp when cfBalance was last saved
-        let editingContaFixaId = null;       // currently being edited
+        // contasFixas, cfBalance, cfBalanceSavedAt, editingContaFixaId are initialized at top of file
 
         const CF_MOTIVATIONAL_MESSAGES = [
             { icon: '🚀', text: 'Você está no controle! Continue assim e suas finanças vão decolar!' },
@@ -3290,7 +3481,13 @@
                         grouped[mYearStr].push(cf);
                     });
 
-                    const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+                    var lang = (typeof currentLang !== 'undefined' ? currentLang : null) || localStorage.getItem('lang') || 'pt-BR';
+                    let monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+                    if (lang === 'en') {
+                        monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+                    } else if (lang === 'es') {
+                        monthNames = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
+                    }
                     
                     let html = '';
                     const nowY = new Date().getFullYear();
