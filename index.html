@@ -33,7 +33,17 @@
         <!-- New Transaction Tab -->
         <div id="new-transaction" class="tab-content active">
             <div class="card">
-                <h2 class="mb-2" data-i18n="newTransaction">Nova Transacao</h2>
+                <div class="new-transaction-header">
+                    <h2 class="mb-2" data-i18n="newTransaction">Nova Transacao</h2>
+                    <button type="button" class="btn-voice-header" id="btnVoiceHeader" onclick="openVoiceTransactionModal()" title="Adicionar por Voz" aria-label="Adicionar por Voz">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                            <line x1="12" y1="19" x2="12" y2="23"></line>
+                            <line x1="8" y1="23" x2="16" y2="23"></line>
+                        </svg>
+                    </button>
+                </div>
                 <form id="transactionForm">
                     <div class="segmented-control-container">
                         <div class="segmented-background" id="segmentedBackground"></div>
@@ -1578,10 +1588,52 @@
         </div>
     </div>
 
-    <!-- Floating Receipt Actions -->
-    <button class="floating-receipt-btn" id="receiptActionButton" type="button" aria-label="Inserir comprovante" title="Inserir comprovante" onclick="openReceiptPicker()">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
-    </button>
+    <!-- Floating Action Menu (Speed Dial) Backdrop -->
+    <div class="fab-speed-dial-backdrop" id="fabSpeedDialBackdrop" onclick="closeFabSpeedDial()"></div>
+
+    <!-- Floating Action Menu (Speed Dial) -->
+    <div class="fab-speed-dial-container" id="fabSpeedDialContainer">
+        <div class="fab-speed-dial-menu" id="fabSpeedDialMenu">
+            <!-- Opção 1: Por Voz -->
+            <button type="button" class="fab-dial-item" id="fabVoiceItem" onclick="triggerVoiceFromFab()">
+                <div class="fab-dial-text">
+                    <span class="fab-dial-title">Por Voz</span>
+                    <span class="fab-dial-subtitle">Fale o valor e descrição</span>
+                </div>
+                <div class="fab-dial-icon fab-dial-icon-voice">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                        <line x1="12" y1="19" x2="12" y2="23"></line>
+                        <line x1="8" y1="23" x2="16" y2="23"></line>
+                    </svg>
+                </div>
+            </button>
+
+            <!-- Opção 2: Por Documento -->
+            <button type="button" class="fab-dial-item" id="fabDocItem" onclick="triggerDocFromFab()">
+                <div class="fab-dial-text">
+                    <span class="fab-dial-title">Por Documento</span>
+                    <span class="fab-dial-subtitle">Comprovante com leitura IA</span>
+                </div>
+                <div class="fab-dial-icon fab-dial-icon-doc">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                        <polyline points="14 2 14 8 20 8"></polyline>
+                        <line x1="16" y1="13" x2="8" y2="13"></line>
+                        <line x1="16" y1="17" x2="8" y2="17"></line>
+                        <polyline points="10 9 9 9 8 9"></polyline>
+                    </svg>
+                </div>
+            </button>
+        </div>
+
+        <!-- Botão Flutuante Principal -->
+        <button class="floating-receipt-btn" id="receiptActionButton" type="button" aria-label="Nova Transação" title="Nova Transação" onclick="toggleFabSpeedDial()">
+            <svg class="fab-icon-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+            <svg class="fab-icon-close" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true" style="display:none;"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+    </div>
     <input id="receiptUploadInput" type="file" accept="image/*,application/pdf" capture="environment" hidden onchange="handleReceiptFileSelection(event)">
 
     <div class="modal-overlay receipt-review-overlay" id="receiptReviewModal" role="presentation" onclick="if(event.target === this && !receiptSaving) closeReceiptReview()">
@@ -1634,7 +1686,123 @@
         </section>
     </div>
 
-    <!-- Floating Calculator -->
+    <!-- Voice Transaction Modal -->
+    <div class="modal-overlay" id="voiceTransactionModal" role="presentation" onclick="if(event.target === this) closeVoiceModal()">
+        <div class="modal voice-modal" role="dialog" aria-modal="true" aria-labelledby="voiceModalTitle">
+            <div class="modal-header">
+                <div style="display:flex; align-items:center; gap:10px;">
+                    <div class="voice-modal-header-icon">
+                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                            <line x1="12" y1="19" x2="12" y2="23"></line>
+                            <line x1="8" y1="23" x2="16" y2="23"></line>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 class="modal-title" id="voiceModalTitle" style="margin:0; font-size:1.15rem;">Transação por Voz</h3>
+                        <span style="font-size:0.75rem; color:var(--primary); font-weight:600; letter-spacing:0.3px;">✦ IA INTELIGENTE</span>
+                    </div>
+                </div>
+                <button class="modal-close" type="button" aria-label="Fechar" onclick="closeVoiceModal()">&times;</button>
+            </div>
+
+            <!-- Mic & Listening Animation Area -->
+            <div class="voice-recording-area" id="voiceRecordingArea">
+                <div class="voice-pulse-container">
+                    <button type="button" class="voice-pulse-btn" id="voicePulseBtn" onclick="toggleVoiceListening()" aria-label="Gravar voz">
+                        <svg viewBox="0 0 24 24" width="32" height="32" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                            <line x1="12" y1="19" x2="12" y2="23"></line>
+                            <line x1="8" y1="23" x2="16" y2="23"></line>
+                        </svg>
+                    </button>
+                </div>
+                <div class="voice-status-text" id="voiceStatusText">Toque no microfone para falar</div>
+                <div class="voice-hint-text" id="voiceHintText">Fale o valor e o que foi gasto ou recebido.<br><em>"Gastei 50 no mercado hoje" ou "Recebi 1500 de salário"</em></div>
+                
+                <div class="voice-transcript-card" id="voiceTranscriptCard">
+                    <div class="voice-transcript-label">Texto Reconhecido:</div>
+                    <p class="voice-transcript-text" id="voiceTranscriptText">Aguardando áudio...</p>
+                </div>
+
+                <!-- Fallback text input -->
+                <div class="voice-fallback-row" id="voiceFallbackRow" style="display:none;">
+                    <input type="text" class="form-input" id="voiceFallbackInput" placeholder="Ex: Gastei 45 no almoço hoje">
+                    <button type="button" class="btn btn-primary" onclick="processVoiceFallbackInput()">Interpretar</button>
+                </div>
+            </div>
+
+            <!-- AI Extracted Result Review Card -->
+            <div class="voice-review-card" id="voiceReviewCard" style="display:none;">
+                <div class="voice-ai-badge">
+                    <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor"><path d="M12 2l2.4 7.2h7.6l-6 4.8 2.4 7.2-6.4-4.8-6.4 4.8 2.4-7.2-6-4.8h7.6z"/></svg>
+                    <span>Interpretado por IA</span>
+                </div>
+                
+                <form id="voiceTransactionForm" onsubmit="event.preventDefault(); saveVoiceTransaction();">
+                    <div class="form-group mb-2">
+                        <label class="form-label" style="font-size:0.8rem;">TIPO</label>
+                        <div class="voice-type-toggle">
+                            <label id="voiceTypeIncomeLabel" class="voice-type-label">
+                                <input type="radio" name="voiceType" value="income" onchange="updateVoiceTypeStyles()"> Ganho
+                            </label>
+                            <label id="voiceTypeExpenseLabel" class="voice-type-label selected-expense">
+                                <input type="radio" name="voiceType" value="expense" checked onchange="updateVoiceTypeStyles()"> Gasto
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="form-group mb-2">
+                        <label class="form-label" for="voiceAmount" style="font-size:0.8rem;">VALOR (R$)</label>
+                        <input type="number" id="voiceAmount" class="form-input" step="0.01" min="0.01" placeholder="0,00" required>
+                    </div>
+
+                    <div class="form-group mb-2">
+                        <label class="form-label" for="voiceCategory" style="font-size:0.8rem;">CATEGORIA</label>
+                        <select id="voiceCategory" class="form-select" required>
+                            <option value="">Selecione uma categoria</option>
+                            <option value="alimentacao">🍽️ Alimentação</option>
+                            <option value="mercado">🛒 Mercado</option>
+                            <option value="combustivel">⛽ Combustível</option>
+                            <option value="manutencao_veiculo">🔧 Manutenção Veículo</option>
+                            <option value="transporte">🚗 Transporte</option>
+                            <option value="moradia">🏠 Moradia</option>
+                            <option value="saude">🏥 Saúde</option>
+                            <option value="educacao">📚 Educação</option>
+                            <option value="lazer">🎮 Lazer</option>
+                            <option value="salario">💼 Salário</option>
+                            <option value="freelance">💻 Freelance</option>
+                            <option value="investimentos">📈 Investimentos</option>
+                            <option value="outros">📦 Outros</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group mb-2">
+                        <label class="form-label" for="voiceDescription" style="font-size:0.8rem;">DESCRIÇÃO</label>
+                        <input type="text" id="voiceDescription" class="form-input" placeholder="Descrição" required maxlength="100">
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label class="form-label" for="voiceDate" style="font-size:0.8rem;">DATA</label>
+                        <input type="date" id="voiceDate" class="form-input" required>
+                    </div>
+
+                    <div class="voice-actions-grid">
+                        <button type="button" class="btn btn-secondary" onclick="restartVoiceListening()">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 4v6h6M23 20v-6h-6"></path><path d="M20.49 9A9 9 0 0 0 5.64 5.64L1 10m22 4l-4.64 4.36A9 9 0 0 1 3.51 15"></path></svg>
+                            Falar de novo
+                        </button>
+                        <button type="submit" class="btn btn-primary" id="btnConfirmVoiceTransaction">
+                            <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                            Salvar Transação
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
     <button class="floating-calc-btn" onclick="toggleCalculator()" title="Calculadora">
         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
             stroke-linecap="round" stroke-linejoin="round">

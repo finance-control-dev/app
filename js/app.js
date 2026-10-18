@@ -3983,6 +3983,678 @@
 
         repairRedesignedTabs();
 
+        /* ==========================================================================
+           SPEED DIAL FLOATING ACTION MENU & VOICE TRANSACTION WITH AI
+           ========================================================================== */
+
+        // --- FAB Speed Dial Functions ---
+        function toggleFabSpeedDial() {
+            const btn = document.getElementById('receiptActionButton');
+            if (btn && btn.classList.contains('active')) {
+                closeFabSpeedDial();
+            } else {
+                openFabSpeedDial();
+            }
+        }
+
+        function openFabSpeedDial() {
+            const btn = document.getElementById('receiptActionButton');
+            const menu = document.getElementById('fabSpeedDialMenu');
+            const backdrop = document.getElementById('fabSpeedDialBackdrop');
+            if (btn) btn.classList.add('active');
+            if (menu) menu.classList.add('active');
+            if (backdrop) backdrop.classList.add('active');
+
+            const plusIcon = btn?.querySelector('.fab-icon-plus');
+            const closeIcon = btn?.querySelector('.fab-icon-close');
+            if (plusIcon) plusIcon.style.display = 'none';
+            if (closeIcon) closeIcon.style.display = 'block';
+        }
+
+        function closeFabSpeedDial() {
+            const btn = document.getElementById('receiptActionButton');
+            const menu = document.getElementById('fabSpeedDialMenu');
+            const backdrop = document.getElementById('fabSpeedDialBackdrop');
+            if (btn) btn.classList.remove('active');
+            if (menu) menu.classList.remove('active');
+            if (backdrop) backdrop.classList.remove('active');
+
+            const plusIcon = btn?.querySelector('.fab-icon-plus');
+            const closeIcon = btn?.querySelector('.fab-icon-close');
+            if (plusIcon) plusIcon.style.display = 'block';
+            if (closeIcon) closeIcon.style.display = 'none';
+        }
+
+        function triggerDocFromFab() {
+            closeFabSpeedDial();
+            if (typeof openReceiptPicker === 'function') {
+                openReceiptPicker();
+            }
+        }
+
+        function triggerVoiceFromFab() {
+            closeFabSpeedDial();
+            openVoiceTransactionModal();
+        }
+
+        // --- Voice Transaction State & Handlers ---
+        let voiceRecognitionInstance = null;
+        let isVoiceListening = false;
+        let voiceSilenceTimeout = null;
+        let lastSpokenTranscript = '';
+
+        function openVoiceTransactionModal() {
+            if (!currentUser) {
+                showNotification('Faça login para adicionar transações por voz', 'error');
+                return;
+            }
+
+            const modal = document.getElementById('voiceTransactionModal');
+            if (!modal) return;
+
+            // Reset UI state
+            resetVoiceModalUI();
+            modal.classList.add('active');
+
+            // Automatically start listening immediately for smooth UX
+            setTimeout(() => {
+                startVoiceListening();
+            }, 300);
+        }
+
+        function closeVoiceModal() {
+            stopVoiceListeningSilently();
+            const modal = document.getElementById('voiceTransactionModal');
+            if (modal) modal.classList.remove('active');
+        }
+
+        function resetVoiceModalUI() {
+            const recArea = document.getElementById('voiceRecordingArea');
+            const revCard = document.getElementById('voiceReviewCard');
+            const transcriptText = document.getElementById('voiceTranscriptText');
+            const statusText = document.getElementById('voiceStatusText');
+            const fallbackRow = document.getElementById('voiceFallbackRow');
+            const fallbackInput = document.getElementById('voiceFallbackInput');
+
+            if (recArea) recArea.style.display = 'flex';
+            if (revCard) revCard.style.display = 'none';
+            if (fallbackRow) fallbackRow.style.display = 'none';
+            if (fallbackInput) fallbackInput.value = '';
+            if (transcriptText) {
+                transcriptText.textContent = 'Aguardando áudio...';
+                transcriptText.style.color = 'var(--dark-text-2, #cbd5e1)';
+            }
+            if (statusText) {
+                statusText.textContent = 'Toque no microfone para falar';
+                statusText.classList.remove('listening');
+            }
+
+            // Reset review form inputs
+            const defaultDate = typeof getTodayInBrasiliaISO === 'function' ? getTodayInBrasiliaISO() : new Date().toISOString().split('T')[0];
+            const dateInput = document.getElementById('voiceDate');
+            if (dateInput) dateInput.value = defaultDate;
+
+            const amountInput = document.getElementById('voiceAmount');
+            if (amountInput) amountInput.value = '';
+
+            const categoryInput = document.getElementById('voiceCategory');
+            if (categoryInput) categoryInput.value = '';
+
+            const descInput = document.getElementById('voiceDescription');
+            if (descInput) descInput.value = '';
+
+            const expRadio = document.querySelector('input[name="voiceType"][value="expense"]');
+            if (expRadio) expRadio.checked = true;
+            updateVoiceTypeStyles();
+            lastSpokenTranscript = '';
+        }
+
+        function updateVoiceTypeStyles() {
+            const selected = document.querySelector('input[name="voiceType"]:checked')?.value || 'expense';
+            const incLabel = document.getElementById('voiceTypeIncomeLabel');
+            const expLabel = document.getElementById('voiceTypeExpenseLabel');
+            if (incLabel) incLabel.classList.toggle('selected-income', selected === 'income');
+            if (expLabel) expLabel.classList.toggle('selected-expense', selected === 'expense');
+        }
+
+        function toggleVoiceListening() {
+            if (isVoiceListening) {
+                if (lastSpokenTranscript.trim()) {
+                    finishVoiceListening(lastSpokenTranscript.trim());
+                } else {
+                    stopVoiceListeningSilently();
+                    updateVoiceStatusUI('Gravação pausada. Toque no microfone para falar.', false);
+                }
+            } else {
+                startVoiceListening();
+            }
+        }
+
+        function updateVoiceStatusUI(message, isListening) {
+            const statusText = document.getElementById('voiceStatusText');
+            const pulseBtn = document.getElementById('voicePulseBtn');
+            if (statusText) {
+                statusText.textContent = message;
+                statusText.classList.toggle('listening', isListening);
+            }
+            if (pulseBtn) {
+                pulseBtn.classList.toggle('recording', isListening);
+            }
+        }
+
+        function startVoiceListening() {
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (!SpeechRecognition) {
+                showVoiceFallback('Reconhecimento de voz não suportado neste navegador. Digite sua frase abaixo:');
+                return;
+            }
+
+            stopVoiceListeningSilently();
+
+            try {
+                const recognition = new SpeechRecognition();
+                recognition.lang = 'pt-BR';
+                recognition.continuous = true;
+                recognition.interimResults = true;
+                recognition.maxAlternatives = 1;
+
+                recognition.onstart = function () {
+                    isVoiceListening = true;
+                    updateVoiceStatusUI('🎙️ Ouvindo... Pode falar o valor e descrição!', true);
+                };
+
+                recognition.onresult = function (event) {
+                    clearTimeout(voiceSilenceTimeout);
+                    let interim = '';
+                    let finalStr = '';
+
+                    for (let i = event.resultIndex; i < event.results.length; ++i) {
+                        const t = event.results[i][0].transcript;
+                        if (event.results[i].isFinal) {
+                            finalStr += t;
+                        } else {
+                            interim += t;
+                        }
+                    }
+
+                    const current = (finalStr || interim).trim();
+                    if (current) {
+                        lastSpokenTranscript = current;
+                        const transcriptText = document.getElementById('voiceTranscriptText');
+                        if (transcriptText) {
+                            transcriptText.textContent = `"${current}"`;
+                            transcriptText.style.color = 'var(--text-light, #ffffff)';
+                        }
+
+                        // When user finishes phrase, auto-stop after 2 seconds of silence
+                        voiceSilenceTimeout = setTimeout(() => {
+                            if (isVoiceListening && lastSpokenTranscript.trim()) {
+                                finishVoiceListening(lastSpokenTranscript.trim());
+                            }
+                        }, 2000);
+                    }
+                };
+
+                recognition.onerror = function (event) {
+                    console.warn('SpeechRecognition error:', event.error);
+                    if (event.error === 'not-allowed' || event.error === 'service-not-allowed') {
+                        showVoiceFallback('Permissão de microfone negada. Você pode digitar sua frase:');
+                    } else if (event.error === 'no-speech') {
+                        updateVoiceStatusUI('Nenhum som detectado. Toque no microfone para tentar de novo.', false);
+                    } else {
+                        updateVoiceStatusUI('Erro no microfone. Tente novamente ou digite abaixo.', false);
+                    }
+                };
+
+                recognition.onend = function () {
+                    isVoiceListening = false;
+                    const pulseBtn = document.getElementById('voicePulseBtn');
+                    if (pulseBtn) pulseBtn.classList.remove('recording');
+                };
+
+                voiceRecognitionInstance = recognition;
+                recognition.start();
+            } catch (err) {
+                console.error('Erro ao iniciar reconhecimento de voz:', err);
+                showVoiceFallback('Não foi possível iniciar o microfone. Você pode digitar sua frase:');
+            }
+        }
+
+        function stopVoiceListeningSilently() {
+            clearTimeout(voiceSilenceTimeout);
+            if (voiceRecognitionInstance) {
+                try { voiceRecognitionInstance.stop(); } catch (e) {}
+                voiceRecognitionInstance = null;
+            }
+            isVoiceListening = false;
+            const pulseBtn = document.getElementById('voicePulseBtn');
+            if (pulseBtn) pulseBtn.classList.remove('recording');
+        }
+
+        function showVoiceFallback(msg) {
+            stopVoiceListeningSilently();
+            updateVoiceStatusUI(msg, false);
+            const fallbackRow = document.getElementById('voiceFallbackRow');
+            const fallbackInput = document.getElementById('voiceFallbackInput');
+            if (fallbackRow) fallbackRow.style.display = 'flex';
+            if (fallbackInput) fallbackInput.focus();
+        }
+
+        function processVoiceFallbackInput() {
+            const input = document.getElementById('voiceFallbackInput');
+            if (!input || !input.value.trim()) {
+                showNotification('Por favor, digite o que foi gasto ou recebido', 'error');
+                return;
+            }
+            finishVoiceListening(input.value.trim());
+        }
+
+        function restartVoiceListening() {
+            resetVoiceModalUI();
+            startVoiceListening();
+        }
+
+        async function finishVoiceListening(spokenText) {
+            stopVoiceListeningSilently();
+            updateVoiceStatusUI('✨ Analisando com Inteligência Artificial...', false);
+
+            try {
+                const parsed = await parseVoiceTransactionWithAI(spokenText);
+                displayVoiceParsedResult(parsed);
+            } catch (err) {
+                console.error('Erro ao interpretar áudio:', err);
+                showNotification('Não foi possível interpretar o áudio. Tente novamente.', 'error');
+                updateVoiceStatusUI('Tente falar novamente com mais clareza.', false);
+            }
+        }
+
+        function displayVoiceParsedResult(data) {
+            const recArea = document.getElementById('voiceRecordingArea');
+            const revCard = document.getElementById('voiceReviewCard');
+            if (recArea) recArea.style.display = 'none';
+            if (revCard) revCard.style.display = 'block';
+
+            // Fill form
+            const typeRadio = document.querySelector(`input[name="voiceType"][value="${data.type || 'expense'}"]`);
+            if (typeRadio) typeRadio.checked = true;
+            updateVoiceTypeStyles();
+
+            const amountInput = document.getElementById('voiceAmount');
+            if (amountInput) amountInput.value = data.value > 0 ? data.value : '';
+
+            const catSelect = document.getElementById('voiceCategory');
+            if (catSelect && data.category) catSelect.value = data.category;
+
+            const descInput = document.getElementById('voiceDescription');
+            if (descInput) descInput.value = data.description || '';
+
+            const dateInput = document.getElementById('voiceDate');
+            if (dateInput && data.date) dateInput.value = data.date;
+
+            // If amount wasn't detected, focus on amount input
+            if (!data.value || data.value <= 0) {
+                setTimeout(() => { if (amountInput) amountInput.focus(); }, 150);
+            }
+        }
+
+        async function parseVoiceTransactionWithAI(rawText) {
+            if (!rawText || !rawText.trim()) {
+                throw new Error('Nenhum texto informado.');
+            }
+
+            const cleanText = rawText.trim();
+            const geminiKey = localStorage.getItem('gemini_api_key') || window.GEMINI_API_KEY;
+
+            if (geminiKey) {
+                try {
+                    const aiResult = await parseWithGeminiAPI(cleanText, geminiKey);
+                    if (aiResult && aiResult.value) return aiResult;
+                } catch (e) {
+                    console.warn('Fallback para IA local após erro no Gemini:', e);
+                }
+            }
+
+            return parseWithLocalAI(cleanText);
+        }
+
+        async function parseWithGeminiAPI(transcript, apiKey) {
+            const todayStr = typeof getTodayInBrasiliaISO === 'function' ? getTodayInBrasiliaISO() : new Date().toISOString().split('T')[0];
+            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+            const prompt = `Analise a seguinte frase falada em português do Brasil para extrair os dados de uma transação financeira:
+"${transcript}"
+Data atual de referência: ${todayStr}
+
+Responda SOMENTE um objeto JSON válido com este formato:
+{
+  "type": "income" ou "expense",
+  "value": número positivo (ex: 45.50),
+  "category": uma entre ["alimentacao","mercado","combustivel","manutencao_veiculo","transporte","moradia","saude","educacao","lazer","salario","freelance","investimentos","outros"],
+  "description": "descrição concisa e limpa (máx 50 caracteres)",
+  "date": "YYYY-MM-DD"
+}`;
+
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{ parts: [{ text: prompt }] }],
+                    generationConfig: { responseMimeType: "application/json" }
+                })
+            });
+
+            if (!response.ok) throw new Error(`Gemini API Error: ${response.status}`);
+            const data = await response.json();
+            const textResponse = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (!textResponse) throw new Error('Resposta vazia da IA Gemini');
+            const parsed = JSON.parse(textResponse);
+            return {
+                type: parsed.type === 'income' ? 'income' : 'expense',
+                value: parseFloat(parsed.value) || 0,
+                category: parsed.category || 'outros',
+                description: parsed.description || 'Transação por Voz',
+                date: parsed.date || todayStr,
+                confidence: 0.99
+            };
+        }
+
+        function parseWithLocalAI(input) {
+            const raw = input.trim();
+            const text = raw.toLowerCase();
+
+            // 1. Date Detection
+            let date = typeof getTodayInBrasiliaISO === 'function' ? getTodayInBrasiliaISO() : new Date().toISOString().split('T')[0];
+            if (/\banteontem\b/i.test(text)) {
+                const d = new Date();
+                d.setDate(d.getDate() - 2);
+                date = d.toISOString().split('T')[0];
+            } else if (/\bontem\b/i.test(text)) {
+                const d = new Date();
+                d.setDate(d.getDate() - 1);
+                date = d.toISOString().split('T')[0];
+            } else {
+                const dateMatch = text.match(/\bdia\s+(\d{1,2})(?:\s+de\s+(janeiro|fevereiro|março|marco|abril|maio|junho|julho|agosto|setembro|outubro|novembro|dezembro))?/i);
+                if (dateMatch) {
+                    const day = parseInt(dateMatch[1], 10);
+                    const monthNames = ["janeiro", "fevereiro", "março", "abril", "maio", "junho", "julho", "agosto", "setembro", "outubro", "novembro", "dezembro"];
+                    const now = new Date();
+                    let month = now.getMonth();
+                    let year = now.getFullYear();
+                    if (dateMatch[2]) {
+                        const mIdx = monthNames.indexOf(dateMatch[2].replace('marco', 'março').toLowerCase());
+                        if (mIdx !== -1) month = mIdx;
+                    }
+                    if (day >= 1 && day <= 31) {
+                        const parsedD = new Date(year, month, day);
+                        date = parsedD.toISOString().split('T')[0];
+                    }
+                }
+            }
+
+            // 2. Amount Extraction
+            let extractedValue = null;
+
+            const PT_WORD_NUMS = {
+                'zero': 0, 'um': 1, 'uma': 1, 'dois': 2, 'duas': 2, 'três': 3, 'tres': 3,
+                'quatro': 4, 'cinco': 5, 'seis': 6, 'meia': 6, 'sete': 7, 'oito': 8, 'nove': 9,
+                'dez': 10, 'onze': 11, 'doze': 12, 'treze': 13, 'quatorze': 14, 'catorze': 14,
+                'quinze': 15, 'dezesseis': 16, 'dezessete': 17, 'dezoito': 18, 'dezenove': 19,
+                'vinte': 20, 'trinta': 30, 'quarenta': 40, 'cinquenta': 50, 'sessenta': 60,
+                'setenta': 70, 'oitenta': 80, 'noventa': 90,
+                'cem': 100, 'cento': 100, 'duzentos': 200, 'trezentos': 300, 'quatrocentos': 400,
+                'quinhentos': 500, 'seiscentos': 600, 'setecentos': 700, 'oitocentos': 800, 'novecentos': 900,
+                'mil': 1000
+            };
+
+            function wordsToNumber(wordsStr) {
+                const tokens = wordsStr.trim().toLowerCase().split(/\s+/).filter(w => w !== 'e');
+                let total = 0;
+                let current = 0;
+                for (const token of tokens) {
+                    if (PT_WORD_NUMS[token] !== undefined) {
+                        const val = PT_WORD_NUMS[token];
+                        if (val === 1000) {
+                            current = (current === 0 ? 1 : current) * 1000;
+                            total += current;
+                            current = 0;
+                        } else {
+                            current += val;
+                        }
+                    }
+                }
+                return total + current;
+            }
+
+            // Check for pattern "X e Y" e.g., "35 e 50"
+            const splitCentsRegex = /\b(\d+)\s+e\s+(\d{1,2})\s*(?:centavos|reais)?\b/i;
+            const splitMatch = text.match(splitCentsRegex);
+            if (splitMatch) {
+                const intPart = parseInt(splitMatch[1], 10);
+                let centsPart = parseInt(splitMatch[2], 10);
+                if (splitMatch[2].length === 1) centsPart *= 10;
+                extractedValue = intPart + (centsPart / 100);
+            }
+
+            // Check for explicit decimal digits e.g. "45,90" or "45.90"
+            if (extractedValue === null) {
+                const explicitMatches = [...text.matchAll(/(?:r\$\s*)?(\d+[\.,]\d{1,2})\b/gi)];
+                if (explicitMatches.length > 0) {
+                    extractedValue = parseFloat(explicitMatches[0][1].replace(',', '.'));
+                }
+            }
+
+            // Check for number before currency keyword e.g. "50 reais", "100 conto"
+            if (extractedValue === null) {
+                const reaisMatch = text.match(/\b(\d+)\s*(?:reais|real|conto|contos|pilas|pila|paus|pau)\b/i);
+                if (reaisMatch) {
+                    extractedValue = parseFloat(reaisMatch[1]);
+                }
+            }
+
+            // Check for numbers in words e.g. "cinquenta e cinco reais", "cem reais", "mil e quinhentos"
+            if (extractedValue === null) {
+                const wordPattern = /\b((?:(?:cento|duzentos|trezentos|quatrocentos|quinhentos|seiscentos|setecentos|oitocentos|novecentos|cem|mil|vinte|trinta|quarenta|cinquenta|sessenta|setenta|oitenta|noventa|dez|onze|doze|treze|quatorze|catorze|quinze|dezesseis|dezessete|dezoito|dezenove|um|uma|dois|duas|tr[eê]s|quatro|cinco|seis|meia|sete|oito|nove)\s*(?:e\s*)?)+)(?:\s*(?:reais|real|conto|contos|pilas|pila))?(?:\s*e\s*(\d{1,2}|(?:(?:vinte|trinta|quarenta|cinquenta|sessenta|setenta|oitenta|noventa|dez|onze|doze|treze|quatorze|quinze|dezesseis|dezessete|dezoito|dezenove|um|uma|dois|duas|tr[eê]s|quatro|cinco|seis|sete|oito|nove)\s*(?:e\s*)?)+)\s*(?:centavos)?)?\b/i;
+                const wordMatch = text.match(wordPattern);
+                if (wordMatch && wordMatch[1]) {
+                    const intVal = wordsToNumber(wordMatch[1]);
+                    let centsVal = 0;
+                    if (wordMatch[2]) {
+                        if (/^\d+$/.test(wordMatch[2])) {
+                            centsVal = parseInt(wordMatch[2], 10);
+                            if (wordMatch[2].length === 1) centsVal *= 10;
+                        } else {
+                            centsVal = wordsToNumber(wordMatch[2]);
+                        }
+                    }
+                    if (intVal > 0) {
+                        extractedValue = intVal + (centsVal / 100);
+                    }
+                }
+            }
+
+            // Fallback: any standalone number in the sentence
+            if (extractedValue === null) {
+                const anyNum = text.match(/\b(\d+(?:[.,]\d{1,2})?)\b/);
+                if (anyNum) {
+                    extractedValue = parseFloat(anyNum[1].replace(',', '.'));
+                }
+            }
+
+            const finalValue = (extractedValue !== null && isFinite(extractedValue) && extractedValue > 0)
+                ? parseFloat(extractedValue.toFixed(2))
+                : 0;
+
+            // 3. Category Detection
+            const categoriesList = [
+                { key: 'alimentacao', regex: /\b(alimenta[cç][aã]o|restaurante|comida|lanche|padaria|caf[eé]|almo[cç]o|janta|jantar|pizza|hamb[uú]rguer|lanches|delivery|ifood|sorvete|a[cç]a[ií]|pastel|cerveja|churrasco|buffet|marmita|refei[cç][aã]o|bar|bebida|esfiha|subway|mcdonalds|burger)\b/i },
+                { key: 'mercado', regex: /\b(mercado|supermercado|compras?|feira|a[cç]ougue|hortifruti|sacol[aã]o|mercearia|atacad[aã]o|carrefour|assa[ií]|extra|p[aã]o de a[cç][uú]car|mercado\s*livre)\b/i },
+                { key: 'combustivel', regex: /\b(combust[ií]vel|gasolina|[aá]lcool|etanol|diesel|gnv|posto|abastecer|abasteci|abastecimento|shell|ipiranga|petrobras)\b/i },
+                { key: 'manutencao_veiculo', regex: /\b(mec[aâ]nico|oficina|pneu|pneus|[oó]leo|troca de [oó]leo|revis[aã]o|conserto.*carro|conserto.*moto|funilaria|autope[cç]as|alinhamento|balanceamento|bateria.*carro)\b/i },
+                { key: 'transporte', regex: /\b(uber|99|t[aá]xi|[oô]nibus|metr[oô]|trem|passagem|ped[aá]gio|estacionamento|transporte|recarga.*bilhete|tarifa)\b/i },
+                { key: 'moradia', regex: /\b(aluguel|condom[ií]nio|luz|[aá]gua|energia|enel|sabesp|cemig|copel|g[aá]s|internet|wi-?fi|iptu|reforma|casa|m[oó]veis|encanador|eletricista|diarista|faxina|condominio)\b/i },
+                { key: 'saude', regex: /\b(sa[uú]de|farm[aá]cia|rem[eé]dio|medicamento|m[eé]dico|consulta|dentista|exame|hospital|cl[ií]nica|plano de sa[uú]de|psic[oó]logo|fisioterapia|drogaria|drogasil|raia)\b/i },
+                { key: 'educacao', regex: /\b(educa[cç][aã]o|curso|escola|faculdade|universidade|livro|livros|material escolar|mensalidade|matr[ií]cula|treinamento|idioma|ingl[eê]s|udemy)\b/i },
+                { key: 'lazer', regex: /\b(lazer|cinema|filme|teatro|show|parque|viagem|passeio|hotel|pousada|praia|jogo|jogos|videogame|game|playstation|xbox|steam|netflix|spotify|futebol|ingressos|festa|balada)\b/i },
+                { key: 'salario', regex: /\b(sal[aá]rio|ordenado|contra[\s-]cheque|holerite|13[ºo]|d[eé]cimo\s+terceiro|pr[oó][\s-]labore|adiantamento)\b/i },
+                { key: 'freelance', regex: /\b(freelance|freela|bico|projeto|consultoria|servi[cç]o|cliente|trabalho\s+extra|honor[aá]rios)\b/i },
+                { key: 'investimentos', regex: /\b(investimento|investimentos|a[cç][oõ]es|fiis?|dividendos?|cdb|selic|tesouro\s+direto|cripto|bitcoin|btc|eth|rendimento|poupan[cç]a|fundos)\b/i }
+            ];
+
+            let detectedCategory = 'outros';
+            for (const cat of categoriesList) {
+                if (cat.regex.test(text)) {
+                    detectedCategory = cat.key;
+                    break;
+                }
+            }
+
+            // 4. Type Detection (income vs expense)
+            const incomeRegex = /\b(recebi|receber|recebido|recebimento|ganhei|ganho|ganhar|sal[aá]rio|pagamento\s+recebido|pix\s+recebido|vendi|venda|rendeu|rendimento|dividendos?|freela(?:nce)?|bico|comiss[aã]o|reembolso|faturamento|lucro|lucros|entrada|cr[eé]dito)\b/i;
+            const expenseRegex = /\b(gastei|gastar|gasto|comprei|comprar|compra|paguei|pagar|pago|despesa|custou|custo|perdi|d[eé]bito|abasteci|abastecer|almocei|jantei|almo[cç]o|jantar|lanchei|lanche|supermercado|mercado|farm[aá]cia|padaria|conta|boleto)\b/i;
+
+            let detectedType = 'expense';
+            if (incomeRegex.test(text) && !expenseRegex.test(text)) {
+                detectedType = 'income';
+            } else if (expenseRegex.test(text)) {
+                detectedType = 'expense';
+            } else if (['salario', 'freelance', 'investimentos'].includes(detectedCategory)) {
+                detectedType = 'income';
+            }
+
+            // 5. Description Cleaning
+            let cleanDesc = text
+                .replace(/\b(gastei|gastar|gasto|comprei|comprar|compra|paguei|pagar|pago|recebi|receber|recebido|ganhei|ganhar|adicionar|lançar|registar|cadastrar|anotar)\b/gi, '')
+                .replace(/\b(reais|real|centavos|conto|contos|pilas|pila|paus|pau|r\$)\b/gi, '')
+                .replace(/\b(hoje|ontem|anteontem|amanh[aã])\b/gi, '')
+                .replace(/\b(no\s+valor\s+de|no\s+valor|por\s+cerca\s+de|aproximadamente|cerca\s+de|uns)\b/gi, '')
+                .replace(/\b(dia\s+\d{1,2}(?:\s+de\s+[a-zç]+)?)\b/gi, '')
+                .replace(/\b\d+(?:[.,]\d+)?\b/g, '')
+                .replace(/\b(cento|duzentos|trezentos|quatrocentos|quinhentos|seiscentos|setecentos|oitocentos|novecentos|cem|mil|vinte|trinta|quarenta|cinquenta|sessenta|setenta|oitenta|noventa|dez|onze|doze|treze|quatorze|catorze|quinze|dezesseis|dezessete|dezoito|dezenove|um|uma|dois|duas|três|tres|quatro|cinco|seis|meia|sete|oito|nove)\b/gi, '')
+                .replace(/\b(no|na|nos|nas|em|de|do|da|dos|das|com|por|pra|para|o|a|os|as|um|uma|uns|umas|e)\b/gi, ' ')
+                .replace(/\s+/g, ' ')
+                .trim();
+
+            if (cleanDesc.length >= 2) {
+                cleanDesc = cleanDesc.split(' ')
+                    .map(w => w.charAt(0).toUpperCase() + w.slice(1))
+                    .join(' ');
+            } else {
+                const catMap = {
+                    'alimentacao': 'Alimentação',
+                    'mercado': 'Mercado',
+                    'combustivel': 'Combustível',
+                    'manutencao_veiculo': 'Manutenção Veículo',
+                    'transporte': 'Transporte',
+                    'moradia': 'Moradia',
+                    'saude': 'Saúde',
+                    'educacao': 'Educação',
+                    'lazer': 'Lazer',
+                    'salario': 'Salário',
+                    'freelance': 'Freelance',
+                    'investimentos': 'Investimentos',
+                    'outros': 'Outros'
+                };
+                cleanDesc = catMap[detectedCategory] || 'Transação por Voz';
+            }
+
+            if (cleanDesc.length > 100) cleanDesc = cleanDesc.substring(0, 100);
+
+            return {
+                type: detectedType,
+                value: finalValue,
+                category: detectedCategory,
+                description: cleanDesc,
+                date: date,
+                confidence: finalValue > 0 ? (detectedCategory !== 'outros' ? 0.98 : 0.85) : 0.6
+            };
+        }
+
+        async function saveVoiceTransaction() {
+            if (!currentUser) {
+                showNotification('Faça login para salvar a transação', 'error');
+                return;
+            }
+
+            const type = document.querySelector('input[name="voiceType"]:checked')?.value || 'expense';
+            const valInput = document.getElementById('voiceAmount');
+            const catInput = document.getElementById('voiceCategory');
+            const descInput = document.getElementById('voiceDescription');
+            const dateInput = document.getElementById('voiceDate');
+
+            const value = parseFloat(valInput?.value);
+            const category = catInput?.value;
+            const description = descInput?.value?.trim();
+            const date = dateInput?.value;
+
+            if (!date || !value || !category || !description) {
+                showNotification('Por favor, preencha todos os campos da transação', 'error');
+                return;
+            }
+
+            if (value <= 0 || !isFinite(value)) {
+                showNotification('O valor deve ser maior que zero', 'error');
+                return;
+            }
+
+            if (description.length < 2 || description.length > 100) {
+                showNotification('A descrição deve ter entre 2 e 100 caracteres', 'error');
+                return;
+            }
+
+            const confirmBtn = document.getElementById('btnConfirmVoiceTransaction');
+            if (confirmBtn) {
+                confirmBtn.disabled = true;
+                confirmBtn.textContent = 'Salvando...';
+            }
+
+            const now = new Date();
+            const h = String(now.getHours()).padStart(2, '0');
+            const min = String(now.getMinutes()).padStart(2, '0');
+            const currentTime = `${h}:${min}`;
+
+            try {
+                await db.collection('transactions').add({
+                    userId: currentUser.uid,
+                    type: type,
+                    date: date,
+                    time: currentTime,
+                    value: parseFloat(value.toFixed(2)),
+                    category: String(category).substring(0, 50),
+                    description: escapeHtml(String(description)).substring(0, 100),
+                    favorite: false,
+                    createdAt: new Date().toISOString(),
+                    source: 'voice',
+                    deleted: false
+                });
+
+                showNotification('Transação adicionada com sucesso!', 'success');
+                closeVoiceModal();
+            } catch (error) {
+                console.error('Erro ao salvar transação por voz:', error);
+                showNotification('Erro ao salvar: ' + (error.message || 'desconhecido'), 'error');
+            } finally {
+                if (confirmBtn) {
+                    confirmBtn.disabled = false;
+                    confirmBtn.innerHTML = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg> Salvar Transação';
+                }
+            }
+        }
+
+        // Expose functions globally on window
+        window.toggleFabSpeedDial = toggleFabSpeedDial;
+        window.openFabSpeedDial = openFabSpeedDial;
+        window.closeFabSpeedDial = closeFabSpeedDial;
+        window.triggerDocFromFab = triggerDocFromFab;
+        window.triggerVoiceFromFab = triggerVoiceFromFab;
+        window.openVoiceTransactionModal = openVoiceTransactionModal;
+        window.closeVoiceModal = closeVoiceModal;
+        window.toggleVoiceListening = toggleVoiceListening;
+        window.startVoiceListening = startVoiceListening;
+        window.stopVoiceListeningSilently = stopVoiceListeningSilently;
+        window.restartVoiceListening = restartVoiceListening;
+        window.processVoiceFallbackInput = processVoiceFallbackInput;
+        window.updateVoiceTypeStyles = updateVoiceTypeStyles;
+        window.saveVoiceTransaction = saveVoiceTransaction;
+
 // Service Worker Registration
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('./sw.js');
