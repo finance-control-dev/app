@@ -1,14 +1,39 @@
-        // Console Filter for Permissions-Policy browser notifications
+        // Console Filter for Permissions-Policy, COOP, and AdBlocker WebChannel notifications
         (function() {
             const origWarn = console.warn;
             const origError = console.error;
-            const filterKeywords = ['Permissions-Policy', 'attribution-reporting', 'private-aggregation', 'join-ad-interest-group', 'run-ad-auction'];
+            const filterKeywords = [
+                'Permissions-Policy',
+                'attribution-reporting',
+                'private-aggregation',
+                'join-ad-interest-group',
+                'run-ad-auction',
+                'Cross-Origin-Opener-Policy',
+                'window.closed',
+                'ERR_BLOCKED_BY_CLIENT',
+                'webchannel_connection'
+            ];
+            function shouldFilter(args) {
+                try {
+                    for (let i = 0; i < args.length; i++) {
+                        const item = args[i];
+                        if (!item) continue;
+                        const text = (typeof item === 'string')
+                            ? item
+                            : ((item.message || '') + ' ' + (item.stack || '') + ' ' + String(item));
+                        for (let k = 0; k < filterKeywords.length; k++) {
+                            if (text.includes(filterKeywords[k])) return true;
+                        }
+                    }
+                } catch(e) {}
+                return false;
+            }
             console.warn = function(...args) {
-                if (args.some(a => typeof a === 'string' && filterKeywords.some(k => a.includes(k)))) return;
+                if (shouldFilter(args)) return;
                 origWarn.apply(console, args);
             };
             console.error = function(...args) {
-                if (args.some(a => typeof a === 'string' && filterKeywords.some(k => a.includes(k)))) return;
+                if (shouldFilter(args)) return;
                 origError.apply(console, args);
             };
         })();
@@ -37,6 +62,20 @@
 
         const auth = firebase.auth();
         const db = firebase.firestore();
+
+        // Configurações do Firestore para evitar bloqueio por AdBlockers/Extensões (Long-Polling e Persistência Offline)
+        try {
+            db.settings({
+                experimentalForceLongPolling: true,
+                useFetchStreams: false,
+                merge: true
+            });
+        } catch (settingsErr) {}
+
+        try {
+            db.enablePersistence({ synchronizeTabs: true }).catch(function() {});
+        } catch (persistenceErr) {}
+
         const storage = firebase.storage();
         try {
             storage.setMaxUploadRetryTime(3000);
@@ -49,12 +88,13 @@
 
         // Handle redirect result
         auth.getRedirectResult().then((result) => {
-            if (result.user) {
-                console.log("Login via redirect bem-sucedido:", result.user.displayName);
+            if (result && result.user) {
+                console.log("Login via redirect bem-sucedido.");
             }
         }).catch((error) => {
-            console.error("Erro no resultado do redirect:", error);
-            showNotification("Erro na autenticação: " + error.message, "error");
+            if (error && error.code) {
+                console.error("Erro no resultado do redirect:", error.code);
+            }
         });
 
         console.log("Auth e Firestore configurados.");
@@ -164,7 +204,7 @@
 
             // Primeiro tentamos o Popup
             auth.signInWithPopup(googleProvider).then((result) => {
-                console.log("Login realizado com sucesso (Popup) para:", result.user.displayName);
+                console.log("Login realizado com sucesso (Popup).");
                 loader.style.display = 'none';
                 btn.style.display = 'flex';
             }).catch((error) => {
@@ -237,8 +277,8 @@
                     updateAllViews();
                     performSearch(); // Atualiza busca se estiver ativa
                 }, error => {
-                    console.error("Erro no listener de transações:", error);
-                    showNotification("Erro de conexão com o banco de dados", "error");
+                    if (error && String(error).includes('ERR_BLOCKED_BY_CLIENT')) return;
+                    console.warn("Aviso no listener de transações:", error && error.message ? error.message : error);
                 });
 
             // Metas
@@ -251,7 +291,8 @@
                     }));
                     updateGoalsList();
                 }, error => {
-                    console.error("Erro no listener de metas:", error);
+                    if (error && String(error).includes('ERR_BLOCKED_BY_CLIENT')) return;
+                    console.warn("Aviso no listener de metas:", error && error.message ? error.message : error);
                 });
         }
 
@@ -805,6 +846,9 @@
                 deleted: false
             }).then(() => {
                 showNotification(t('transactionAdded'), 'success');
+                if (type === 'income' && typeof triggerWealthBurst === 'function') {
+                    triggerWealthBurst();
+                }
                 clearTransactionForm();
             }).catch(error => {
                 console.error("Erro ao adicionar transação: ", error);
@@ -1603,6 +1647,18 @@
         }
 
         let isHeaderBalanceVisible = localStorage.getItem('headerBalanceVisible') !== 'false';
+
+        function triggerWealthBurst(el) {
+            const icon = el || document.querySelector('.header-icon-circle');
+            if (!icon) return;
+            icon.classList.remove('bursting');
+            void icon.offsetWidth;
+            icon.classList.add('bursting');
+            setTimeout(() => {
+                if (icon) icon.classList.remove('bursting');
+            }, 700);
+        }
+        window.triggerWealthBurst = triggerWealthBurst;
 
         function toggleHeaderBalanceVisibility() {
             isHeaderBalanceVisible = !isHeaderBalanceVisible;
@@ -2974,7 +3030,10 @@
                 .onSnapshot(snapshot => {
                     contasFixas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     cfUpdateViews();
-                }, err => console.error('Erro contasFixas listener:', err));
+                }, err => {
+                    if (err && String(err).includes('ERR_BLOCKED_BY_CLIENT')) return;
+                    console.warn('Aviso contasFixas listener:', err && err.message ? err.message : err);
+                });
 
             // Real-time listener for user balance (userSettings)
             if (unsubscribeUserSettings) unsubscribeUserSettings();
@@ -3019,7 +3078,10 @@
                         if (inp && document.getElementById('cfBalanceEditRow')?.style.display !== 'none') inp.value = remoteBalance;
                         cfUpdateViews();
                     }
-                }, err => console.error('Erro userSettings listener:', err));
+                }, err => {
+                    if (err && String(err).includes('ERR_BLOCKED_BY_CLIENT')) return;
+                    console.warn('Aviso userSettings listener:', err && err.message ? err.message : err);
+                });
         }
 
         // Hook into the existing auth state change to also setup CF listener

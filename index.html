@@ -128,30 +128,37 @@
                     <line x1="3" y1="18" x2="21" y2="18"></line>
                 </svg>
             </button>
-            <div class="header-icon-circle">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-                </svg>
+            <div class="header-icon-circle" title="Controle Financeiro - Clique para celebrar!" onclick="triggerWealthBurst(this)">
+                <div class="wealth-scene" aria-hidden="true">
+                    <div class="wealth-glow-bg"></div>
+                    <span class="wealth-fly-coin coin-1"></span>
+                    <span class="wealth-fly-coin coin-2"></span>
+                    <span class="wealth-fly-coin coin-3"></span>
+                    <span class="wealth-sparkle sp-1">✦</span>
+                    <span class="wealth-sparkle sp-2">✦</span>
+                    <div class="wealth-coin-main">
+                        <div class="wealth-coin-inner">
+                            <span class="wealth-coin-symbol">$</span>
+                        </div>
+                        <div class="wealth-coin-shine"></div>
+                    </div>
+                </div>
             </div>
             <div class="header-new-info">
                 <h1 class="header-new-title" id="headerGreetingTitle">Bom dia</h1>
-                <div class="header-new-date" id="headerNewDate">
-                    <div class="header-balance-chip">
-                        <span id="headerBalanceAmount">R$ 0,00</span>
-                        <button type="button" id="headerBalanceEyeBtn" onclick="toggleHeaderBalanceVisibility()"
-                            class="header-eye-btn" title="Mostrar/Ocultar Saldo" aria-label="Mostrar ou ocultar saldo">
-                            <svg id="headerBalanceEyeIcon" width="15" height="15" viewBox="0 0 24 24" fill="none"
-                                stroke="currentColor" stroke-width="2">
-                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                <circle cx="12" cy="12" r="3"></circle>
-                            </svg>
-                        </button>
-                    </div>
-                    <div class="header-time-chip">
-                        <span id="clockDate">--/--/----</span>
-                        <span class="chip-dot" aria-hidden="true">•</span>
-                        <span id="clockTime">00:00</span>
-                    </div>
+                <div class="header-new-date" id="headerNewDate" style="display:flex; align-items:center; flex-wrap:wrap; gap:6px;">
+                    <span id="headerBalanceAmount" style="font-weight:700; color:var(--primary); font-size: 1.05rem;">R$ 0,00</span>
+                    <button type="button" id="headerBalanceEyeBtn" onclick="toggleHeaderBalanceVisibility()"
+                        style="background:none; border:none; cursor:pointer; color:inherit; display:flex; align-items:center; padding:0; outline:none;"
+                        title="Mostrar/Ocultar Saldo" aria-label="Mostrar ou ocultar saldo">
+                        <svg id="headerBalanceEyeIcon" width="16" height="16" viewBox="0 0 24 24" fill="none"
+                            stroke="currentColor" stroke-width="2">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </button>
+                    <span style="color:var(--dark-text-3);">|</span>
+                    <span id="clockDate">--/--/----</span> <span style="margin:0 2px;">&#8226;</span> <span id="clockTime">00:00</span>
                 </div>
             </div>
         </div>
