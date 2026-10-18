@@ -1371,8 +1371,51 @@
                 <div class="form-group form-group-checkbox"><label class="form-label form-label-checkbox"><input
                             type="checkbox" id="editTransactionFavorite"> &#11088; <span
                             data-i18n="favoriteTransaction">Favoritar esta transacao</span></label></div>
+                <div class="form-group">
+                    <label class="form-label">Comprovante</label>
+                    <div id="editReceiptContainer" class="modal-receipt-container">
+                        <!-- Comprovante ja existente na transacao -->
+                        <div id="editReceiptExisting" class="modal-receipt-existing" style="display:none;">
+                            <div class="modal-receipt-info">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                                <span>Comprovante anexado</span>
+                            </div>
+                            <div class="modal-receipt-actions">
+                                <button type="button" class="modal-receipt-action-btn" onclick="viewTransactionReceipt(editingTransactionId)" title="Visualizar comprovante">
+                                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                                    <span>Ver</span>
+                                </button>
+                                <button type="button" class="modal-receipt-action-btn btn-remove" onclick="removeEditTransactionReceipt()" title="Remover comprovante">
+                                    <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                    <span>Remover</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Botao de upload / selecao de comprovante -->
+                        <div id="editReceiptUploadWrapper" class="modal-receipt-upload">
+                            <input type="file" id="editTransactionReceiptInput" accept="image/*,application/pdf" style="display:none;" onchange="handleEditReceiptSelected(event)">
+                            <button type="button" class="modal-receipt-btn" onclick="document.getElementById('editTransactionReceiptInput').click()">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                                <span id="editReceiptBtnLabel">Inserir Comprovante</span>
+                            </button>
+                        </div>
+
+                        <!-- Previa de novo comprovante selecionado -->
+                        <div id="editReceiptPreview" class="modal-receipt-preview" style="display:none;">
+                            <div class="modal-receipt-preview-info">
+                                <span id="editReceiptPreviewIcon" class="modal-receipt-file-icon">&#128196;</span>
+                                <div class="modal-receipt-text-block">
+                                    <span id="editReceiptFileName" class="modal-receipt-filename">arquivo.jpg</span>
+                                    <span id="editReceiptFileSize" class="modal-receipt-filesize">0 KB</span>
+                                </div>
+                            </div>
+                            <button type="button" class="modal-receipt-remove-btn" onclick="clearEditSelectedReceipt()" title="Remover este comprovante" aria-label="Remover comprovante">&times;</button>
+                        </div>
+                    </div>
+                </div>
                 <div class="btn-group">
-                    <button type="button" class="btn btn-primary" onclick="saveTransactionEdit()"><svg
+                    <button type="button" class="btn btn-primary" id="btnSaveTransactionEdit" onclick="saveTransactionEdit()"><svg
                             xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 512 512">
                             <path fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
                                 stroke-width="32"
@@ -1787,6 +1830,32 @@
                     <div class="form-group mb-3">
                         <label class="form-label" for="voiceDate" style="font-size:0.8rem;">DATA</label>
                         <input type="date" id="voiceDate" class="form-input" required>
+                    </div>
+
+                    <div class="form-group mb-3">
+                        <label class="form-label" style="font-size:0.8rem;">COMPROVANTE (OPCIONAL)</label>
+                        <div id="voiceReceiptContainer" class="modal-receipt-container">
+                            <!-- Botao de upload -->
+                            <div id="voiceReceiptUploadWrapper" class="modal-receipt-upload">
+                                <input type="file" id="voiceTransactionReceiptInput" accept="image/*,application/pdf" style="display:none;" onchange="handleVoiceReceiptSelected(event)">
+                                <button type="button" class="modal-receipt-btn" onclick="document.getElementById('voiceTransactionReceiptInput').click()">
+                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                                    <span>Inserir Comprovante</span>
+                                </button>
+                            </div>
+
+                            <!-- Previa do comprovante selecionado -->
+                            <div id="voiceReceiptPreview" class="modal-receipt-preview" style="display:none;">
+                                <div class="modal-receipt-preview-info">
+                                    <span id="voiceReceiptPreviewIcon" class="modal-receipt-file-icon">&#128196;</span>
+                                    <div class="modal-receipt-text-block">
+                                        <span id="voiceReceiptFileName" class="modal-receipt-filename">arquivo.jpg</span>
+                                        <span id="voiceReceiptFileSize" class="modal-receipt-filesize">0 KB</span>
+                                    </div>
+                                </div>
+                                <button type="button" class="modal-receipt-remove-btn" onclick="clearVoiceSelectedReceipt()" title="Remover este comprovante" aria-label="Remover comprovante">&times;</button>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="voice-actions-grid">

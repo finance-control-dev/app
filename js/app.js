@@ -821,6 +821,151 @@
             setTransactionType('income');
             if (typeof updateDateDisplayText === 'function') updateDateDisplayText();
         }
+        let editSelectedReceiptBlob = null;
+        let editSelectedReceiptName = '';
+        let editReceiptRemoved = false;
+
+        async function optimizeReceiptFile(file) {
+            if (!file) return null;
+            if (file.type === 'application/pdf') {
+                if (file.size > 8 * 1024 * 1024) {
+                    throw new Error('O PDF excede 8 MB. Escolha um arquivo menor.');
+                }
+                return file;
+            }
+            try {
+                if (typeof createImageBitmap === 'function' && typeof compressImageForStorage === 'function') {
+                    const bitmap = await createImageBitmap(file);
+                    if (bitmap.width * bitmap.height > 60000000) {
+                        bitmap.close();
+                        throw new Error('A imagem tem resolução muito alta. Reduza a imagem e tente novamente.');
+                    }
+                    const { blob } = await compressImageForStorage(bitmap, bitmap.width, bitmap.height, 1200);
+                    bitmap.close();
+                    return blob;
+                }
+            } catch (optErr) {
+                console.warn('Compressão da imagem ignorada ou com erro, usando arquivo original:', optErr);
+                if (file.size > 5 * 1024 * 1024) {
+                    throw new Error('A imagem excede 5 MB. Escolha uma imagem menor.');
+                }
+            }
+            return file;
+        }
+
+        function setupEditModalReceiptUI(tx) {
+            editSelectedReceiptBlob = null;
+            editSelectedReceiptName = '';
+            editReceiptRemoved = false;
+
+            const input = document.getElementById('editTransactionReceiptInput');
+            if (input) input.value = '';
+
+            const existingEl = document.getElementById('editReceiptExisting');
+            const uploadEl = document.getElementById('editReceiptUploadWrapper');
+            const previewEl = document.getElementById('editReceiptPreview');
+            const btnLabel = document.getElementById('editReceiptBtnLabel');
+
+            if (previewEl) previewEl.style.display = 'none';
+
+            const hasReceipt = !!(tx && (tx.receiptBase64 || tx.receiptPath));
+            if (hasReceipt) {
+                if (existingEl) existingEl.style.display = 'flex';
+                if (uploadEl) uploadEl.style.display = 'none';
+            } else {
+                if (existingEl) existingEl.style.display = 'none';
+                if (uploadEl) uploadEl.style.display = 'flex';
+                if (btnLabel) btnLabel.textContent = 'Inserir Comprovante';
+            }
+        }
+
+        function removeEditTransactionReceipt() {
+            editReceiptRemoved = true;
+            editSelectedReceiptBlob = null;
+            editSelectedReceiptName = '';
+
+            const input = document.getElementById('editTransactionReceiptInput');
+            if (input) input.value = '';
+
+            const existingEl = document.getElementById('editReceiptExisting');
+            const uploadEl = document.getElementById('editReceiptUploadWrapper');
+            const previewEl = document.getElementById('editReceiptPreview');
+            const btnLabel = document.getElementById('editReceiptBtnLabel');
+
+            if (existingEl) existingEl.style.display = 'none';
+            if (previewEl) previewEl.style.display = 'none';
+            if (uploadEl) uploadEl.style.display = 'flex';
+            if (btnLabel) btnLabel.textContent = 'Inserir Comprovante';
+        }
+
+        async function handleEditReceiptSelected(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+
+            if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
+                showNotification('Selecione uma imagem ou arquivo PDF.', 'error');
+                event.target.value = '';
+                return;
+            }
+
+            if (file.size > 12 * 1024 * 1024) {
+                showNotification('O comprovante deve ter no máximo 12 MB.', 'error');
+                event.target.value = '';
+                return;
+            }
+
+            try {
+                const blob = await optimizeReceiptFile(file);
+                editSelectedReceiptBlob = blob;
+                editSelectedReceiptName = file.name;
+
+                const existingEl = document.getElementById('editReceiptExisting');
+                const uploadEl = document.getElementById('editReceiptUploadWrapper');
+                const previewEl = document.getElementById('editReceiptPreview');
+                const fileNameEl = document.getElementById('editReceiptFileName');
+                const fileSizeEl = document.getElementById('editReceiptFileSize');
+                const iconEl = document.getElementById('editReceiptPreviewIcon');
+
+                if (existingEl) existingEl.style.display = 'none';
+                if (uploadEl) uploadEl.style.display = 'none';
+                if (previewEl) previewEl.style.display = 'flex';
+
+                if (fileNameEl) fileNameEl.textContent = file.name;
+                if (fileSizeEl) fileSizeEl.textContent = `${Math.round(blob.size / 1024)} KB`;
+                if (iconEl) iconEl.textContent = file.type === 'application/pdf' ? '📄' : '🖼️';
+            } catch (err) {
+                console.error('Erro ao processar comprovante na edição:', err);
+                showNotification(err.message || 'Erro ao carregar o comprovante', 'error');
+                event.target.value = '';
+            }
+        }
+
+        function clearEditSelectedReceipt() {
+            editSelectedReceiptBlob = null;
+            editSelectedReceiptName = '';
+            const input = document.getElementById('editTransactionReceiptInput');
+            if (input) input.value = '';
+
+            const previewEl = document.getElementById('editReceiptPreview');
+            if (previewEl) previewEl.style.display = 'none';
+
+            const tx = transactions.find(t => t.id === editingTransactionId);
+            const hasOriginalReceipt = !!(tx && (tx.receiptBase64 || tx.receiptPath));
+
+            const existingEl = document.getElementById('editReceiptExisting');
+            const uploadEl = document.getElementById('editReceiptUploadWrapper');
+            const btnLabel = document.getElementById('editReceiptBtnLabel');
+
+            if (hasOriginalReceipt && !editReceiptRemoved) {
+                if (existingEl) existingEl.style.display = 'flex';
+                if (uploadEl) uploadEl.style.display = 'none';
+            } else {
+                if (existingEl) existingEl.style.display = 'none';
+                if (uploadEl) uploadEl.style.display = 'flex';
+                if (btnLabel) btnLabel.textContent = 'Inserir Comprovante';
+            }
+        }
+
         function editTransaction(id) {
             const tx = transactions.find(t => t.id === id);
             if (!tx) return;
@@ -832,9 +977,11 @@
             document.getElementById('editTransactionCategory').value = tx.category;
             document.getElementById('editTransactionDescription').value = tx.description;
             document.getElementById('editTransactionFavorite').checked = !!tx.favorite;
+            setupEditModalReceiptUI(tx);
             showModal('editTransactionModal');
         }
-        function saveTransactionEdit() {
+
+        async function saveTransactionEdit() {
             const d = document.getElementById('editTransactionDate').value;
             const typeSelect = document.getElementById('editTransactionType');
             const type = typeSelect ? typeSelect.value : 'expense'; // Default fallback
@@ -848,8 +995,19 @@
                 return;
             }
 
-            // Note: We don't update 'time' here to preserve the original creation time
-            db.collection('transactions').doc(editingTransactionId).update({
+            if (!currentUser) {
+                showNotification('Entre na sua conta para atualizar a transação.', 'error');
+                return;
+            }
+
+            const saveBtn = document.getElementById('btnSaveTransactionEdit');
+            const originalBtnHtml = saveBtn ? saveBtn.innerHTML : '';
+            if (saveBtn) {
+                saveBtn.disabled = true;
+                saveBtn.textContent = 'Salvando...';
+            }
+
+            const updateData = {
                 type: type,
                 date: d,
                 value: v,
@@ -857,13 +1015,73 @@
                 description: desc,
                 favorite: !!f,
                 userId: currentUser.uid // Ensure userId is preserved/set
-            }).then(() => {
+            };
+
+            const txId = editingTransactionId;
+            const docRef = db.collection('transactions').doc(txId);
+
+            try {
+                if (editSelectedReceiptBlob) {
+                    const blob = editSelectedReceiptBlob;
+                    const isPdf = blob.type === 'application/pdf';
+                    const extension = isPdf ? 'pdf' : 'jpg';
+                    const isDirectBase64Safe = blob.size <= 450 * 1024;
+
+                    if (isDirectBase64Safe) {
+                        const base64Attachment = await blobToBase64(blob);
+                        updateData.receiptBase64 = base64Attachment;
+
+                        await docRef.update(updateData);
+                        showNotification(t('transactionEdited'), 'success');
+                        closeModal('editTransactionModal');
+
+                        // Background sync to Firebase Storage
+                        (async () => {
+                            try {
+                                const uploadedRef = storage.ref(`receipts/${currentUser.uid}/${txId}.${extension}`);
+                                const uploadPromise = uploadedRef.put(blob, { contentType: blob.type || (isPdf ? 'application/pdf' : 'image/jpeg') });
+                                const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Storage timeout')), 4000));
+                                await Promise.race([uploadPromise, timeoutPromise]);
+                                await docRef.update({
+                                    receiptPath: uploadedRef.fullPath,
+                                    receiptBase64: firebase.firestore.FieldValue.delete()
+                                });
+                                console.log('Comprovante sincronizado no Storage em segundo plano.');
+                            } catch (bgErr) {
+                                console.warn('Storage sync fallback:', bgErr);
+                            }
+                        })();
+                        return;
+                    } else {
+                        // Large file: upload to Storage directly
+                        const uploadedRef = storage.ref(`receipts/${currentUser.uid}/${txId}.${extension}`);
+                        const uploadPromise = uploadedRef.put(blob, { contentType: blob.type || (isPdf ? 'application/pdf' : 'image/jpeg') });
+                        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Storage timeout')), 6000));
+                        await Promise.race([uploadPromise, timeoutPromise]);
+                        updateData.receiptPath = uploadedRef.fullPath;
+                        updateData.receiptBase64 = firebase.firestore.FieldValue.delete();
+                        await docRef.update(updateData);
+                        showNotification(t('transactionEdited'), 'success');
+                        closeModal('editTransactionModal');
+                        return;
+                    }
+                } else if (editReceiptRemoved) {
+                    updateData.receiptBase64 = firebase.firestore.FieldValue.delete();
+                    updateData.receiptPath = firebase.firestore.FieldValue.delete();
+                }
+
+                await docRef.update(updateData);
                 showNotification(t('transactionEdited'), 'success');
                 closeModal('editTransactionModal');
-            }).catch(error => {
+            } catch (error) {
                 console.error("Erro ao editar: ", error);
-                showNotification("Erro ao atualizar transação", "error");
-            });
+                showNotification("Erro ao atualizar transação: " + (error.message || "desconhecido"), "error");
+            } finally {
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.innerHTML = originalBtnHtml || '<span data-i18n="save">Salvar</span>';
+                }
+            }
         }
         function deleteTransaction(id) {
             if (confirm(t('moveToTrash'))) {
@@ -4062,8 +4280,64 @@
             }, 300);
         }
 
+        let voiceSelectedReceiptBlob = null;
+        let voiceSelectedReceiptName = '';
+
+        function clearVoiceSelectedReceipt() {
+            voiceSelectedReceiptBlob = null;
+            voiceSelectedReceiptName = '';
+            const input = document.getElementById('voiceTransactionReceiptInput');
+            if (input) input.value = '';
+
+            const previewEl = document.getElementById('voiceReceiptPreview');
+            const uploadEl = document.getElementById('voiceReceiptUploadWrapper');
+            if (previewEl) previewEl.style.display = 'none';
+            if (uploadEl) uploadEl.style.display = 'flex';
+        }
+
+        async function handleVoiceReceiptSelected(event) {
+            const file = event.target.files && event.target.files[0];
+            if (!file) return;
+
+            if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
+                showNotification('Selecione uma imagem ou arquivo PDF.', 'error');
+                event.target.value = '';
+                return;
+            }
+
+            if (file.size > 12 * 1024 * 1024) {
+                showNotification('O comprovante deve ter no máximo 12 MB.', 'error');
+                event.target.value = '';
+                return;
+            }
+
+            try {
+                const blob = await optimizeReceiptFile(file);
+                voiceSelectedReceiptBlob = blob;
+                voiceSelectedReceiptName = file.name;
+
+                const uploadEl = document.getElementById('voiceReceiptUploadWrapper');
+                const previewEl = document.getElementById('voiceReceiptPreview');
+                const fileNameEl = document.getElementById('voiceReceiptFileName');
+                const fileSizeEl = document.getElementById('voiceReceiptFileSize');
+                const iconEl = document.getElementById('voiceReceiptPreviewIcon');
+
+                if (uploadEl) uploadEl.style.display = 'none';
+                if (previewEl) previewEl.style.display = 'flex';
+
+                if (fileNameEl) fileNameEl.textContent = file.name;
+                if (fileSizeEl) fileSizeEl.textContent = `${Math.round(blob.size / 1024)} KB`;
+                if (iconEl) iconEl.textContent = file.type === 'application/pdf' ? '📄' : '🖼️';
+            } catch (err) {
+                console.error('Erro ao processar comprovante na voz:', err);
+                showNotification(err.message || 'Erro ao carregar o comprovante', 'error');
+                event.target.value = '';
+            }
+        }
+
         function closeVoiceModal() {
             stopVoiceListeningSilently();
+            clearVoiceSelectedReceipt();
             const modal = document.getElementById('voiceTransactionModal');
             if (modal) modal.classList.remove('active');
         }
@@ -4075,6 +4349,8 @@
             const statusText = document.getElementById('voiceStatusText');
             const fallbackRow = document.getElementById('voiceFallbackRow');
             const fallbackInput = document.getElementById('voiceFallbackInput');
+
+            clearVoiceSelectedReceipt();
 
             if (recArea) recArea.style.display = 'flex';
             if (revCard) revCard.style.display = 'none';
@@ -4612,7 +4888,7 @@ Responda SOMENTE um objeto JSON válido com este formato:
             const currentTime = `${h}:${min}`;
 
             try {
-                await db.collection('transactions').add({
+                const payload = {
                     userId: currentUser.uid,
                     type: type,
                     date: date,
@@ -4624,7 +4900,55 @@ Responda SOMENTE um objeto JSON válido com este formato:
                     createdAt: new Date().toISOString(),
                     source: 'voice',
                     deleted: false
-                });
+                };
+
+                const savedBlob = voiceSelectedReceiptBlob;
+
+                if (savedBlob) {
+                    const isPdf = savedBlob.type === 'application/pdf';
+                    const extension = isPdf ? 'pdf' : 'jpg';
+                    const isDirectBase64Safe = savedBlob.size <= 450 * 1024;
+
+                    if (isDirectBase64Safe) {
+                        payload.receiptBase64 = await blobToBase64(savedBlob);
+                        const docRef = await db.collection('transactions').add(payload);
+
+                        showNotification('Transação e comprovante salvos com sucesso!', 'success');
+                        closeVoiceModal();
+
+                        // Background sync to Firebase Storage
+                        (async () => {
+                            try {
+                                const uploadedRef = storage.ref(`receipts/${currentUser.uid}/${docRef.id}.${extension}`);
+                                const uploadPromise = uploadedRef.put(savedBlob, { contentType: savedBlob.type || (isPdf ? 'application/pdf' : 'image/jpeg') });
+                                const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Storage timeout')), 4000));
+                                await Promise.race([uploadPromise, timeoutPromise]);
+                                await docRef.update({
+                                    receiptPath: uploadedRef.fullPath,
+                                    receiptBase64: firebase.firestore.FieldValue.delete()
+                                });
+                                console.log('Comprovante de voz sincronizado com sucesso no Storage.');
+                            } catch (bgErr) {
+                                console.warn('Storage sync background fallback:', bgErr);
+                            }
+                        })();
+                        return;
+                    } else {
+                        // Large file: add doc first then upload to Storage
+                        const docRef = await db.collection('transactions').add(payload);
+                        const uploadedRef = storage.ref(`receipts/${currentUser.uid}/${docRef.id}.${extension}`);
+                        const uploadPromise = uploadedRef.put(savedBlob, { contentType: savedBlob.type || (isPdf ? 'application/pdf' : 'image/jpeg') });
+                        const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Storage timeout')), 6000));
+                        await Promise.race([uploadPromise, timeoutPromise]);
+                        await docRef.update({ receiptPath: uploadedRef.fullPath });
+
+                        showNotification('Transação e comprovante salvos com sucesso!', 'success');
+                        closeVoiceModal();
+                        return;
+                    }
+                }
+
+                await db.collection('transactions').add(payload);
 
                 showNotification('Transação adicionada com sucesso!', 'success');
                 closeVoiceModal();
@@ -4654,6 +4978,13 @@ Responda SOMENTE um objeto JSON válido com este formato:
         window.processVoiceFallbackInput = processVoiceFallbackInput;
         window.updateVoiceTypeStyles = updateVoiceTypeStyles;
         window.saveVoiceTransaction = saveVoiceTransaction;
+        window.editTransaction = editTransaction;
+        window.saveTransactionEdit = saveTransactionEdit;
+        window.handleEditReceiptSelected = handleEditReceiptSelected;
+        window.removeEditTransactionReceipt = removeEditTransactionReceipt;
+        window.clearEditSelectedReceipt = clearEditSelectedReceipt;
+        window.handleVoiceReceiptSelected = handleVoiceReceiptSelected;
+        window.clearVoiceSelectedReceipt = clearVoiceSelectedReceipt;
 
 // Service Worker Registration
 if ('serviceWorker' in navigator) {
