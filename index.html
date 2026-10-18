@@ -3,81 +3,6 @@
 
 <head>
     <meta charset="UTF-8">
-    <script>
-        // Console Filter for Permissions-Policy, Storage CORS, COOP window.closed, and AdBlocker WebChannel noise
-        (function() {
-            var filterKeywords = [
-                'Permissions-Policy',
-                'attribution-reporting',
-                'private-aggregation',
-                'join-ad-interest-group',
-                'run-ad-auction',
-                'Cross-Origin-Opener-Policy',
-                'window.closed',
-                'ERR_BLOCKED_BY_CLIENT',
-                'webchannel_connection',
-                'enableMultiTabIndexedDbPersistence',
-                'will be deprecated in the future',
-                'firestoreSettings.cache',
-                'firebasestorage.googleapis.com',
-                'firebasestorage',
-                'storage/retry-limit-exceeded',
-                'ERR_FAILED',
-                'CORS policy',
-                'Access to XMLHttpRequest',
-                'has been blocked by CORS policy',
-                'A leitura automática demorou',
-                'OCR não completou ou foi pulado'
-            ];
-            function shouldFilter(args) {
-                try {
-                    for (var i = 0; i < args.length; i++) {
-                        var item = args[i];
-                        if (!item) continue;
-                        var text = (typeof item === 'string')
-                            ? item
-                            : ((item.message || '') + ' ' + (item.stack || '') + ' ' + String(item));
-                        for (var k = 0; k < filterKeywords.length; k++) {
-                            if (text.indexOf(filterKeywords[k]) !== -1) return true;
-                        }
-                    }
-                } catch(e) {}
-                return false;
-            }
-            var origWarn = console.warn;
-            console.warn = function() {
-                if (shouldFilter(arguments)) return;
-                origWarn.apply(console, arguments);
-            };
-            var origError = console.error;
-            console.error = function() {
-                if (shouldFilter(arguments)) return;
-                origError.apply(console, arguments);
-            };
-            var origInfo = console.info;
-            console.info = function() {
-                if (shouldFilter(arguments)) return;
-                origInfo.apply(console, arguments);
-            };
-            var origLog = console.log;
-            console.log = function() {
-                if (shouldFilter(arguments)) return;
-                origLog.apply(console, arguments);
-            };
-            window.addEventListener('error', function(e) {
-                if (e && (shouldFilter([e.message]) || (e.error && shouldFilter([e.error])))) {
-                    e.preventDefault();
-                    e.stopImmediatePropagation();
-                }
-            }, true);
-            window.addEventListener('unhandledrejection', function(e) {
-                if (e && e.reason && shouldFilter([e.reason])) {
-                    e.preventDefault();
-                    e.stopImmediatePropagation();
-                }
-            }, true);
-        })();
-    </script>
     <meta name="viewport"
         content="width=device-width, initial-scale=1.0, viewport-fit=cover">
     <title>Controle Financeiro Aprimorado</title>
@@ -92,6 +17,77 @@
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
         rel="stylesheet">
     <link rel="manifest" href="./manifest.json">
+    <meta name="theme-color" content="#000000">
+    <template>
+                <div class="search-results">
+                    <div class="search-result-header"><h3 data-i18n="searchResults">Resultados</h3><span class="search-result-count" id="searchResultCount">0 transações</span></div>
+                    <div class="search-totals" aria-live="polite">
+                        <div class="search-total-income"><span>Receitas na busca</span><strong id="searchTotalIncome">R$ 0,00</strong></div>
+                        <div class="search-total-expense"><span>Despesas na busca</span><strong id="searchTotalExpense">R$ 0,00</strong></div>
+                    </div>
+                    <div id="searchResultsList"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- New Transaction Tab -->
+        <div id="new-transaction" class="tab-content active">
+            <div class="card">
+                <h2 class="mb-2" data-i18n="newTransaction">Nova Transacao</h2>
+                <form id="transactionForm">
+                    <div class="segmented-control-container">
+                        <div class="segmented-background" id="segmentedBackground"></div>
+                        <button type="button" class="segmented-btn active" id="btnIncome" onclick="setTransactionType('income')"><span data-i18n="gains">Ganho</span></button>
+                        <button type="button" class="segmented-btn" id="btnExpense" onclick="setTransactionType('expense')"><span data-i18n="spending">Gasto</span></button>
+                    </div>
+                    <div class="value-display-section" id="valueDisplaySection">
+                        <div class="value-display-label" data-i18n="value">VALOR DO LANCAMENTO</div>
+                        <div class="value-input-wrapper"><input type="number" id="transactionValue" class="value-display-amount" step="0.01" min="0" placeholder="0,00" required></div>
+                    </div>
+                    <div class="home-date-nav">
+                        <button type="button" class="home-date-arrow" onclick="event.stopPropagation();previousDay();" title="Dia anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+                        <button type="button" class="home-date-pill" id="datePillButton" onclick="event.stopPropagation();openCustomDateModal();" title="Calendário"><span id="datePillText">HOJE</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></button>
+                        <button type="button" class="home-date-arrow" onclick="event.stopPropagation();nextDay();" title="Próximo dia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+                    </div>
+                    <input type="date" id="transactionDate" required style="display:none;">
+                    <div class="form-row-label" data-i18n="category">CATEGORIA</div>
+                    <div class="form-row-styled"><div class="form-row-icon"><span class="form-icon">📋</span></div><select id="transactionCategory" class="form-select" required style="flex:1;"><option value="" data-i18n="selectCategory">Selecione uma categoria</option><option value="alimentacao">&#127869; Alimentacao</option><option value="mercado">&#128722; Mercado</option><option value="combustivel">&#9981; Combustivel</option><option value="manutencao_veiculo">&#128295; Manutencao Veiculo</option><option value="transporte">&#128663; Transporte</option><option value="moradia">&#127968; Moradia</option><option value="saude">&#127973; Saude</option><option value="educacao">&#128218; Educacao</option><option value="lazer">&#127918; Lazer</option><option value="salario">&#128188; Salario</option><option value="freelance">&#128187; Freelance</option><option value="investimentos">&#128200; Investimentos</option><option value="outros">&#128230; Outros</option></select></div>
+                    <div class="form-row-label" data-i18n="description">DESCRICAO</div>
+                    <div class="form-row-styled"><div class="form-row-icon"><span class="form-icon">📝</span></div><input type="text" id="transactionDescription" class="form-input" data-i18n-placeholder="placeholderDescShort" placeholder="Descrição da transação" required style="flex:1;"></div>
+                    <label class="favorite-row"><input type="checkbox" id="transactionFavorite"><span class="toggle-slider"></span><span style="font-size:0.9rem;font-weight:500;">&#11088; <span data-i18n="favoriteTransaction">Favoritar esta transação</span></span></label>
+                    <button type="button" class="btn-save-transaction" id="btnSaveTransaction" onclick="saveNewTransaction()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12" /></svg><span data-i18n="saveTransaction">Salvar Transacao</span></button>
+                </form>
+            </div>
+            <div class="card">
+                <h3 class="mb-2" data-i18n="dailyTransactions">Transacoes do Dia Selecionado</h3>
+                <div class="stats-grid mb-2">
+                    <div class="stat-card income"><div class="stat-icon">&#128176;</div><div class="stat-value" id="dailyIncome">R$ 0,00</div><div class="stat-label" data-i18n="gains">Ganhos</div></div>
+                    <div class="stat-card expense"><div class="stat-icon">&#128184;</div><div class="stat-value" id="dailyExpense">R$ 0,00</div><div class="stat-label" data-i18n="spending">Gastos</div></div>
+                    <div class="stat-card balance"><div class="stat-icon">&#128202;</div><div class="stat-value" id="dailyBalance">R$ 0,00</div><div class="stat-label" data-i18n="balance">Saldo</div></div>
+                </div>
+                <div id="dailyTransactionsList"></div>
+            </div>
+        </div>
+
+        <!-- Charts Tab -->
+        <div id="charts" class="tab-content">
+            <div class="card">
+                <div class="chart-heading"><div><h2 data-i18n="chartsTitle">Receitas e despesas</h2><p>Compare valores por categoria ou ao longo do tempo.</p></div><span class="chart-kind-label">Gráfico de barras</span></div>
+                <div class="chart-toolbar">
+                    <div class="form-group"><label class="form-label" for="chartPeriod">Período</label><select id="chartPeriod" class="form-select" onchange="toggleChartPeriodInputs()"><option value="last3">Últimos 3 meses</option><option value="last6">Últimos 6 meses</option><option value="month">Mês específico</option><option value="year">Ano específico</option><option value="custom">Intervalo personalizado</option></select></div>
+                    <div class="form-group chart-period-input" id="chartCustomGroup" style="display:none"><label class="form-label">Datas</label><div class="chart-date-range"><input type="date" id="chartStartDate" class="form-input" aria-label="Data inicial" onchange="updateChart()"><input type="date" id="chartEndDate" class="form-input" aria-label="Data final" onchange="updateChart()"></div></div>
+                    <div class="form-group chart-period-input" id="chartMonthGroup" style="display:none"><label class="form-label" for="chartMonth">Mês</label><input type="month" id="chartMonth" class="form-input" onchange="updateChart()"></div>
+                    <div class="form-group chart-period-input" id="chartYearGroup" style="display:none"><label class="form-label" for="chartYear">Ano</label><input type="number" id="chartYear" class="form-input" min="2020" max="2030" onchange="updateChart()"></div>
+                    <div class="form-group"><label class="form-label" for="chartTypeFilter">Movimento</label><select id="chartTypeFilter" class="form-select" onchange="updateChart()"><option value="both">Receitas e despesas</option><option value="expense">Despesas</option><option value="income">Receitas</option></select></div>
+                    <div class="form-group"><label class="form-label" for="chartFavorites">Favoritas</label><select id="chartFavorites" class="form-select" onchange="updateChart()"><option value="all">Todas</option><option value="favorites">Só favoritas</option><option value="nonfavorites">Sem favoritas</option></select></div>
+                    <div class="form-group"><label class="form-label" for="chartGroupBy">Agrupar por</label><select id="chartGroupBy" class="form-select" onchange="updateChart()"><option value="category">Categoria</option><option value="date">Dia</option></select></div>
+                    <button class="btn btn-secondary chart-category-filter" type="button" onclick="openCategorySelectionModal('chart')">Categorias <span id="chartCategorySummary">Todas</span></button>
+                </div>
+                <div class="chart-totals" aria-live="polite"><div><span>Receitas</span><strong id="chartTotalIncome">R$ 0,00</strong></div><div><span>Despesas</span><strong id="chartTotalExpense">R$ 0,00</strong></div><div><span>Saldo</span><strong id="chartTotalBalance">R$ 0,00</strong></div><div><span>Lançamentos</span><strong id="chartTransactionCount">0</strong></div></div>
+                <div class="chart-container-wrapper"><canvas id="financeChart" role="img" aria-label="Gráfico de barras de receitas e despesas"></canvas><div id="chartEmptyState" class="empty-state" hidden>Nenhum lançamento encontrado neste período.</div></div>
+            </div>
+        </div>
+    </template>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -150,29 +146,20 @@
                     <line x1="3" y1="18" x2="21" y2="18"></line>
                 </svg>
             </button>
-            <div class="header-icon-circle" title="Controle Financeiro - Clique para celebrar!" onclick="triggerWealthBurst(this)">
-                <div class="wealth-scene" aria-hidden="true">
-                    <div class="wealth-glow-bg"></div>
-                    <span class="wealth-fly-coin coin-1"></span>
-                    <span class="wealth-fly-coin coin-2"></span>
-                    <span class="wealth-fly-coin coin-3"></span>
-                    <span class="wealth-sparkle sp-1">✦</span>
-                    <span class="wealth-sparkle sp-2">✦</span>
-                    <div class="wealth-coin-main">
-                        <div class="wealth-coin-inner">
-                            <span class="wealth-coin-symbol">$</span>
-                        </div>
-                        <div class="wealth-coin-shine"></div>
-                    </div>
-                </div>
+            <div class="header-icon-circle">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+                </svg>
             </div>
             <div class="header-new-info">
                 <h1 class="header-new-title" id="headerGreetingTitle">Bom dia</h1>
-                <div class="header-new-date" id="headerNewDate" style="display:flex; align-items:center; flex-wrap:wrap; gap:6px;">
-                    <span id="headerBalanceAmount" style="font-weight:700; color:var(--primary); font-size: 1.05rem;">R$ 0,00</span>
+                <div class="header-new-date" id="headerNewDate"
+                    style="display:flex; align-items:center; flex-wrap:wrap; gap:6px;">
+                    <span id="headerBalanceAmount" style="font-weight:700; color:var(--primary); font-size: 1.05rem;">R$
+                        0,00</span>
                     <button type="button" id="headerBalanceEyeBtn" onclick="toggleHeaderBalanceVisibility()"
                         style="background:none; border:none; cursor:pointer; color:inherit; display:flex; align-items:center; padding:0; outline:none;"
-                        title="Mostrar/Ocultar Saldo" aria-label="Mostrar ou ocultar saldo">
+                        title="Mostrar/Ocultar Saldo">
                         <svg id="headerBalanceEyeIcon" width="16" height="16" viewBox="0 0 24 24" fill="none"
                             stroke="currentColor" stroke-width="2">
                             <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
@@ -180,7 +167,8 @@
                         </svg>
                     </button>
                     <span style="color:var(--dark-text-3);">|</span>
-                    <span id="clockDate">--/--/----</span> <span style="margin:0 2px;">&#8226;</span> <span id="clockTime">00:00</span>
+                    <span id="clockDate">--/--/----</span> <span style="margin:0 2px;">&#8226;</span> <span
+                        id="clockTime">00:00</span>
                 </div>
             </div>
         </div>
@@ -350,6 +338,15 @@
                 </svg>
                 <span data-i18n="menuContact">Contato</span>
             </button>
+            <div class="menu-font-control">
+                <span class="menu-font-label" data-i18n="fontSizeTitle">Tamanho do Texto</span>
+                <div class="menu-font-buttons">
+                    <button type="button" class="menu-font-btn" data-size="small" onclick="setFontSize('small')">A-</button>
+                    <button type="button" class="menu-font-btn active" data-size="normal" onclick="setFontSize('normal')">A</button>
+                    <button type="button" class="menu-font-btn" data-size="medium" onclick="setFontSize('medium')">A+</button>
+                    <button type="button" class="menu-font-btn" data-size="large" onclick="setFontSize('large')">A++</button>
+                </div>
+            </div>
             <button class="menu-item" onclick="logout()" style="margin-top: auto; color: var(--danger);">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
@@ -363,157 +360,6 @@
 
     <!-- Main Content -->
     <main class="main-content">
-        <!-- New Transaction Tab -->
-        <div id="new-transaction" class="tab-content active">
-            <div class="card hero-transaction-card">
-                <div class="card-header-row">
-                    <div class="card-header-left">
-                        <h2 class="card-title" data-i18n="newTransaction">Nova Transação</h2>
-                        <span class="card-badge-pulse" aria-hidden="true"></span>
-                    </div>
-                    <button type="button" class="btn-voice-header-shortcut" onclick="openVoiceTransactionModal()" title="Lançar transação por voz" aria-label="Lançar transação por voz">
-                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
-                            <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-                            <line x1="12" y1="19" x2="12" y2="23"/>
-                            <line x1="8" y1="23" x2="16" y2="23"/>
-                        </svg>
-                    </button>
-                </div>
-                <form id="transactionForm" onsubmit="event.preventDefault();">
-                    <!-- Segmented Control Type Switcher -->
-                    <div class="segmented-control-container" role="tablist" aria-label="Tipo de transação">
-                        <div class="segmented-background" id="segmentedBackground"></div>
-                        <button type="button" class="segmented-btn active" id="btnIncome" onclick="setTransactionType('income')" role="tab" aria-selected="true">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="segmented-icon"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
-                            <span data-i18n="gains">Ganho</span>
-                        </button>
-                        <button type="button" class="segmented-btn" id="btnExpense" onclick="setTransactionType('expense')" role="tab" aria-selected="false">
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" class="segmented-icon"><path d="M12 5v14M19 12l-7 7-7-7"/></svg>
-                            <span data-i18n="spending">Gasto</span>
-                        </button>
-                    </div>
-
-                    <!-- Value Display Hero Input -->
-                    <div class="value-display-section" id="valueDisplaySection">
-                        <div class="value-display-label" data-i18n="value">VALOR DO LANÇAMENTO</div>
-                        <div class="value-input-wrapper">
-                            <span class="value-currency-sign" id="valueCurrencySign">R$</span>
-                            <input type="number" id="transactionValue" class="value-display-amount" step="0.01" min="0" placeholder="0,00" inputmode="decimal" required autocomplete="off">
-                        </div>
-                    </div>
-
-                    <!-- Date Navigation Capsule -->
-                    <div class="home-date-nav">
-                        <button type="button" class="home-date-arrow" onclick="event.stopPropagation();previousDay();" title="Dia anterior" aria-label="Dia anterior">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                        </button>
-                        <button type="button" class="home-date-pill" id="datePillButton" onclick="event.stopPropagation();openCustomDateModal();" title="Selecionar data" aria-label="Selecionar data">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                            <span id="datePillText">HOJE</span>
-                        </button>
-                        <button type="button" class="home-date-arrow" onclick="event.stopPropagation();nextDay();" title="Próximo dia" aria-label="Próximo dia">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                        </button>
-                    </div>
-                    <input type="date" id="transactionDate" required style="display:none;">
-
-                    <!-- Fields Grid: Category + Description -->
-                    <div class="transaction-fields-grid">
-                        <!-- Category Field -->
-                        <div class="modern-field-group">
-                            <label class="form-row-label" for="transactionCategory" data-i18n="category">CATEGORIA</label>
-                            <div class="form-row-styled">
-                                <div class="form-row-icon">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.59 13.41l-7.17 7.17a2 2 0 0 1-2.83 0L2 12V2h10l8.59 8.59a2 2 0 0 1 0 2.82z"></path><line x1="7" y1="7" x2="7.01" y2="7"></line></svg>
-                                </div>
-                                <select id="transactionCategory" class="form-select" required>
-                                    <option value="" data-i18n="selectCategory">Selecione uma categoria</option>
-                                    <option value="alimentacao">🍽️ Alimentação</option>
-                                    <option value="mercado">🛒 Mercado</option>
-                                    <option value="combustivel">⛽ Combustível</option>
-                                    <option value="manutencao_veiculo">🔧 Manutenção Veículo</option>
-                                    <option value="transporte">🚗 Transporte</option>
-                                    <option value="moradia">🏠 Moradia</option>
-                                    <option value="saude">🏥 Saúde</option>
-                                    <option value="educacao">📚 Educação</option>
-                                    <option value="lazer">🎮 Lazer</option>
-                                    <option value="salario">💼 Salário</option>
-                                    <option value="freelance">💻 Freelance</option>
-                                    <option value="investimentos">📈 Investimentos</option>
-                                    <option value="outros">📦 Outros</option>
-                                </select>
-                            </div>
-                        </div>
-
-                        <!-- Description Field -->
-                        <div class="modern-field-group">
-                            <label class="form-row-label" for="transactionDescription" data-i18n="description">DESCRIÇÃO</label>
-                            <div class="form-row-styled">
-                                <div class="form-row-icon">
-                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                                </div>
-                                <input type="text" id="transactionDescription" class="form-input" data-i18n-placeholder="placeholderDescShort" placeholder="Descrição da transação" required autocomplete="off">
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Favorite Toggle -->
-                    <label class="favorite-row" for="transactionFavorite">
-                        <input type="checkbox" id="transactionFavorite">
-                        <span class="toggle-slider"></span>
-                        <span class="favorite-label-text">
-                            <svg class="fav-star-icon" width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-                            <span data-i18n="favoriteTransaction">Favoritar esta transação</span>
-                        </span>
-                    </label>
-
-                    <!-- Save Transaction Button -->
-                    <button type="button" class="btn-save-transaction" id="btnSaveTransaction" onclick="saveNewTransaction()">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                        <span data-i18n="saveTransaction">Salvar Transação</span>
-                    </button>
-                </form>
-            </div>
-
-            <!-- Daily Summary Card -->
-            <div class="card daily-summary-card">
-                <div class="card-header-row">
-                    <h3 class="card-title" data-i18n="dailyTransactions">Transações do Dia Selecionado</h3>
-                </div>
-                <div class="stats-grid mb-2">
-                    <div class="stat-card income">
-                        <div class="stat-card-header">
-                            <span class="stat-label" data-i18n="gains">Ganhos</span>
-                            <div class="stat-icon">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"></polyline><polyline points="17 6 23 6 23 12"></polyline></svg>
-                            </div>
-                        </div>
-                        <div class="stat-value" id="dailyIncome">R$ 0,00</div>
-                    </div>
-                    <div class="stat-card expense">
-                        <div class="stat-card-header">
-                            <span class="stat-label" data-i18n="spending">Gastos</span>
-                            <div class="stat-icon">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"></polyline><polyline points="17 18 23 18 23 12"></polyline></svg>
-                            </div>
-                        </div>
-                        <div class="stat-value" id="dailyExpense">R$ 0,00</div>
-                    </div>
-                    <div class="stat-card balance">
-                        <div class="stat-card-header">
-                            <span class="stat-label" data-i18n="balance">Saldo</span>
-                            <div class="stat-icon">
-                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
-                            </div>
-                        </div>
-                        <div class="stat-value" id="dailyBalance">R$ 0,00</div>
-                    </div>
-                </div>
-                <div id="dailyTransactionsList"></div>
-            </div>
-        </div>
-
         <!-- Transactions Tab -->
         <div id="transactions" class="tab-content">
             <div class="card">
@@ -571,13 +417,119 @@
                     </div>
                 </div>
                 <div class="search-results">
-                    <div class="search-result-header"><h3 data-i18n="searchResults">Resultados</h3><span class="search-result-count" id="searchResultCount">0 transações</span></div>
-                    <div class="search-totals" aria-live="polite">
-                        <div class="search-total-income"><span>Receitas na busca</span><strong id="searchTotalIncome">R$ 0,00</strong></div>
-                        <div class="search-total-expense"><span>Despesas na busca</span><strong id="searchTotalExpense">R$ 0,00</strong></div>
+                    <div class="search-result-header">
+                        <div class="chart-heading">
+                            <div><h2 data-i18n="chartsTitle">Receitas e despesas</h2><p>Compare valores por categoria ou ao longo do tempo.</p></div>
+                            <span class="chart-kind-label">Gráfico de barras</span>
+                        </div>
+                        <div class="chart-toolbar">
+                            <div class="form-group"><label class="form-label" for="chartPeriod">Período</label>
+                                <select id="chartPeriod" class="form-select" onchange="toggleChartPeriodInputs()">
+                                    <option value="last3">Últimos 3 meses</option>
+                                    <option value="last6">Últimos 6 meses</option>
+                                    <option value="month">Mês específico</option>
+                                    <option value="year">Ano específico</option>
+                                    <option value="custom">Intervalo personalizado</option>
+                                </select>
+                            </div>
+                            <div class="form-group chart-period-input" id="chartCustomGroup" style="display:none"><label class="form-label">Datas</label><div class="chart-date-range"><input type="date" id="chartStartDate" class="form-input" aria-label="Data inicial" onchange="updateChart()"><input type="date" id="chartEndDate" class="form-input" aria-label="Data final" onchange="updateChart()"></div></div>
+                            <div class="form-group chart-period-input" id="chartMonthGroup" style="display:none"><label class="form-label" for="chartMonth">Mês</label><input type="month" id="chartMonth" class="form-input" onchange="updateChart()"></div>
+                            <div class="form-group chart-period-input" id="chartWeekGroup" style="display:none"><label class="form-label" for="chartWeek">Semana</label><input type="week" id="chartWeek" class="form-input" onchange="updateChart()"></div>
+                            <div class="form-group chart-period-input" id="chartYearGroup" style="display:none"><label class="form-label" for="chartYear">Ano</label><input type="number" id="chartYear" class="form-input" min="2020" max="2030" onchange="updateChart()"></div>
+                            <div class="form-group"><label class="form-label" for="chartTypeFilter">Movimento</label><select id="chartTypeFilter" class="form-select" onchange="updateChart()"><option value="both">Receitas e despesas</option><option value="expense">Despesas</option><option value="income">Receitas</option></select></div>
+                            <div class="form-group"><label class="form-label" for="chartFavorites">Favoritas</label><select id="chartFavorites" class="form-select" onchange="updateChart()"><option value="all">Todas</option><option value="favorites">Só favoritas</option><option value="nonfavorites">Sem favoritas</option></select></div>
+                            <div class="form-group"><label class="form-label" for="chartGroupBy">Agrupar por</label><select id="chartGroupBy" class="form-select" onchange="updateChart()"><option value="category">Categoria</option><option value="date">Dia</option></select></div>
+                            <button class="btn btn-secondary chart-category-filter" type="button" onclick="openCategorySelectionModal('chart')">Categorias <span id="chartCategorySummary">Todas</span></button>
+                        </div>
+                        <div class="chart-totals" aria-live="polite">
+                            <div><span>Receitas</span><strong id="chartTotalIncome">R$ 0,00</strong></div>
+                            <div><span>Despesas</span><strong id="chartTotalExpense">R$ 0,00</strong></div>
+                            <div><span>Saldo</span><strong id="chartTotalBalance">R$ 0,00</strong></div>
+                            <div><span>Lançamentos</span><strong id="chartTransactionCount">0</strong></div>
+                        </div>
+                        <div class="chart-container-wrapper"><canvas id="financeChart" role="img" aria-label="Gráfico de barras de receitas e despesas"></canvas><div id="chartEmptyState" class="empty-state" hidden>Nenhum lançamento encontrado neste período.</div></div>
+                        </button>
+
+                        <button type="button" class="home-date-arrow" onclick="event.stopPropagation();nextDay();" title="Próximo dia">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                        </button>
                     </div>
-                    <div id="searchResultsList"></div>
+                    <input type="date" id="transactionDate" required style="display:none;">
+
+                    <!-- Category Row -->
+                    <div class="form-row-label" data-i18n="category">CATEGORIA</div>
+                    <div class="form-row-styled">
+                        <div class="form-row-icon">
+                            <span class="form-icon">📋</span>
+                        </div>
+                        <select id="transactionCategory" class="form-select" required style="flex:1;">
+                            <option value="" data-i18n="selectCategory">Selecione uma categoria</option>
+                            <option value="alimentacao">&#127869; Alimentacao</option>
+                            <option value="mercado">&#128722; Mercado</option>
+                            <option value="combustivel">&#9981; Combustivel</option>
+                            <option value="manutencao_veiculo">&#128295; Manutencao Veiculo</option>
+                            <option value="transporte">&#128663; Transporte</option>
+                            <option value="moradia">&#127968; Moradia</option>
+                            <option value="saude">&#127973; Saude</option>
+                            <option value="educacao">&#128218; Educacao</option>
+                            <option value="lazer">&#127918; Lazer</option>
+                            <option value="salario">&#128188; Salario</option>
+                            <option value="freelance">&#128187; Freelance</option>
+                            <option value="investimentos">&#128200; Investimentos</option>
+                            <option value="outros">&#128230; Outros</option>
+                        </select>
+                    </div>
+
+                    <!-- Description Row -->
+                    <div class="form-row-label" data-i18n="description">DESCRICAO</div>
+                    <div class="form-row-styled">
+                        <div class="form-row-icon">
+                            <span class="form-icon">📝</span>
+                        </div>
+                        <input type="text" id="transactionDescription" class="form-input"
+                            data-i18n-placeholder="placeholderDescShort" placeholder="Descrição da transação" required
+                            style="flex:1;">
+                    </div>
+
+                    <!-- Favorite -->
+                    <label class="favorite-row">
+                        <input type="checkbox" id="transactionFavorite">
+                        <span class="toggle-slider"></span>
+                        <span style="font-size:0.9rem;font-weight:500;">&#11088; <span
+                                data-i18n="favoriteTransaction">Favoritar esta transação</span></span>
+                    </label>
+
+                    <!-- Save Button -->
+                    <button type="button" class="btn-save-transaction" id="btnSaveTransaction"
+                        onclick="saveNewTransaction()">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                            stroke-width="2.5">
+                            <polyline points="20,6 9,17 4,12" />
+                        </svg>
+                        <span data-i18n="saveTransaction">Salvar Transacao</span>
+                    </button>
+                </form>
+            </div>
+            <div class="card">
+                <h3 class="mb-2" data-i18n="dailyTransactions">Transacoes do Dia Selecionado</h3>
+                <div class="stats-grid mb-2">
+                    <div class="stat-card income">
+                        <div class="stat-icon">&#128176;</div>
+                        <div class="stat-value" id="dailyIncome">R$ 0,00</div>
+                        <div class="stat-label" data-i18n="gains">Ganhos</div>
+                    </div>
+                    <div class="stat-card expense">
+                        <div class="stat-icon">&#128184;</div>
+                        <div class="stat-value" id="dailyExpense">R$ 0,00</div>
+                        <div class="stat-label" data-i18n="spending">Gastos</div>
+                    </div>
+                    <div class="stat-card balance">
+                        <div class="stat-icon">&#128202;</div>
+                        <div class="stat-value" id="dailyBalance">R$ 0,00</div>
+                        <div class="stat-label" data-i18n="balance">Saldo</div>
+                    </div>
                 </div>
+                <div id="dailyTransactionsList"></div>
             </div>
         </div>
 
@@ -647,27 +599,7 @@
                             <button class="btn btn-secondary" type="button" onclick="clearChartCategories()">Limpar categorias</button>
                         </div>
                     </div>
-                <div class="stats-grid mb-2" id="chartTotalsCard" style="margin-top: 1rem;">
-                    <div class="stat-card income">
-                        <div class="stat-card-header">
-                            <span class="stat-label">Receitas</span>
-                        </div>
-                        <div class="stat-value" id="chartTotalIncome">R$ 0,00</div>
-                    </div>
-                    <div class="stat-card expense">
-                        <div class="stat-card-header">
-                            <span class="stat-label">Despesas</span>
-                        </div>
-                        <div class="stat-value" id="chartTotalExpense">R$ 0,00</div>
-                    </div>
-                    <div class="stat-card balance">
-                        <div class="stat-card-header">
-                            <span class="stat-label">Saldo</span>
-                        </div>
-                        <div class="stat-value" id="chartTotalBalance">R$ 0,00</div>
-                    </div>
                 </div>
-                <span id="chartTransactionCount" style="display:none;">0</span>
                 <div class="chart-container-wrapper"><canvas id="financeChart"></canvas></div>
             </div>
         </div>
@@ -1429,83 +1361,6 @@
                 <div class="form-group form-group-checkbox"><label class="form-label form-label-checkbox"><input
                             type="checkbox" id="editTransactionFavorite"> &#11088; <span
                             data-i18n="favoriteTransaction">Favoritar esta transacao</span></label></div>
-
-                <!-- Comprovante da Transação na Edição -->
-                <div class="form-group edit-receipt-section">
-                    <div class="edit-receipt-header">
-                        <label class="form-label edit-receipt-label">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-                                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                                <polyline points="14 2 14 8 20 8"></polyline>
-                                <line x1="16" y1="13" x2="8" y2="13"></line>
-                                <line x1="16" y1="17" x2="8" y2="17"></line>
-                            </svg>
-                            <span>Comprovante</span>
-                        </label>
-                        <span id="editReceiptBadge" class="receipt-status-pill none">Nenhum</span>
-                    </div>
-
-                    <!-- Card do Comprovante (Atual ou Selecionado) -->
-                    <div id="editReceiptCard" class="edit-receipt-card" style="display:none;">
-                        <div class="edit-receipt-card-left">
-                            <div class="edit-receipt-icon-wrap" id="editReceiptIconWrap">📄</div>
-                            <div class="edit-receipt-details">
-                                <div id="editReceiptTitle" class="edit-receipt-card-name">comprovante.jpg</div>
-                                <div id="editReceiptSub" class="edit-receipt-card-sub">Anexado à transação</div>
-                            </div>
-                        </div>
-                        <div class="edit-receipt-card-actions">
-                            <button type="button" class="btn-receipt-action" id="editReceiptViewBtn" onclick="viewEditingTransactionReceipt()" title="Visualizar comprovante">
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
-                                    <circle cx="12" cy="12" r="3"></circle>
-                                </svg>
-                                <span>Ver</span>
-                            </button>
-                            <button type="button" class="btn-receipt-action btn-receipt-danger" id="editReceiptRemoveBtn" onclick="removeEditingTransactionReceipt()" title="Remover comprovante">
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                    <polyline points="3 6 5 6 21 6"></polyline>
-                                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                                </svg>
-                                <span>Remover</span>
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Botão de Upload / Trocar -->
-                    <div class="edit-receipt-upload-row">
-                        <label for="editReceiptInput" class="btn-receipt-upload">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
-                                <polyline points="17 8 12 3 7 8"></polyline>
-                                <line x1="12" y1="3" x2="12" y2="15"></line>
-                            </svg>
-                            <span id="editReceiptUploadText">Anexar Comprovante</span>
-                        </label>
-                        <input type="file" id="editReceiptInput" accept="image/*,application/pdf" style="display:none;" onchange="handleEditReceiptFileSelected(event)">
-                    </div>
-
-                    <!-- Card de Leitura OCR Inteligente -->
-                    <div id="editReceiptOcrBox" class="edit-receipt-ocr-card" style="display:none;">
-                        <div class="edit-receipt-ocr-status-row">
-                            <span class="edit-ocr-spinner" id="editOcrSpinner"></span>
-                            <span id="editOcrStatusText" class="edit-ocr-status-text">Lendo comprovante com IA/OCR...</span>
-                        </div>
-                        <div id="editOcrSuggestions" class="edit-ocr-suggestions" style="display:none;">
-                            <div class="edit-ocr-tags-grid">
-                                <span class="edit-ocr-pill" id="editOcrPillDate" style="display:none;">📅 Data: <b></b></span>
-                                <span class="edit-ocr-pill" id="editOcrPillValue" style="display:none;">💰 Valor: <b></b></span>
-                                <span class="edit-ocr-pill" id="editOcrPillDesc" style="display:none;">🏢 Favorecido: <b></b></span>
-                                <span class="edit-ocr-pill" id="editOcrPillCat" style="display:none;">🏷️ Categoria: <b></b></span>
-                            </div>
-                            <button type="button" class="btn-apply-edit-ocr" onclick="applyEditReceiptOcrToForm()">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                                <span>Preencher dados lidos no formulário</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
                 <div class="btn-group">
                     <button type="button" class="btn btn-primary" onclick="saveTransactionEdit()"><svg
                             xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 512 512">
@@ -1723,201 +1578,11 @@
         </div>
     </div>
 
-    <!-- Quick Add Floating Speed Dial Container -->
-    <div class="quick-add-container" id="quickAddContainer">
-        <div class="quick-add-backdrop" id="quickAddBackdrop" onclick="toggleQuickAddMenu(false)"></div>
-        <div class="quick-add-menu" id="quickAddMenu" role="menu" aria-label="Opções para adicionar lançamento">
-            <!-- Option 1: Por Voz -->
-            <button type="button" class="quick-add-item voice-option" onclick="handleQuickAddChoice('voice')" role="menuitem">
-                <div class="quick-add-text">
-                    <span class="quick-add-title">Por Voz</span>
-                    <span class="quick-add-subtitle">Fale o valor e descrição</span>
-                </div>
-                <div class="quick-add-icon voice-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
-                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-                        <line x1="12" y1="19" x2="12" y2="23"/>
-                        <line x1="8" y1="23" x2="16" y2="23"/>
-                    </svg>
-                </div>
-            </button>
-
-            <!-- Option 2: Por Documento / Comprovante -->
-            <button type="button" class="quick-add-item receipt-option" onclick="handleQuickAddChoice('receipt')" role="menuitem">
-                <div class="quick-add-text">
-                    <span class="quick-add-title">Por Documento</span>
-                    <span class="quick-add-subtitle">Comprovante com leitura IA</span>
-                </div>
-                <div class="quick-add-icon receipt-icon">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
-                        <polyline points="14 2 14 8 20 8"/>
-                        <line x1="16" y1="13" x2="8" y2="13"/>
-                        <line x1="16" y1="17" x2="8" y2="17"/>
-                        <polyline points="10 9 9 9 8 9"/>
-                    </svg>
-                </div>
-            </button>
-        </div>
-
-        <button class="floating-receipt-btn" id="receiptActionButton" type="button" aria-label="Adicionar transação" title="Adicionar transação" onclick="toggleQuickAddMenu()">
-            <svg class="fab-icon-plus" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
-        </button>
-    </div>
+    <!-- Floating Receipt Actions -->
+    <button class="floating-receipt-btn" id="receiptActionButton" type="button" aria-label="Inserir comprovante" title="Inserir comprovante" onclick="openReceiptPicker()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+    </button>
     <input id="receiptUploadInput" type="file" accept="image/*,application/pdf" capture="environment" hidden onchange="handleReceiptFileSelection(event)">
-
-    <!-- Voice Transaction Modal -->
-    <div class="modal-overlay voice-modal-overlay" id="voiceTransactionModal" role="presentation" onclick="if(event.target === this) closeVoiceModal()">
-        <section class="voice-modal-dialog" role="dialog" aria-modal="true" aria-labelledby="voiceModalTitle">
-            <header class="voice-modal-header">
-                <div class="voice-modal-header-info">
-                    <div class="voice-header-badge">
-                        <span class="voice-live-dot"></span>
-                        <span>IA Reconhecimento de Voz</span>
-                    </div>
-                    <h2 id="voiceModalTitle">Lançamento por Voz</h2>
-                </div>
-                <button class="voice-modal-close" type="button" aria-label="Fechar" onclick="closeVoiceModal()">&times;</button>
-            </header>
-
-            <div class="voice-modal-body">
-                <!-- Visualizer and Main Mic Button Area -->
-                <div class="voice-visualizer-container">
-                    <!-- Dynamic Sound Wave Bars -->
-                    <div class="sound-wave-bars" id="soundWaveBars" aria-hidden="true">
-                        <span class="sound-bar b1"></span>
-                        <span class="sound-bar b2"></span>
-                        <span class="sound-bar b3"></span>
-                        <span class="sound-bar b4"></span>
-                        <span class="sound-bar b5"></span>
-                        <span class="sound-bar b6"></span>
-                        <span class="sound-bar b7"></span>
-                        <span class="sound-bar b8"></span>
-                    </div>
-
-                    <!-- Glowing Pulsing Mic Button -->
-                    <button type="button" class="voice-mic-main-btn" id="voiceMicMainBtn" onclick="toggleVoiceListening()" title="Toque para falar ou pausar">
-                        <div class="mic-ripple-ring ring1"></div>
-                        <div class="mic-ripple-ring ring2"></div>
-                        <div class="mic-inner-circle">
-                            <svg class="mic-svg-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
-                                <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
-                                <line x1="12" y1="19" x2="12" y2="23"/>
-                                <line x1="8" y1="23" x2="16" y2="23"/>
-                            </svg>
-                        </div>
-                    </button>
-
-                    <div class="voice-status-label" id="voiceStatusLabel">Pressione o microfone para falar</div>
-                    <div class="voice-status-sub" id="voiceStatusSub">Fale naturalmente, por exemplo: "receita 30 reais categoria freelance e descrição teste"</div>
-                </div>
-
-                <!-- Live Transcription Speech Bubble -->
-                <div class="voice-transcription-box" id="voiceTranscriptionBox">
-                    <div class="transcription-header">
-                        <span class="transcription-tag">Transcrição do áudio</span>
-                        <button type="button" class="btn-clear-transcript" id="btnClearTranscript" onclick="clearVoiceTranscript()" title="Limpar">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-                        </button>
-                    </div>
-                    <p class="transcription-text" id="voiceTranscriptionText">Nenhuma fala capturada ainda. Toque no microfone e diga sua transação...</p>
-                </div>
-
-                <!-- Parsed Result Card -->
-                <div class="voice-parsed-card" id="voiceParsedCard" style="display: none;">
-                    <div class="parsed-header">
-                        <div class="parsed-title-group">
-                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                            <span>Lançamento Identificado com IA</span>
-                        </div>
-                        <span class="parsed-badge income" id="voiceParsedTypeBadge">Receita</span>
-                    </div>
-
-                    <div class="parsed-grid">
-                        <div class="parsed-item item-value">
-                            <span class="parsed-item-label">Valor</span>
-                            <span class="parsed-item-val" id="voiceParsedVal">R$ 0,00</span>
-                        </div>
-                        <div class="parsed-item">
-                            <span class="parsed-item-label">Categoria</span>
-                            <span class="parsed-item-val" id="voiceParsedCat">—</span>
-                        </div>
-                        <div class="parsed-item">
-                            <span class="parsed-item-label">Data</span>
-                            <span class="parsed-item-val" id="voiceParsedDate">Hoje</span>
-                        </div>
-                        <div class="parsed-item item-desc">
-                            <span class="parsed-item-label">Descrição</span>
-                            <span class="parsed-item-val" id="voiceParsedDesc">—</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Spoken Command Hints -->
-                <div class="voice-hints-container" id="voiceHintsContainer">
-                    <span class="voice-hints-title">Toque em um exemplo para testar:</span>
-                    <div class="voice-hints-list">
-                        <button type="button" class="voice-hint-pill" onclick="simulateVoiceInput('receita 30 reais categoria freelance e descrição teste')">
-                            "receita 30 reais categoria freelance e descrição teste"
-                        </button>
-                        <button type="button" class="voice-hint-pill" onclick="simulateVoiceInput('gasto 45 reais e 50 centavos mercado descrição compras da semana')">
-                            "gasto 45 reais e 50 centavos mercado descrição compras da semana"
-                        </button>
-                        <button type="button" class="voice-hint-pill" onclick="simulateVoiceInput('ganhei 1200 reais categoria salário hoje')">
-                            "ganhei 1200 reais categoria salário hoje"
-                        </button>
-                        <button type="button" class="voice-hint-pill" onclick="simulateVoiceInput('despesa 80 reais combustível descrição gasolina aditivada')">
-                            "despesa 80 reais combustível descrição gasolina aditivada"
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Input Manual / Alternativo com Botão Analisar Responsivo -->
-                <div class="voice-text-fallback" id="voiceTextFallback">
-                    <div class="voice-fallback-label">
-                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
-                        <span>Ou digite a frase para analisar:</span>
-                    </div>
-                    <div class="fallback-input-row">
-                        <div class="fallback-input-wrapper">
-                            <input 
-                                type="text" 
-                                id="voiceFallbackInput" 
-                                class="voice-fallback-input" 
-                                placeholder="Ex: receita 30 reais categoria freelance e descrição teste" 
-                                autocomplete="off"
-                                oninput="handleVoiceFallbackInputChange(this)"
-                                onkeydown="if(event.key === 'Enter') { event.preventDefault(); parseVoiceManualInput(); }">
-                            <button type="button" class="btn-clear-fallback" id="btnClearFallback" onclick="clearVoiceFallbackInput()" title="Limpar campo" style="display: none;">
-                                &times;
-                            </button>
-                        </div>
-                        <button type="button" class="btn-voice-analyze" id="btnVoiceAnalyze" onclick="parseVoiceManualInput()" title="Analisar frase com IA">
-                            <svg class="analyze-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                                <circle cx="11" cy="11" r="8"></circle>
-                                <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                                <polyline points="11 8 13 11 10 11 12 14"></polyline>
-                            </svg>
-                            <span>Analisar</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            <footer class="voice-modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeVoiceModal()">Cancelar</button>
-                <button type="button" class="btn btn-accent-outline" id="btnVoicePrefillForm" onclick="confirmVoiceTransaction(false)" disabled title="Preencher o formulário para revisar antes de salvar">
-                    <span>Revisar no Formulário</span>
-                </button>
-                <button type="button" class="btn btn-primary" id="btnVoiceConfirmAndSave" onclick="confirmVoiceTransaction(true)" disabled>
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                    <span>Salvar Transação</span>
-                </button>
-            </footer>
-        </section>
-    </div>
 
     <div class="modal-overlay receipt-review-overlay" id="receiptReviewModal" role="presentation" onclick="if(event.target === this && !receiptSaving) closeReceiptReview()">
         <section class="receipt-review-dialog" role="dialog" aria-modal="true" aria-labelledby="receiptReviewTitle">

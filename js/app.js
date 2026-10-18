@@ -1,39 +1,14 @@
-        // Console Filter for Permissions-Policy, COOP, and AdBlocker WebChannel notifications
+        // Console Filter for Permissions-Policy browser notifications
         (function() {
             const origWarn = console.warn;
             const origError = console.error;
-            const filterKeywords = [
-                'Permissions-Policy',
-                'attribution-reporting',
-                'private-aggregation',
-                'join-ad-interest-group',
-                'run-ad-auction',
-                'Cross-Origin-Opener-Policy',
-                'window.closed',
-                'ERR_BLOCKED_BY_CLIENT',
-                'webchannel_connection'
-            ];
-            function shouldFilter(args) {
-                try {
-                    for (let i = 0; i < args.length; i++) {
-                        const item = args[i];
-                        if (!item) continue;
-                        const text = (typeof item === 'string')
-                            ? item
-                            : ((item.message || '') + ' ' + (item.stack || '') + ' ' + String(item));
-                        for (let k = 0; k < filterKeywords.length; k++) {
-                            if (text.includes(filterKeywords[k])) return true;
-                        }
-                    }
-                } catch(e) {}
-                return false;
-            }
+            const filterKeywords = ['Permissions-Policy', 'attribution-reporting', 'private-aggregation', 'join-ad-interest-group', 'run-ad-auction'];
             console.warn = function(...args) {
-                if (shouldFilter(args)) return;
+                if (args.some(a => typeof a === 'string' && filterKeywords.some(k => a.includes(k)))) return;
                 origWarn.apply(console, args);
             };
             console.error = function(...args) {
-                if (shouldFilter(args)) return;
+                if (args.some(a => typeof a === 'string' && filterKeywords.some(k => a.includes(k)))) return;
                 origError.apply(console, args);
             };
         })();
@@ -62,28 +37,10 @@
 
         const auth = firebase.auth();
         const db = firebase.firestore();
-
-        try {
-            firebase.firestore.setLogLevel('error');
-        } catch (logErr) {}
-
-        // Configurações do Firestore para evitar bloqueio por AdBlockers/Extensões (Long-Polling e Persistência Offline)
-        try {
-            db.settings({
-                experimentalForceLongPolling: true,
-                useFetchStreams: false,
-                merge: true
-            });
-        } catch (settingsErr) {}
-
-        try {
-            db.enablePersistence({ synchronizeTabs: true }).catch(function() {});
-        } catch (persistenceErr) {}
-
         const storage = firebase.storage();
         try {
-            storage.setMaxUploadRetryTime(1000);
-            storage.setMaxOperationRetryTime(1000);
+            storage.setMaxUploadRetryTime(3000);
+            storage.setMaxOperationRetryTime(3000);
         } catch (storageConfigErr) {
             console.warn("Aviso ao configurar retry time do Storage:", storageConfigErr);
         }
@@ -92,13 +49,12 @@
 
         // Handle redirect result
         auth.getRedirectResult().then((result) => {
-            if (result && result.user) {
-                console.log("Login via redirect bem-sucedido.");
+            if (result.user) {
+                console.log("Login via redirect bem-sucedido:", result.user.displayName);
             }
         }).catch((error) => {
-            if (error && error.code) {
-                console.error("Erro no resultado do redirect:", error.code);
-            }
+            console.error("Erro no resultado do redirect:", error);
+            showNotification("Erro na autenticação: " + error.message, "error");
         });
 
         console.log("Auth e Firestore configurados.");
@@ -172,20 +128,6 @@
                 // INICIA LISTENERS FIRESTORE
                 setupFirestoreListeners(user);
                 processPendingSharedReceipt();
-
-                // Pré-aquece o motor OCR em background com baixa prioridade
-                try {
-                    const preloadOcr = () => {
-                        if (typeof getReceiptOcrWorker === 'function') {
-                            getReceiptOcrWorker().catch(() => {});
-                        }
-                    };
-                    if ('requestIdleCallback' in window) {
-                        window.requestIdleCallback(preloadOcr, { timeout: 6000 });
-                    } else {
-                        setTimeout(preloadOcr, 3000);
-                    }
-                } catch (preloadErr) {}
             } else {
                 currentUser = null;
                 updateHeaderGreeting();
@@ -222,7 +164,7 @@
 
             // Primeiro tentamos o Popup
             auth.signInWithPopup(googleProvider).then((result) => {
-                console.log("Login realizado com sucesso (Popup).");
+                console.log("Login realizado com sucesso (Popup) para:", result.user.displayName);
                 loader.style.display = 'none';
                 btn.style.display = 'flex';
             }).catch((error) => {
@@ -295,8 +237,8 @@
                     updateAllViews();
                     performSearch(); // Atualiza busca se estiver ativa
                 }, error => {
-                    if (error && String(error).includes('ERR_BLOCKED_BY_CLIENT')) return;
-                    console.warn("Aviso no listener de transações:", error && error.message ? error.message : error);
+                    console.error("Erro no listener de transações:", error);
+                    showNotification("Erro de conexão com o banco de dados", "error");
                 });
 
             // Metas
@@ -309,8 +251,7 @@
                     }));
                     updateGoalsList();
                 }, error => {
-                    if (error && String(error).includes('ERR_BLOCKED_BY_CLIENT')) return;
-                    console.warn("Aviso no listener de metas:", error && error.message ? error.message : error);
+                    console.error("Erro no listener de metas:", error);
                 });
         }
 
@@ -494,7 +435,7 @@
 
             document.documentElement.setAttribute('data-font-size', size);
 
-            document.querySelectorAll('.font-size-btn').forEach(btn => {
+            document.querySelectorAll('.font-size-btn, .menu-font-btn').forEach(btn => {
                 if (btn.getAttribute('data-size') === size) {
                     btn.classList.add('active');
                 } else {
@@ -864,9 +805,6 @@
                 deleted: false
             }).then(() => {
                 showNotification(t('transactionAdded'), 'success');
-                if (type === 'income' && typeof triggerWealthBurst === 'function') {
-                    triggerWealthBurst();
-                }
                 clearTransactionForm();
             }).catch(error => {
                 console.error("Erro ao adicionar transação: ", error);
@@ -883,11 +821,6 @@
             setTransactionType('income');
             if (typeof updateDateDisplayText === 'function') updateDateDisplayText();
         }
-        let editSelectedReceiptBlob = null;
-        let editSelectedReceiptPreviewUrl = null;
-        let editRemoveExistingReceipt = false;
-        let editExtractedOcrData = null;
-
         function editTransaction(id) {
             const tx = transactions.find(t => t.id === id);
             if (!tx) return;
@@ -899,271 +832,12 @@
             document.getElementById('editTransactionCategory').value = tx.category;
             document.getElementById('editTransactionDescription').value = tx.description;
             document.getElementById('editTransactionFavorite').checked = !!tx.favorite;
-
-            // Limpa estado anterior de anexo da edição
-            editSelectedReceiptBlob = null;
-            if (editSelectedReceiptPreviewUrl) {
-                try { URL.revokeObjectURL(editSelectedReceiptPreviewUrl); } catch (e) { }
-            }
-            editSelectedReceiptPreviewUrl = null;
-            editRemoveExistingReceipt = false;
-            editExtractedOcrData = null;
-
-            const fileInput = document.getElementById('editReceiptInput');
-            if (fileInput) fileInput.value = '';
-
-            const ocrBox = document.getElementById('editReceiptOcrBox');
-            if (ocrBox) ocrBox.style.display = 'none';
-
-            const cardEl = document.getElementById('editReceiptCard');
-            const badgeEl = document.getElementById('editReceiptBadge');
-            const uploadTextEl = document.getElementById('editReceiptUploadText');
-            const titleEl = document.getElementById('editReceiptTitle');
-            const subEl = document.getElementById('editReceiptSub');
-
-            const hasReceipt = Boolean(tx.receiptBase64 || tx.receiptPath);
-            if (hasReceipt) {
-                if (cardEl) cardEl.style.display = 'flex';
-                if (badgeEl) {
-                    badgeEl.className = 'receipt-status-pill attached';
-                    badgeEl.textContent = 'Anexado';
-                }
-                if (uploadTextEl) uploadTextEl.textContent = 'Substituir Comprovante';
-                if (titleEl) {
-                    const isPdf = (tx.receiptBase64 && tx.receiptBase64.startsWith('data:application/pdf')) || (tx.receiptPath && tx.receiptPath.toLowerCase().endsWith('.pdf'));
-                    titleEl.textContent = isPdf ? 'Comprovante PDF' : 'Comprovante da Transação';
-                }
-                if (subEl) subEl.textContent = 'Salvo nesta transação';
-            } else {
-                if (cardEl) cardEl.style.display = 'none';
-                if (badgeEl) {
-                    badgeEl.className = 'receipt-status-pill none';
-                    badgeEl.textContent = 'Nenhum';
-                }
-                if (uploadTextEl) uploadTextEl.textContent = 'Anexar Comprovante';
-            }
-
             showModal('editTransactionModal');
         }
-
-        async function handleEditReceiptFileSelected(event) {
-            const file = event.target.files && event.target.files[0];
-            if (!file) return;
-            if (!currentUser) {
-                showNotification('Entre na sua conta para anexar um comprovante.', 'error');
-                event.target.value = '';
-                return;
-            }
-            if (!file.type.startsWith('image/') && file.type !== 'application/pdf') {
-                showNotification('Selecione uma imagem ou arquivo PDF.', 'error');
-                event.target.value = '';
-                return;
-            }
-            if (file.size > 12 * 1024 * 1024) {
-                showNotification('O comprovante deve ter no máximo 12 MB antes da otimização.', 'error');
-                event.target.value = '';
-                return;
-            }
-
-            const ocrBox = document.getElementById('editReceiptOcrBox');
-            const spinner = document.getElementById('editOcrSpinner');
-            const statusText = document.getElementById('editOcrStatusText');
-            const suggestions = document.getElementById('editOcrSuggestions');
-
-            if (ocrBox) ocrBox.style.display = 'flex';
-            if (spinner) spinner.style.display = 'inline-block';
-            if (statusText) statusText.textContent = 'Otimizando e preparando leitura inteligente...';
-            if (suggestions) suggestions.style.display = 'none';
-
-            try {
-                const prepared = await prepareReceiptForOcr(file);
-                editSelectedReceiptBlob = prepared.blob;
-                editRemoveExistingReceipt = false;
-
-                const optKb = Math.round(prepared.blob.size / 1024);
-                const reduction = Math.max(0, Math.round((1 - prepared.blob.size / file.size) * 100));
-                const badge = reduction > 5 ? `${optKb} KB (-${reduction}% compactado)` : `${optKb} KB otimizado`;
-
-                const cardEl = document.getElementById('editReceiptCard');
-                const badgeEl = document.getElementById('editReceiptBadge');
-                const uploadTextEl = document.getElementById('editReceiptUploadText');
-                const titleEl = document.getElementById('editReceiptTitle');
-                const subEl = document.getElementById('editReceiptSub');
-
-                if (cardEl) cardEl.style.display = 'flex';
-                if (badgeEl) {
-                    badgeEl.className = 'receipt-status-pill new';
-                    badgeEl.textContent = 'Novo Arquivo';
-                }
-                if (uploadTextEl) uploadTextEl.textContent = 'Trocar Comprovante';
-                if (titleEl) titleEl.textContent = file.name;
-                if (subEl) subEl.textContent = badge;
-
-                if (statusText) statusText.textContent = 'Lendo dados do comprovante com IA/OCR...';
-
-                const ocrTimeout = new Promise((_, reject) => setTimeout(() => reject(new Error('A leitura automática demorou. Você pode preencher os campos diretamente.')), 35000));
-                const rawText = await Promise.race([recognizeReceiptCanvases(prepared.canvases), ocrTimeout]);
-
-                if (rawText && normalizeReceiptText(rawText).replace(/[^a-z0-9]/g, '').length >= 3) {
-                    const extracted = extractReceiptData(rawText);
-                    editExtractedOcrData = extracted;
-
-                    let hasAnySuggestion = false;
-                    const pillDate = document.getElementById('editOcrPillDate');
-                    const pillValue = document.getElementById('editOcrPillValue');
-                    const pillDesc = document.getElementById('editOcrPillDesc');
-                    const pillCat = document.getElementById('editOcrPillCat');
-
-                    if (extracted.data && pillDate) {
-                        pillDate.querySelector('b').textContent = formatDateForDisplay(extracted.data);
-                        pillDate.style.display = 'inline-flex';
-                        hasAnySuggestion = true;
-                    } else if (pillDate) {
-                        pillDate.style.display = 'none';
-                    }
-
-                    if (extracted.valor > 0 && pillValue) {
-                        pillValue.querySelector('b').textContent = formatCurrency(extracted.valor);
-                        pillValue.style.display = 'inline-flex';
-                        hasAnySuggestion = true;
-                    } else if (pillValue) {
-                        pillValue.style.display = 'none';
-                    }
-
-                    if (extracted.description && pillDesc) {
-                        pillDesc.querySelector('b').textContent = extracted.description;
-                        pillDesc.style.display = 'inline-flex';
-                        hasAnySuggestion = true;
-                    } else if (pillDesc) {
-                        pillDesc.style.display = 'none';
-                    }
-
-                    if (extracted.category && pillCat) {
-                        pillCat.querySelector('b').textContent = getCategoryLabel(extracted.category);
-                        pillCat.style.display = 'inline-flex';
-                        hasAnySuggestion = true;
-                    } else if (pillCat) {
-                        pillCat.style.display = 'none';
-                    }
-
-                    if (hasAnySuggestion && suggestions) {
-                        suggestions.style.display = 'flex';
-                        if (spinner) spinner.style.display = 'none';
-                        if (statusText) statusText.textContent = 'Leitura concluída! Confira os dados sugeridos:';
-                    } else {
-                        if (spinner) spinner.style.display = 'none';
-                        if (statusText) statusText.textContent = 'Comprovante anexado! (Nenhum dado financeiro evidente lido)';
-                    }
-                } else {
-                    if (spinner) spinner.style.display = 'none';
-                    if (statusText) statusText.textContent = 'Comprovante anexado com sucesso!';
-                }
-            } catch (err) {
-                if (spinner) spinner.style.display = 'none';
-                if (statusText) statusText.textContent = 'Comprovante pronto para ser salvo!';
-            }
-        }
-        window.handleEditReceiptFileSelected = handleEditReceiptFileSelected;
-
-        function applyEditReceiptOcrToForm() {
-            if (!editExtractedOcrData) return;
-            const ed = editExtractedOcrData;
-            if (ed.data) {
-                const dateEl = document.getElementById('editTransactionDate');
-                if (dateEl) dateEl.value = ed.data;
-            }
-            if (ed.valor > 0) {
-                const valEl = document.getElementById('editTransactionValue');
-                if (valEl) valEl.value = ed.valor;
-            }
-            if (ed.description) {
-                const descEl = document.getElementById('editTransactionDescription');
-                if (descEl) descEl.value = ed.description;
-            }
-            if (ed.category) {
-                const catEl = document.getElementById('editTransactionCategory');
-                if (catEl) catEl.value = ed.category;
-            }
-            if (ed.type) {
-                const typeEl = document.getElementById('editTransactionType');
-                if (typeEl) typeEl.value = ed.type;
-            }
-            showNotification('Dados do comprovante preenchidos!', 'success');
-            const ocrBox = document.getElementById('editReceiptOcrBox');
-            if (ocrBox) ocrBox.style.display = 'none';
-        }
-        window.applyEditReceiptOcrToForm = applyEditReceiptOcrToForm;
-
-        function viewEditingTransactionReceipt() {
-            if (editSelectedReceiptBlob) {
-                const isPdf = editSelectedReceiptBlob.type === 'application/pdf';
-                const contentEl = document.getElementById('receiptViewerContent');
-                const downloadBtn = document.getElementById('receiptViewerDownloadBtn');
-                const titleEl = document.getElementById('receiptViewerTitle');
-                const subtitleEl = document.getElementById('receiptViewerSubtitle');
-
-                if (titleEl) titleEl.textContent = t('viewReceiptModalTitle');
-                if (subtitleEl) subtitleEl.textContent = 'Pré-visualização do Comprovante Selecionado';
-
-                if (editSelectedReceiptPreviewUrl) {
-                    try { URL.revokeObjectURL(editSelectedReceiptPreviewUrl); } catch (e) { }
-                }
-                editSelectedReceiptPreviewUrl = URL.createObjectURL(editSelectedReceiptBlob);
-                currentReceiptViewerData = editSelectedReceiptPreviewUrl;
-                currentReceiptViewerIsPdf = isPdf;
-                currentReceiptViewerTx = { description: 'Comprovante', date: new Date().toISOString() };
-
-                if (isPdf) {
-                    contentEl.innerHTML = `<iframe src="${editSelectedReceiptPreviewUrl}" title="Comprovante PDF" style="width:100%; height:55vh; border:none; border-radius:10px; background:#ffffff;"></iframe>`;
-                } else {
-                    contentEl.innerHTML = `<img src="${editSelectedReceiptPreviewUrl}" alt="Comprovante" style="max-width:100%; max-height:58vh; object-fit:contain; border-radius:10px; box-shadow:0 6px 22px rgba(0,0,0,0.35); display:block; margin:0 auto;">`;
-                }
-                if (downloadBtn) downloadBtn.style.display = 'inline-flex';
-                showModal('receiptViewerModal');
-                return;
-            }
-
-            if (editingTransactionId) {
-                viewTransactionReceipt(editingTransactionId);
-            }
-        }
-        window.viewEditingTransactionReceipt = viewEditingTransactionReceipt;
-
-        function removeEditingTransactionReceipt() {
-            editRemoveExistingReceipt = true;
-            editSelectedReceiptBlob = null;
-            if (editSelectedReceiptPreviewUrl) {
-                try { URL.revokeObjectURL(editSelectedReceiptPreviewUrl); } catch (e) { }
-            }
-            editSelectedReceiptPreviewUrl = null;
-            editExtractedOcrData = null;
-
-            const cardEl = document.getElementById('editReceiptCard');
-            if (cardEl) cardEl.style.display = 'none';
-
-            const ocrBox = document.getElementById('editReceiptOcrBox');
-            if (ocrBox) ocrBox.style.display = 'none';
-
-            const badgeEl = document.getElementById('editReceiptBadge');
-            if (badgeEl) {
-                badgeEl.className = 'receipt-status-pill removed';
-                badgeEl.textContent = 'Será removido';
-            }
-
-            const uploadTextEl = document.getElementById('editReceiptUploadText');
-            if (uploadTextEl) uploadTextEl.textContent = 'Anexar Novo Comprovante';
-
-            const fileInput = document.getElementById('editReceiptInput');
-            if (fileInput) fileInput.value = '';
-
-            showNotification('Comprovante marcado para remoção. Clique em Salvar para confirmar.', 'info');
-        }
-        window.removeEditingTransactionReceipt = removeEditingTransactionReceipt;
-
-        async function saveTransactionEdit() {
+        function saveTransactionEdit() {
             const d = document.getElementById('editTransactionDate').value;
             const typeSelect = document.getElementById('editTransactionType');
-            const type = typeSelect ? typeSelect.value : 'expense';
+            const type = typeSelect ? typeSelect.value : 'expense'; // Default fallback
             const v = parseFloat(document.getElementById('editTransactionValue').value);
             const c = document.getElementById('editTransactionCategory').value;
             const desc = document.getElementById('editTransactionDescription').value.trim();
@@ -1174,68 +848,23 @@
                 return;
             }
 
-            const targetTxId = editingTransactionId;
-            const fileToUpload = editSelectedReceiptBlob;
-            const shouldRemove = editRemoveExistingReceipt;
-
-            const updatePayload = {
+            // Note: We don't update 'time' here to preserve the original creation time
+            db.collection('transactions').doc(editingTransactionId).update({
                 type: type,
                 date: d,
                 value: v,
                 category: c,
                 description: desc,
                 favorite: !!f,
-                userId: currentUser.uid
-            };
-
-            if (shouldRemove) {
-                updatePayload.receiptBase64 = firebase.firestore.FieldValue.delete();
-                updatePayload.receiptPath = firebase.firestore.FieldValue.delete();
-            }
-
-            let base64Attachment = null;
-            let directStorageNeeded = false;
-            let extension = 'jpg';
-
-            if (fileToUpload) {
-                extension = fileToUpload.type === 'application/pdf' ? 'pdf' : 'jpg';
-                if (fileToUpload.size <= 600 * 1024) {
-                    base64Attachment = await blobToBase64(fileToUpload);
-                    updatePayload.receiptBase64 = base64Attachment;
-                    updatePayload.receiptPath = firebase.firestore.FieldValue.delete();
-                } else {
-                    directStorageNeeded = true;
-                }
-            }
-
-            try {
-                if (directStorageNeeded && fileToUpload) {
-                    try {
-                        const uploadedRef = storage.ref(`receipts/${currentUser.uid}/${targetTxId}.${extension}`);
-                        await uploadedRef.put(fileToUpload, { contentType: fileToUpload.type });
-                        updatePayload.receiptPath = uploadedRef.fullPath;
-                        updatePayload.receiptBase64 = firebase.firestore.FieldValue.delete();
-                    } catch (stErr) {
-                        try {
-                            const fallbackB64 = await blobToBase64(fileToUpload);
-                            updatePayload.receiptBase64 = fallbackB64;
-                            updatePayload.receiptPath = firebase.firestore.FieldValue.delete();
-                        } catch (e2) {}
-                    }
-                }
-
-                await db.collection('transactions').doc(targetTxId).update(updatePayload);
-
+                userId: currentUser.uid // Ensure userId is preserved/set
+            }).then(() => {
                 showNotification(t('transactionEdited'), 'success');
                 closeModal('editTransactionModal');
-                if (typeof performSearch === 'function') performSearch();
-                try { updateAllViews(); } catch (e) { }
-            } catch (error) {
+            }).catch(error => {
                 console.error("Erro ao editar: ", error);
                 showNotification("Erro ao atualizar transação", "error");
-            }
+            });
         }
-        window.saveTransactionEdit = saveTransactionEdit;
         function deleteTransaction(id) {
             if (confirm(t('moveToTrash'))) {
                 // Instead of moving to a separate array, we mark as deleted in Firestore
@@ -1975,18 +1604,6 @@
 
         let isHeaderBalanceVisible = localStorage.getItem('headerBalanceVisible') !== 'false';
 
-        function triggerWealthBurst(el) {
-            const icon = el || document.querySelector('.header-icon-circle');
-            if (!icon) return;
-            icon.classList.remove('bursting');
-            void icon.offsetWidth;
-            icon.classList.add('bursting');
-            setTimeout(() => {
-                if (icon) icon.classList.remove('bursting');
-            }, 700);
-        }
-        window.triggerWealthBurst = triggerWealthBurst;
-
         function toggleHeaderBalanceVisibility() {
             isHeaderBalanceVisible = !isHeaderBalanceVisible;
             localStorage.setItem('headerBalanceVisible', isHeaderBalanceVisible);
@@ -2262,82 +1879,32 @@
                 const d = imgData.data;
                 const len = d.length;
 
-                // 1. Amostragem de luminância para histograma e detecção inteligente de modo escuro
-                const hist = new Uint32Array(256);
+                // 1. Detectar se é captura em Modo Escuro (fundo escuro e letras claras em apps de banco)
                 let sumLum = 0;
                 let sampleCount = 0;
                 for (let i = 0; i < len; i += 16) {
-                    const lum = Math.round(0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]);
-                    hist[lum]++;
-                    sumLum += lum;
+                    sumLum += (0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]);
                     sampleCount++;
                 }
-
                 const avgLum = sumLum / Math.max(1, sampleCount);
-                // Modo escuro comum em Nubank, Inter, PicPay, C6 Bank (fundo escuro com letras claras)
-                const isDarkMode = avgLum < 118;
+                const isDarkMode = avgLum < 115;
 
-                // 2. Cálculo dos percentis para expansão dinâmica de contraste (Auto-Levels)
-                const p5Limit = Math.round(sampleCount * 0.05);
-                const p95Limit = Math.round(sampleCount * 0.95);
-                let cumulative = 0;
-                let minLum = 0;
-                let maxLum = 255;
-                for (let i = 0; i < 256; i++) {
-                    cumulative += hist[i];
-                    if (minLum === 0 && cumulative >= p5Limit) minLum = i;
-                    if (cumulative >= p95Limit) { maxLum = i; break; }
-                }
-                const lumRange = Math.max(30, maxLum - minLum);
-
-                // 3. Normalização de contraste com curva adaptativa (Otsu-inspired S-Curve)
+                // 2. Passagem em pixels: escala de cinza, inversão de modo escuro e curva de contraste
                 for (let i = 0; i < len; i += 4) {
                     let lum = 0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2];
-
                     if (isDarkMode) {
-                        lum = 255 - lum; // Inverte para texto preto sobre fundo branco (ideal para redes neurais do Tesseract)
+                        lum = 255 - lum; // Inverte fundo escuro para texto preto sobre branco (ideal para Tesseract)
                     }
-
-                    // Expansão linear do alcance dinâmico
-                    let normLum = ((lum - minLum) / lumRange) * 255;
-                    normLum = Math.max(0, Math.min(255, normLum));
-
-                    // Realce de texto: escurece caracteres impressos e clareia fundo de papel/recibo
-                    if (normLum < 120) {
-                        normLum = Math.max(0, normLum * 0.65 - 15);
-                    } else if (normLum > 170) {
-                        normLum = Math.min(255, normLum * 1.18 + 18);
+                    // Curva de contraste dinâmico: aprofunda texto escuro e limpa fundo
+                    if (lum < 135) {
+                        lum = Math.max(0, lum * 0.72 - 12);
+                    } else if (lum > 165) {
+                        lum = Math.min(255, lum * 1.15 + 15);
                     }
-
-                    d[i] = normLum;
-                    d[i + 1] = normLum;
-                    d[i + 2] = normLum;
+                    d[i] = lum;
+                    d[i + 1] = lum;
+                    d[i + 2] = lum;
                 }
-
-                // 4. Filtro de Nitidez Rápido (Unsharp Mask 3x3) para destacar pontuações, vírgulas e centavos
-                if (width > 200 && height > 200) {
-                    const copy = new Uint8ClampedArray(d);
-                    const rowStride = width * 4;
-                    for (let y = 1; y < height - 1; y += 2) {
-                        const row = y * rowStride;
-                        for (let x = 1; x < width - 1; x += 2) {
-                            const idx = row + (x * 4);
-                            const center = copy[idx];
-                            const up = copy[idx - rowStride];
-                            const down = copy[idx + rowStride];
-                            const left = copy[idx - 4];
-                            const right = copy[idx + 4];
-                            // Kernel de nitidez suave: 1.6 * center - (up + down + left + right) * 0.15
-                            let sharp = center * 1.6 - (up + down + left + right) * 0.15;
-                            if (sharp < 0) sharp = 0;
-                            else if (sharp > 255) sharp = 255;
-                            d[idx] = sharp;
-                            d[idx + 1] = sharp;
-                            d[idx + 2] = sharp;
-                        }
-                    }
-                }
-
                 ctx.putImageData(imgData, 0, 0);
             } catch (e) {
                 console.warn('Otimização de pixels OCR ignorada:', e);
@@ -2345,8 +1912,8 @@
         }
 
         function preprocessReceiptCanvas(source, width, height) {
-            const maxDimension = 1600;
-            const scale = Math.min(1.8, maxDimension / Math.max(width, height));
+            const maxDimension = 1400;
+            const scale = Math.min(1.6, maxDimension / Math.max(width, height));
             const canvas = document.createElement('canvas');
             canvas.width = Math.max(1, Math.round(width * scale));
             canvas.height = Math.max(1, Math.round(height * scale));
@@ -2369,10 +1936,12 @@
             canvas.width = targetWidth;
             canvas.height = targetHeight;
             const ctx = canvas.getContext('2d', { alpha: false });
+            // Preencher com branco para evitar fundo preto em PNGs/screenshots transparentes
             ctx.fillStyle = '#ffffff';
             ctx.fillRect(0, 0, targetWidth, targetHeight);
             ctx.drawImage(source, 0, 0, targetWidth, targetHeight);
 
+            // Compressão direta JPEG ultra-rápida (gera ~45-75 KB instantaneamente em menos de 20ms)
             let quality = 0.68;
             let blob = await new Promise(resolve => canvas.toBlob(resolve, 'image/jpeg', quality));
             if (blob && blob.size > 160 * 1024) {
@@ -2385,13 +1954,9 @@
         }
 
         function createOcrCanvas(cleanCanvas) {
-            // Resolução de até 1800px para garantir que caracteres pequenos, vírgulas e centavos fiquem perfeitamente nítidos
-            const maxOcrDim = 1800;
-            const minOcrDim = 1200;
-            let scale = Math.min(2.0, maxOcrDim / Math.max(cleanCanvas.width, cleanCanvas.height));
-            if (Math.max(cleanCanvas.width, cleanCanvas.height) < minOcrDim) {
-                scale = minOcrDim / Math.max(cleanCanvas.width, cleanCanvas.height);
-            }
+            // 1300px proporciona resolução nítida para caracteres pequenos e pontuações de datas
+            const maxOcrDim = 1300;
+            const scale = Math.min(1.5, maxOcrDim / Math.max(cleanCanvas.width, cleanCanvas.height));
             const ocrCanvas = document.createElement('canvas');
             ocrCanvas.width = Math.max(1, Math.round(cleanCanvas.width * scale));
             ocrCanvas.height = Math.max(1, Math.round(cleanCanvas.height * scale));
@@ -2430,7 +1995,7 @@
                 for (let pageNumber = 1; pageNumber <= pdf.numPages; pageNumber += 1) {
                     const page = await pdf.getPage(pageNumber);
                     const initialViewport = page.getViewport({ scale: 1 });
-                    const scale = Math.min(2.0, 1900 / Math.max(initialViewport.width, initialViewport.height));
+                    const scale = Math.min(1.8, 1800 / Math.max(initialViewport.width, initialViewport.height));
                     const viewport = page.getViewport({ scale });
                     const rendered = document.createElement('canvas');
                     rendered.width = Math.ceil(viewport.width);
@@ -2469,7 +2034,7 @@
             if (!window.Tesseract) throw new Error('O mecanismo OCR não carregou. Verifique sua conexão e tente novamente.');
             if (!receiptOcrWorkerPromise) {
                 receiptOcrWorkerPromise = Tesseract.createWorker('por', 1, {
-                    langPath: 'https://tessdata.projectnaptha.com/4.0.0_fast',
+                    langPath: 'https://tessdata.projectnaptha.com/4.0.0',
                     logger: message => {
                         if (receiptOcrProgressHandler) receiptOcrProgressHandler(message);
                     }
@@ -2477,10 +2042,7 @@
                     await worker.setParameters({
                         tessedit_pageseg_mode: '3',
                         preserve_interword_spaces: '1',
-                        user_defined_dpi: '300',
-                        tessjs_create_hocr: '0',
-                        tessjs_create_tsv: '0',
-                        tessjs_create_box: '0'
+                        user_defined_dpi: '300'
                     });
                     return worker;
                 }).catch(error => {
@@ -2495,38 +2057,21 @@
             let activePage = 0;
             const pageCount = canvases.length;
             receiptOcrProgressHandler = message => {
-                const phase = message.status === 'recognizing text' ? 'Reconhecendo dados do comprovante' : 'Carregando motor OCR inteligente';
+                const phase = message.status === 'recognizing text' ? 'Reconhecendo texto' : 'Carregando OCR em português';
                 const localProgress = Number(message.progress) || 0;
                 setReceiptOcrProgress(10 + ((activePage + localProgress) / pageCount) * 85, phase);
             };
             try {
-                setReceiptOcrProgress(3, 'Carregando motor OCR inteligente…');
+                setReceiptOcrProgress(3, 'Carregando OCR em português…');
                 const worker = await getReceiptOcrWorker();
                 const textPages = [];
                 for (activePage = 0; activePage < pageCount; activePage += 1) {
                     document.getElementById('receiptProgressLabel').textContent = pageCount > 1
                         ? `Lendo página ${activePage + 1} de ${pageCount}…`
-                        : 'Lendo comprovante com precisão máxima…';
-                    
+                        : 'Lendo comprovante…';
                     const result = await worker.recognize(canvases[activePage]);
-                    let pageText = result.data.text || '';
-
-                    // Fallback adaptativo: se o texto lido com PSM 3 for muito esparso, roda passagem complementar com PSM 11 (Sparse Text)
-                    if (pageText.replace(/\s+/g, '').length < 12) {
-                        try {
-                            await worker.setParameters({ tessedit_pageseg_mode: '11' });
-                            const retryResult = await worker.recognize(canvases[activePage]);
-                            if (retryResult && retryResult.data.text && retryResult.data.text.length > pageText.length) {
-                                pageText = retryResult.data.text;
-                            }
-                            await worker.setParameters({ tessedit_pageseg_mode: '3' });
-                        } catch (e) {
-                            console.warn('Fallback PSM 11 ignorado:', e);
-                        }
-                    }
-
-                    textPages.push(pageText);
-                    setReceiptOcrProgress(10 + ((activePage + 1) / pageCount) * 85, 'Extraindo campos com precisão…');
+                    textPages.push(result.data.text || '');
+                    setReceiptOcrProgress(10 + ((activePage + 1) / pageCount) * 85, 'Extraindo dados do texto…');
                 }
                 return textPages.join('\n');
             } finally {
@@ -2538,152 +2083,64 @@
             return String(text || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/\u00a0/g, ' ');
         }
 
-        function sanitizeOcrAmountStr(str) {
-            return String(str || '')
-                .replace(/[oO]/g, '0')
-                .replace(/[lI|!]/g, '1')
-                .replace(/[sS]/g, '5')
-                .replace(/[bB]/g, '8');
-        }
-
         function parseBrazilianAmount(value) {
-            if (!value) return null;
-            let normalized = sanitizeOcrAmountStr(value).replace(/[^\d.,]/g, '');
-            if (normalized.includes(',') && normalized.includes('.')) {
-                if (normalized.lastIndexOf(',') > normalized.lastIndexOf('.')) {
-                    normalized = normalized.replace(/\./g, '').replace(',', '.');
-                } else {
-                    normalized = normalized.replace(/,/g, '');
-                }
-            } else if (normalized.includes(',')) {
-                normalized = normalized.replace(',', '.');
-            } else if ((normalized.match(/\./g) || []).length > 1 || /\.\d{3}$/.test(normalized)) {
-                normalized = normalized.replace(/\./g, '');
-            }
+            let normalized = value.replace(/[^\d.,]/g, '');
+            if (normalized.includes(',') && normalized.includes('.')) normalized = normalized.replace(/\./g, '').replace(',', '.');
+            else if (normalized.includes(',')) normalized = normalized.replace(',', '.');
+            else if ((normalized.match(/\./g) || []).length > 1 || /\.\d{3}$/.test(normalized)) normalized = normalized.replace(/\./g, '');
             const parsed = Number(normalized);
-            return (Number.isFinite(parsed) && parsed > 0) ? Math.round(parsed * 100) / 100 : null;
+            return Number.isFinite(parsed) ? Math.round(parsed * 100) / 100 : null;
         }
 
         function extractReceiptAmount(text) {
-            const rawLines = text.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+            const lines = text.split(/\r?\n/).map(line => line.trim()).filter(Boolean);
+            const expression = /(?:R\s?\$\s*)?((?:\d{1,3}(?:\.\d{3})+|\d+)(?:,\d{2}|\.\d{2})?)/gi;
             const candidates = [];
-
-            // Padrão 1: Valores com R$, R $, RS, BRL, $, etc. (inclusive ruídos de OCR)
-            const currencyPattern = /(?:(?:R\s?\$|RS|BRL|\$)\s*)([0-9oOlIsSbB.,]{1,14})/gi;
-            // Padrão 2: Valores decimais isolados (ex: 150,00 ou 1.250,50)
-            const decimalPattern = /(?:^|[^\d.,])([0-9oOlIsSbB]{1,3}(?:[.,][0-9oOlIsSbB]{3})*[.,][0-9oOlIsSbB]{2})(?:$|[^\d.,])/g;
-
-            rawLines.forEach((line, lineIndex) => {
-                const norm = normalizeReceiptText(line);
-                const prevNorm = lineIndex > 0 ? normalizeReceiptText(rawLines[lineIndex - 1]) : '';
-                const nextNorm = lineIndex < rawLines.length - 1 ? normalizeReceiptText(rawLines[lineIndex + 1]) : '';
-
-                // Contextos fortes de exclusão
-                const isExcludedLine = /\b(cpf|cnpj|autenticacao|protocolo|documento|agencia|conta|identificador|codigo|saldo|limite)\b/.test(norm);
-                const isBalanceLine = /\b(saldo|limite|disponivel)\b/.test(norm) || /\b(saldo|limite|disponivel)\b/.test(prevNorm);
-
-                // 1. Busca por padrões com símbolo de moeda
-                let match;
-                currencyPattern.lastIndex = 0;
-                while ((match = currencyPattern.exec(line)) !== null) {
-                    const rawVal = match[1];
-                    const amount = parseBrazilianAmount(rawVal);
-                    if (!amount || amount <= 0 || amount > 500000) continue;
-
-                    let score = 25; // Base alta por conter símbolo explícito de moeda
-
-                    // Se a linha anterior indicar valor da transação
-                    if (/\b(valor|valor\s+pago|valor\s+do\s+pix|transferiu|transferencia|recebeu|recebido|enviou|total|liquido|pago\s+em|total\s+a\s+pagar)\b/.test(prevNorm)) {
-                        score += 35;
-                    }
-
-                    // Se a própria linha tiver termos indicativos
-                    if (/\b(valor|pago|transferencia|pix|total|compra|recebido|enviado)\b/.test(norm)) {
-                        score += 20;
-                    }
-
-                    // Se a linha for EXCLUSIVAMENTE o valor (linha isolada "R$ 150,00" típica de Nubank, C6, Inter, etc.)
-                    if (/^(?:R\s?\$|RS|BRL|\$)\s*[0-9oOlIsSbB.,\s]+$/.test(line.trim())) {
-                        score += 18;
-                    }
-
-                    // Penalidades rigorosas para falsos positivos
-                    if (isBalanceLine) score -= 45;
-                    if (isExcludedLine) score -= 30;
-                    if (/\b(taxa|tarifa|troco|desconto|abatimento|iof)\b/.test(norm) || /\b(taxa|tarifa)\b/.test(prevNorm)) score -= 25;
-
-                    candidates.push({ amount, score, lineIndex, raw: match[0] });
-                }
-
-                // 2. Busca por números decimais (com centavos, mesmo sem R$)
-                decimalPattern.lastIndex = 0;
-                while ((match = decimalPattern.exec(line)) !== null) {
-                    const rawVal = match[1];
-                    // Evita datas como 17.10
-                    if (/\b\d{1,2}[/.-]\d{1,2}\b/.test(rawVal) && !rawVal.includes(',')) continue;
-
-                    const amount = parseBrazilianAmount(rawVal);
-                    if (!amount || amount <= 0 || amount > 500000) continue;
-
-                    let score = 10;
-
-                    // Se a linha ou anterior tiver menção a valor ou pagamento
-                    if (/\b(valor|total|pago|recebido|transferencia|pix|debito|liquidado)\b/.test(norm)) {
-                        score += 22;
-                    }
-                    if (/\b(valor|total|pago|recebido|transferiu|enviou)\b/.test(prevNorm)) {
-                        score += 25;
-                    }
-
-                    if (isBalanceLine) score -= 45;
-                    if (isExcludedLine) score -= 30;
-                    if (/\b(taxa|tarifa|troco|desconto|iof)\b/.test(norm)) score -= 25;
-
-                    if (!candidates.some(c => c.lineIndex === lineIndex && c.amount === amount)) {
-                        candidates.push({ amount, score, lineIndex, raw: match[1] });
-                    }
+            lines.forEach((line, lineIndex) => {
+                const normalizedLine = normalizeReceiptText(line);
+                const excluded = /\b(cpf|cnpj|documento|autenticacao|autentica[cç][aã]o|protocolo|identificador|codigo|agencia|conta|saldo|limite|horario|hora)\b/.test(normalizedLine);
+                expression.lastIndex = 0;
+                for (const match of line.matchAll(expression)) {
+                    const raw = match[1];
+                    const hasCurrency = /R\s?\$/i.test(match[0]);
+                    const hasCents = /[,.]\d{2}$/.test(raw);
+                    if (excluded || (!hasCurrency && !hasCents)) continue;
+                    const amount = parseBrazilianAmount(raw);
+                    if (!amount || amount <= 0) continue;
+                    let score = hasCurrency ? 6 : 2;
+                    if (/\b(valor|total|pago|pagamento|recebido|recebimento|transferencia|pix|compra)\b/.test(normalizedLine)) score += 3;
+                    if (/\b(taxa|tarifa|troco|desconto)\b/.test(normalizedLine)) score -= 2;
+                    candidates.push({ amount, score, lineIndex });
                 }
             });
-
             if (!candidates.length) return { value: null, confidence: 'baixa' };
-
-            candidates.sort((a, b) => b.score - a.score || a.lineIndex - b.lineIndex);
+            candidates.sort((a, b) => b.score - a.score || b.lineIndex - a.lineIndex);
             const top = candidates[0];
             const ambiguous = candidates.filter(candidate => candidate.score === top.score && candidate.amount !== top.amount).length > 0;
-            return { value: top.amount, confidence: ambiguous ? 'baixa' : top.score >= 35 ? 'alta' : 'media', raw: top };
+            return { value: top.amount, confidence: ambiguous ? 'baixa' : top.score >= 6 ? 'alta' : 'media' };
         }
 
         const RECEIPT_MONTHS = {
-            // Português (completos, abreviações de 3 e 4 letras, ruídos de OCR comuns)
-            'jan': 1, 'janeiro': 1,
-            'fev': 2, 'fevereiro': 2,
-            'mar': 3, 'marco': 3, 'março': 3,
-            'abr': 4, 'abril': 4,
-            'mai': 5, 'maio': 5,
-            'jun': 6, 'junho': 6,
-            'jul': 7, 'julho': 7,
-            'ago': 8, 'agosto': 8,
-            'set': 9, 'setembro': 9, 'sete': 9,
-            'out': 10, 'outubro': 10, '0ut': 10, '0utubro': 10,
-            'nov': 11, 'novembro': 11,
-            'dez': 12, 'dezembro': 12,
+            // Português
+            'jan': 1, 'janeiro': 1, 'fev': 2, 'fevereiro': 2, 'mar': 3, 'marco': 3, 'março': 3,
+            'abr': 4, 'abril': 4, 'mai': 5, 'maio': 5, 'jun': 6, 'junho': 6,
+            'jul': 7, 'julho': 7, 'ago': 8, 'agosto': 8, 'set': 9, 'setembro': 9,
+            'out': 10, 'outubro': 10, 'nov': 11, 'novembro': 11, 'dez': 12, 'dezembro': 12,
             // Espanhol
             'ene': 1, 'enero': 1, 'feb': 2, 'febrero': 2, 'marzo': 3, 'may': 5, 'mayo': 5,
-            'sep': 9, 'septiembre': 9, 'setiembre': 9, 'oct': 10, 'octubre': 10, '0ct': 10, '0ctubre': 10,
-            'noviembre': 11, 'dic': 12, 'diciembre': 12,
+            'sep': 9, 'septiembre': 9, 'setiembre': 9, 'oct': 10, 'octubre': 10, 'noviembre': 11,
+            'dic': 12, 'diciembre': 12,
             // Inglês
             'january': 1, 'february': 2, 'march': 3, 'april': 4, 'june': 6,
-            'july': 7, 'august': 8, 'aug': 8, 'september': 9, 'october': 10, '0ctober': 10,
-            'november': 11, 'december': 12, 'dec': 12
+            'july': 7, 'august': 8, 'september': 9, 'october': 10, 'november': 11, 'december': 12
         };
 
         function sanitizeOcrDateStr(str) {
             return String(str || '')
                 .replace(/[oO]/g, '0')
-                .replace(/[lI|!]/g, '1')
+                .replace(/[lI|]/g, '1')
                 .replace(/[sS]/g, '5')
-                .replace(/[bB]/g, '8')
-                .replace(/[zZ]/g, '2');
+                .replace(/[bB]/g, '8');
         }
 
         function parseReceiptDate(text) {
@@ -2691,93 +2148,53 @@
             const candidates = [];
             const now = new Date();
             const currentYear = now.getFullYear();
-            const currentMonth = now.getMonth() + 1;
 
             const monthKeys = Object.keys(RECEIPT_MONTHS).sort((a, b) => b.length - a.length).join('|');
-
-            // 1. Textual com ou sem ano: "17 de Out", "17 out", "17 de Outubro", "17-out", "17/out/26", "17 de Outubro de 2026"
-            const textualRegex = new RegExp(`\\b([0-9oOlIsSbB]{1,2})\\s*(?:de|[/.-])?\\s*(${monthKeys})\\.?\\s*(?:(?:de|[/.-])?\\s*([0-9oOlIsSbB]{2,4}))?\\b`, 'gi');
-
-            // 2. Mês textual invertido: "Out 17", "Outubro 17, 2026", "Out. 17"
-            const invertedTextualRegex = new RegExp(`\\b(${monthKeys})\\.?\\s*(?:de\\s+)?([0-9oOlIsSbB]{1,2})(?:\\s*(?:de|[/.,\\-])?\\s*([0-9oOlIsSbB]{2,4}))?\\b`, 'gi');
-
-            // 3. Formato ISO: "2026-10-17" ou "2026/10/17"
+            const textualRegex = new RegExp(`\\b(\\d{1,2})\\s*(?:de|[/.-])\\s*(${monthKeys})\\s*(?:de|[/.-])?\\s*(\\d{2,4})\\b`, 'gi');
+            const numericRegex = /\b(\d{1,2})[/.\-](\d{1,2})[/.\-](\d{2,4})\b/g;
+            const noisyRegex = /\b([0-9oOlIsSbB]{1,2})[/.\-]([0-9oOlIsSbB]{1,2})[/.\-]([0-9oOlIsSbB]{2,4})\b/g;
             const isoRegex = /\b(20\d{2})[/.\-](\d{1,2})[/.\-](\d{1,2})\b/g;
 
-            // 4. Numérico 3 partes: "17/10/2026", "17-10-2026", "17.10.26"
-            const numeric3Regex = /(?:^|[^\w/.\-])([0-9oOlIsSbB]{1,2})[/.\-]([0-9oOlIsSbB]{1,2})[/.\-]([0-9oOlIsSbB]{2,4})(?:$|[^\w/.\-])/g;
-
-            // 5. Numérico 2 partes: "17-10", "17/10", "17.10" (sem ano explícito)
-            const numeric2Regex = /(?:^|[^\w/.\-])([0-9oOlIsSbB]{1,2})[/.\-]([0-9oOlIsSbB]{1,2})(?:$|[^\w/.\-])/g;
-
-            function evaluateDate(rawDay, rawMonth, rawYear, lineText, lineIndex, formatBonus = 0) {
-                const day = Number(sanitizeOcrDateStr(rawDay));
-                const month = Number(rawMonth);
-                let year = currentYear;
-
-                if (rawYear) {
-                    let y = Number(sanitizeOcrDateStr(rawYear));
-                    if (y < 100) y += y < 80 ? 2000 : 1900;
-                    if (y < 2000 || y > 2040) return;
-                    year = y;
-                } else {
-                    // Sem ano: assume o ano atual; se o comprovante for do final do ano (Nov/Dez) e estivermos em Jan/Fev, infere ano anterior
-                    if (month > currentMonth + 2 && currentMonth <= 3) {
-                        year = currentYear - 1;
-                    }
-                }
-
+            function evaluateDate(day, month, rawYear, lineText, lineIndex, formatBonus = 0) {
+                let year = Number(rawYear);
+                if (year < 100) year += year < 80 ? 2000 : 1900;
+                if (year < 2000 || year > 2040) return;
                 if (month < 1 || month > 12 || day < 1 || day > 31) return;
 
                 const parsedDate = new Date(Date.UTC(year, month - 1, day));
                 if (parsedDate.getUTCFullYear() !== year || parsedDate.getUTCMonth() !== month - 1 || parsedDate.getUTCDate() !== day) return;
 
                 const normalizedLine = normalizeReceiptText(lineText);
-                const prevNorm = lineIndex > 0 ? normalizeReceiptText(lines[lineIndex - 1]) : '';
                 let score = 5 + formatBonus;
 
-                if (rawYear) score += 4;
-
-                // Bonificações contextuais fortes (data do pagamento/transação efetuada na mesma linha ou na anterior)
-                if (/\b(data\s+do\s+pagamento|data\s+da\s+transac|data\s+de\s+liquidac|data\s+do\s+debito|efetuado\s+em|realizado\s+em|pago\s+em|debito\s+em|transacao\s+realizada|transferido\s+em|liquidado\s+em|pagamento\s+realizado|quando)\b/.test(normalizedLine)) {
-                    score += 25;
-                } else if (/\b(data\s+do\s+pagamento|data\s+da\s+transac|data|quando|realizado\s+em|efetuado\s+em|pago\s+em|data\s+e\s+hora)\b/.test(prevNorm)) {
-                    score += 22;
-                } else if (/\b(data|data\s*\/hora|data\s*[:=]|transacao|pagamento|operacao|autenticacao|efetivacao|horario|as|as\s+\d{1,2}[:h])\b/.test(normalizedLine)) {
-                    score += 12;
-                }
-
-                if (/\b(pix|ted|doc|comprovante|recibo|cupom|banco|bradesco|itau|nubank|inter|santander|caixa|bb)\b/.test(normalizedLine)) {
-                    score += 4;
-                }
-
-                // Presença de horário na mesma linha (ex: "17/10 às 15:30" ou "17 de Out 14h")
-                if (/\b([01]?\d|2[0-3])[:hH][0-5]\d\b/.test(lineText)) {
+                // Bonificações contextuais fortes (data do pagamento/transação efetuada)
+                if (/\b(data\s+do\s+pagamento|data\s+da\s+transac|efetuado\s+em|realizado\s+em|pago\s+em|debito\s+em|transacao\s+realizada|transferido\s+em|liquidado\s+em|pagamento\s+realizado)\b/.test(normalizedLine)) {
+                    score += 18;
+                } else if (/\b(data|data\s*\/hora|transacao|pagamento|operacao|autenticacao|efetivacao|horario)\b/.test(normalizedLine)) {
                     score += 8;
                 }
 
-                // Se dia > 12 em formato numérico (garante sem ambiguidade que é o dia e não o mês)
-                if (day > 12) {
+                if (/\b(pix|ted|doc|comprovante|recibo|cupom)\b/.test(normalizedLine)) {
                     score += 4;
                 }
 
                 // Penalidade forte para termos que NÃO representam a data da transação (ex.: vencimento em boletos)
                 if (/\b(vencimento|vence\s+em|data\s+do\s+vencimento|validade|nascimento|emissao|venc)\b/.test(normalizedLine)) {
-                    score -= 22;
+                    score -= 18;
                 }
 
                 // Proximidade com ano atual
                 if (year === currentYear) {
                     score += 4;
                 } else if (Math.abs(year - currentYear) > 2) {
-                    score -= 10;
+                    score -= 8;
                 }
 
                 // Penalidade se a data for no futuro distante (> 30 dias de hoje)
                 const todayUtc = Date.UTC(now.getFullYear(), now.getMonth(), now.getDate());
                 const diffDays = (parsedDate.getTime() - todayUtc) / (1000 * 60 * 60 * 24);
                 if (diffDays > 30) {
-                    score -= 18;
+                    score -= 15;
                 }
 
                 const isoStr = `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
@@ -2785,57 +2202,36 @@
             }
 
             lines.forEach((line, index) => {
-                // 1. Textual: "17 de Out", "17 out", "17 de Outubro", "17/out/26", "17 de Out de 2026"
+                // 1. Textual: "17 de Outubro de 2026", "17 OUT 2026", "17/out/26"
                 textualRegex.lastIndex = 0;
                 let match;
                 while ((match = textualRegex.exec(line)) !== null) {
-                    const dStr = match[1];
+                    const d = Number(match[1]);
                     const mName = match[2].toLowerCase();
                     const m = RECEIPT_MONTHS[mName];
-                    const rawY = match[3] || null;
-                    if (m) evaluateDate(dStr, m, rawY, line, index, 14);
+                    if (m) evaluateDate(d, m, match[3], line, index, 10);
                 }
 
-                // 2. Mês invertido textual: "Out 17", "Outubro 17, 2026"
-                invertedTextualRegex.lastIndex = 0;
-                while ((match = invertedTextualRegex.exec(line)) !== null) {
-                    const mName = match[1].toLowerCase();
-                    const m = RECEIPT_MONTHS[mName];
-                    const dStr = match[2];
-                    const rawY = match[3] || null;
-                    if (m) evaluateDate(dStr, m, rawY, line, index, 12);
+                // 2. Numérico comum: "17/10/2026"
+                numericRegex.lastIndex = 0;
+                while ((match = numericRegex.exec(line)) !== null) {
+                    evaluateDate(Number(match[1]), Number(match[2]), match[3], line, index, 6);
                 }
 
                 // 3. ISO: "2026-10-17"
                 isoRegex.lastIndex = 0;
                 while ((match = isoRegex.exec(line)) !== null) {
-                    evaluateDate(match[3], Number(match[2]), match[1], line, index, 12);
+                    evaluateDate(Number(match[3]), Number(match[2]), match[1], line, index, 6);
                 }
 
-                // 4. Numérico 3 partes: "17/10/2026" ou "17-10-2026" ou "17.10.26"
-                numeric3Regex.lastIndex = 0;
-                while ((match = numeric3Regex.exec(line)) !== null) {
-                    const p1 = Number(sanitizeOcrDateStr(match[1]));
-                    const p2 = Number(sanitizeOcrDateStr(match[2]));
-                    const rawY = match[3];
-                    // Formato brasileiro padrão DD/MM/AAAA
-                    if (p1 >= 1 && p1 <= 31 && p2 >= 1 && p2 <= 12) {
-                        evaluateDate(p1, p2, rawY, line, index, 10);
-                    } else if (p1 >= 1 && p1 <= 12 && p2 > 12 && p2 <= 31) {
-                        // Formato internacional MM/DD/AAAA
-                        evaluateDate(p2, p1, rawY, line, index, 9);
-                    }
-                }
-
-                // 5. Numérico 2 partes: "17/10", "17-10", "17.10" (sem ano)
-                numeric2Regex.lastIndex = 0;
-                while ((match = numeric2Regex.exec(line)) !== null) {
-                    const p1 = Number(sanitizeOcrDateStr(match[1]));
-                    const p2 = Number(sanitizeOcrDateStr(match[2]));
-                    if (p1 >= 1 && p1 <= 31 && p2 >= 1 && p2 <= 12) {
-                        evaluateDate(p1, p2, null, line, index, 9);
-                    } else if (p1 >= 1 && p1 <= 12 && p2 > 12 && p2 <= 31) {
-                        evaluateDate(p2, p1, null, line, index, 8);
+                // 4. Noisy OCR (caracteres confusos: l7/1O/2026)
+                noisyRegex.lastIndex = 0;
+                while ((match = noisyRegex.exec(line)) !== null) {
+                    const cleanD = sanitizeOcrDateStr(match[1]);
+                    const cleanM = sanitizeOcrDateStr(match[2]);
+                    const cleanY = sanitizeOcrDateStr(match[3]);
+                    if (/^\d{1,2}$/.test(cleanD) && /^\d{1,2}$/.test(cleanM) && /^\d{2,4}$/.test(cleanY)) {
+                        evaluateDate(Number(cleanD), Number(cleanM), cleanY, line, index, 2);
                     }
                 }
             });
@@ -2846,36 +2242,33 @@
 
             candidates.sort((a, b) => b.score - a.score || a.lineIndex - b.lineIndex);
             const best = candidates[0];
-            const confidence = best.score >= 18 ? 'alta' : best.score >= 10 ? 'media' : 'baixa';
+            const confidence = best.score >= 12 ? 'alta' : best.score >= 6 ? 'media' : 'baixa';
             return { date: best.value, confidence, raw: best };
         }
 
         function parseReceiptTime(text) {
-            const timeRegex = /\b([01]?\d|2[0-3])[:hH]([0-5]\d)?(?::([0-5]\d))?\b/g;
+            const timeRegex = /\b([01]?\d|2[0-3])[:hH]([0-5]\d)(?::([0-5]\d))?\b/g;
             const lines = text.split(/\r?\n/);
             const candidates = [];
             lines.forEach((line, index) => {
                 const norm = normalizeReceiptText(line);
-                const prevNorm = index > 0 ? normalizeReceiptText(lines[index - 1]) : '';
                 let m;
                 timeRegex.lastIndex = 0;
                 while ((m = timeRegex.exec(line)) !== null) {
                     const h = String(m[1]).padStart(2, '0');
-                    const min = m[2] !== undefined ? String(m[2]).padStart(2, '0') : '00';
-                    let score = 5;
-                    if (/\b(horario|hora|as|transacao|pagamento|autenticacao|efetuado)\b/.test(norm)) score += 12;
-                    if (/\b(horario|hora|data\s+e\s+hora)\b/.test(prevNorm)) score += 15;
+                    const min = String(m[2]).padStart(2, '0');
+                    let score = 2;
+                    if (/\b(horario|hora|as|transacao|pagamento|autenticacao|efetuado)\b/.test(norm)) score += 6;
                     candidates.push({ time: `${h}:${min}`, score, index });
                 }
             });
-            if (!candidates.length) return null;
             candidates.sort((a, b) => b.score - a.score || a.index - b.index);
-            return candidates[0].time;
+            return candidates[0]?.time || null;
         }
 
         function detectReceiptType(text) {
             const norm = normalizeReceiptText(text);
-            if (/\b(pix recebido|transferencia recebida|credito em conta|deposito recebido|recebimento|voce recebeu|pagamento recebido|estorno recebido|devolucao recebida|reembolso|reembolsado|salario recebido)\b/.test(norm)) {
+            if (/\b(recebido|recebimento|pix recebido|transferencia recebida|credito em conta|remuneracao|salario|estorno recebido)\b/.test(norm)) {
                 return 'income';
             }
             return 'expense';
@@ -2883,120 +2276,43 @@
 
         function detectReceiptCategory(text, type) {
             const norm = normalizeReceiptText(text);
-
             if (type === 'income') {
-                if (/\b(salario|folha|remuneracao|ordenado|holerite|admissao|pro labore|adiantamento salarial)\b/.test(norm)) return 'salario';
-                if (/\b(freelance|servico prestado|honorario|bico|prestacao de servicos|autonomo)\b/.test(norm)) return 'freelance';
-                if (/\b(rendimento|dividendo|juros|investimento|tesouro|cdb|acoes|fii|lci|lca|cripto|b3)\b/.test(norm)) return 'investimentos';
+                if (/\b(salario|folha|remuneracao|ordenado|holerite)\b/.test(norm)) return 'salario';
+                if (/\b(freelance|servico prestado|honorario|bico)\b/.test(norm)) return 'freelance';
+                if (/\b(rendimento|dividendo|juros|investimento|tesouro|cdb|acoes)\b/.test(norm)) return 'investimentos';
                 return 'outros';
             }
-
-            // Despesas com mais de 150 comerciantes e termos brasileiros
-            if (/\b(supermercado|mercado|carrefour|pao de acucar|assai|atacad|extra|dia|atacadao|mercearia|hortifruti|sacolao|sonda|zaffari|sam's club|tenda|compre bem|quitanda)\b/.test(norm)) {
-                return 'mercado';
-            }
-            if (/\b(restaurante|lanchonete|padaria|ifood|uber eats|rappi|burg|lanches|mcdonald|burger king|habib|subway|pizza|pizzaria|bar|cafe|refeicao|chopp|choperia|cantina|outback|starbucks|marmita|acai|sorvete|churrascaria|pastel)\b/.test(norm)) {
-                return 'alimentacao';
-            }
-            if (/\b(posto|combustivel|gasolina|etanol|alcool|diesel|ipiranga|shell|petrobras|br distribuidora|abastec|ale combustiveis|graal|gnv)\b/.test(norm)) {
-                return 'combustivel';
-            }
-            if (/\b(uber|99|99app|99pop|taxi|corrida|pedagio|sem parar|veloe|conectcar|taggy|estacionamento|bilhete unico|metro|onibus|passagem aerea|latam|gol|azul|voe|embarque|rodoviaria)\b/.test(norm)) {
-                return 'transporte';
-            }
-            if (/\b(farmacia|drogaria|droga raia|drogasil|pague menos|ultrafarma|panvel|nissei|drogaria sao paulo|hospital|medico|medica|clinica|dentista|odont|laboratorio|exame|consulta|fleury|delboni|unimed|sulamerica|bradesco saude|remedio|medicamento)\b/.test(norm)) {
-                return 'saude';
-            }
-            if (/\b(aluguel|condominio|iptu|enel|copel|cemig|sabesp|sanepar|cpfl|energisa|comgas|energia eletrica|luz|agua|gas|internet|claro|vivo|tim|oi fibra|aluguel residencial)\b/.test(norm)) {
-                return 'moradia';
-            }
-            if (/\b(oficina|mecanic|auto pecas|pneu|pneus|balanceamento|alinhamento|troca de oleo|funilaria|revisao|autocenter|borracharia)\b/.test(norm)) {
-                return 'manutencao_veiculo';
-            }
-            if (/\b(escola|faculdade|universidade|curso|colegio|matricula|mensalidade|educacao|livraria|apostila|udemy|alura|hotmart|idiomas|ingles)\b/.test(norm)) {
-                return 'educacao';
-            }
-            if (/\b(cinema|teatro|show|netflix|spotify|disney|prime video|hbo|max|globoplay|steam|playstation|xbox|nintendo|jogos|viagem|hotel|hospedagem|airbnb|booking|parque|lazer|ingressos|sympla|eventim|ticketmaster|cinema|cinemark|cinepolis)\b/.test(norm)) {
-                return 'lazer';
-            }
-            if (/\b(mercado livre|shopee|amazon|shein|aliexpress|magalu|magazine luiza|americanas|casas bahia|loja|calcados|vestuario|roupa|renner|riachuelo|c&a|zara)\b/.test(norm)) {
-                return 'outros';
-            }
-
+            if (/\b(supermercado|mercado|carrefour|pao de acucar|assai|atacad|extra|dia|atacadao|mercearia|hortifruti|sacolao)\b/.test(norm)) return 'mercado';
+            if (/\b(restaurante|lanchonete|padaria|ifood|uber eats|burg|lanches|mcdonald|pizza|pizzaria|bar|cafe|refeicao|chopp|choperia|cantina)\b/.test(norm)) return 'alimentacao';
+            if (/\b(posto|combustivel|gasolina|etanol|alcool|diesel|ipiranga|shell|petrobras|br distribuidora|abastec)\b/.test(norm)) return 'combustivel';
+            if (/\b(uber|99|99app|99pop|taxi|corrida|pedagio|sem parar|veloe|estacionamento|bilhete unico|metro|onibus)\b/.test(norm)) return 'transporte';
+            if (/\b(farmacia|drogaria|droga raia|drogasil|pague menos|ultrafarma|hospital|medico|medica|clinica|dentista|odont|laboratorio|exame|consulta)\b/.test(norm)) return 'saude';
+            if (/\b(aluguel|condominio|iptu|enel|copel|cemig|sabesp|sanepar|energia eletrica|luz|agua|gas|internet|claro|vivo|tim)\b/.test(norm)) return 'moradia';
+            if (/\b(oficina|mecanic|auto pecas|pneu|pneus|balanceamento|alinhamento|troca de oleo|funilaria)\b/.test(norm)) return 'manutencao_veiculo';
+            if (/\b(escola|faculdade|universidade|curso|colegio|matricula|mensalidade|educacao|livraria|apostila)\b/.test(norm)) return 'educacao';
+            if (/\b(cinema|teatro|show|netflix|spotify|disney|prime video|steam|jogos|viagem|hotel|hospedagem|parque|lazer|ingressos)\b/.test(norm)) return 'lazer';
             return '';
         }
 
         function detectReceiptDescription(text) {
-            const rawLines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
-            const candidates = [];
-
-            function cleanName(raw) {
-                if (!raw) return '';
-                let cleaned = String(raw).trim();
-                cleaned = cleaned.replace(/^(para|favorecido|destinatario|beneficiario|nome|recebedor|pago a|estabelecimento)\s*[:=-]?\s*/i, '');
-                cleaned = cleaned.replace(/\s+(cpf|cnpj|instituicao|banco|chave|agencia|conta|valor|data).*$/i, '');
-                cleaned = cleaned.replace(/[:;,.]+$/, '').trim();
-                if (cleaned.length < 3 || cleaned.length > 55) return '';
-                const lower = normalizeReceiptText(cleaned);
-                if (/^(comprovante|pagamento|transferencia|pix|ted|doc|recibo|cupom|cartao|banco|itau|nubank|bradesco|santander|inter|caixa)$/.test(lower)) {
-                    return '';
-                }
-                return cleaned.split(/\s+/).map(word => {
-                    if (word.length <= 2 && /^(de|da|do|dos|das|e|em)$/i.test(word)) return word.toLowerCase();
-                    if (/^(ltda|sa|s\/a|me|epp|eireli)$/i.test(word)) return word.toUpperCase();
-                    return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
-                }).join(' ');
-            }
-
-            // 1. Linhas consecutivas: "Para" \n "JOÃO SILVA" ou "Destinatário" \n "EMPRESA X"
-            for (let i = 0; i < rawLines.length; i++) {
-                const line = rawLines[i];
-                const norm = normalizeReceiptText(line);
-
-                if (/^(para|favorecido|destinatario|beneficiario|quem recebeu|recebedor|dados do recebedor|dados de quem recebeu)\s*[:=-]?$/i.test(norm)) {
-                    if (i + 1 < rawLines.length) {
-                        const name = cleanName(rawLines[i + 1]);
-                        if (name) candidates.push({ name, score: 32, lineIndex: i + 1 });
-                    }
-                }
-
-                // Inline: "Favorecido: Drogaria SP"
-                const inlineMatch = line.match(/(?:para|favorecido|benefici[aá]rio|destinat[aá]rio|recebedor|nome do recebedor|nome do favorecido|pago a|estabelecimento|empresa|razao social)\s*[:=-]\s*([^\n\r,.;]{3,50})/i);
-                if (inlineMatch && inlineMatch[1]) {
-                    const name = cleanName(inlineMatch[1]);
-                    if (name) candidates.push({ name, score: 26, lineIndex: i });
-                }
-
-                // Frase: "Você transferiu para João Silva"
-                const sentenceMatch = line.match(/(?:transferiu para|enviou para|pagou para|pago a)\s+([A-Za-zÀ-ÖØ-öø-ÿ\s]{3,40})/i);
-                if (sentenceMatch && sentenceMatch[1]) {
-                    const name = cleanName(sentenceMatch[1]);
-                    if (name) candidates.push({ name, score: 24, lineIndex: i });
-                }
-            }
-
-            // 2. Se nenhum nome pessoal foi detectado, verifica lista de comércios notórios
-            if (!candidates.length) {
-                const KNOWN_MERCHANTS = [
-                    'Ifood', 'Uber', 'Mercado Livre', 'Amazon', 'Shopee', 'Magalu', 'Carrefour', 'Pao de Acucar',
-                    'Assai', 'Atacadao', 'Drogasil', 'Droga Raia', 'Pague Menos', 'Ultrafarma', 'Shell', 'Ipiranga',
-                    'Netflix', 'Spotify', 'Sem Parar', 'Veloe', 'ConectCar', 'McDonald\'s', 'Burger King', 'Subway',
-                    'Habib\'s', 'Outback', 'Starbucks', 'Cacau Show', 'Smart Fit', 'Petz', 'Cobasi', 'Leroy Merlin',
-                    'Kalunga', 'Lojas Americanas', 'Renner', 'Riachuelo', 'C&A', 'Zara', 'Decathlon'
-                ];
-                const fullTextNorm = normalizeReceiptText(text);
-                for (const merchant of KNOWN_MERCHANTS) {
-                    const mNorm = normalizeReceiptText(merchant);
-                    if (fullTextNorm.includes(mNorm)) {
-                        candidates.push({ name: merchant, score: 16, lineIndex: 0 });
-                        break;
+            const lines = text.split(/\r?\n/).map(l => l.trim()).filter(Boolean);
+            const patterns = [
+                /(?:para|favorecido|benefici[aá]rio|recebedor|destinat[aá]rio|nome|pago a|estabelecimento|empresa|razao social)\s*[:=-]?\s*([^\n\r,.;]{3,45})/i,
+                /(?:loja|comercio|mercado|posto)\s+([^\n\r,.;]{3,35})/i
+            ];
+            for (const line of lines) {
+                for (const pat of patterns) {
+                    const match = line.match(pat);
+                    if (match && match[1]) {
+                        let name = match[1].trim();
+                        name = name.replace(/\b(cpf|cnpj|instituicao|chave|banco|agencia|conta|valor|data).*$/i, '').trim();
+                        if (name.length >= 3 && !/^(pix|comprovante|pagamento|transferencia|ted|doc)$/i.test(name)) {
+                            return name.charAt(0).toUpperCase() + name.slice(1);
+                        }
                     }
                 }
             }
-
-            if (!candidates.length) return '';
-            candidates.sort((a, b) => b.score - a.score || a.lineIndex - b.lineIndex);
-            return candidates[0].name;
+            return '';
         }
 
         function extractReceiptData(text) {
@@ -3132,7 +2448,7 @@
                 document.getElementById('receiptFileName').textContent = `${file.name} • ${badge}`;
                 setReceiptPreview(selectedReceiptBlob);
 
-                const ocrTimeout = new Promise((_, reject) => setTimeout(() => reject(new Error('A leitura automática demorou. Você pode preencher os campos diretamente.')), 35000));
+                const ocrTimeout = new Promise((_, reject) => setTimeout(() => reject(new Error('A leitura automática demorou. Você pode preencher os campos diretamente.')), 9000));
                 const rawText = await Promise.race([recognizeReceiptCanvases(prepared.canvases), ocrTimeout]);
 
                 if (normalizeReceiptText(rawText).replace(/[^a-z0-9]/g, '').length < 4) {
@@ -3141,6 +2457,7 @@
                 fillReceiptReview(extractReceiptData(rawText));
                 setReceiptOcrProgress(100, 'Leitura concluída. Confira os campos.');
             } catch (error) {
+                console.warn('OCR não completou ou foi pulado:', error);
                 document.getElementById('receiptAnalysisError').textContent = error.message || 'Não foi possível analisar o comprovante.';
                 document.getElementById('receiptAnalysisError').hidden = false;
                 document.getElementById('receiptManualEntryButton').hidden = false;
@@ -3244,8 +2561,8 @@
                 const now = new Date();
                 const extension = selectedReceiptBlob.type === 'application/pdf' ? 'pdf' : 'jpg';
 
-                // Comprovantes compactados (<= 600 KB): salva de imediato no Firestore junto à transação em UMA única chamada (< 300ms)
-                const isDirectBase64Safe = selectedReceiptBlob.size <= 600 * 1024;
+                // Comprovantes compactados (<= 450 KB): salva de imediato no Firestore junto à transação em UMA única chamada (< 300ms)
+                const isDirectBase64Safe = selectedReceiptBlob.size <= 450 * 1024;
                 let base64Attachment = null;
                 if (isDirectBase64Safe) {
                     base64Attachment = await blobToBase64(selectedReceiptBlob);
@@ -3276,9 +2593,28 @@
                 // 2. Se anexado diretamente, conclui IMEDIATAMENTE a UI sem fazer o usuário esperar
                 if (base64Attachment) {
                     showNotification('Transação e comprovante salvos com sucesso!', 'success');
+                    const targetTxRef = receiptTransactionRef;
+                    const savedBlob = selectedReceiptBlob;
                     closeReceiptReview(true);
                     if (typeof performSearch === 'function') performSearch();
                     try { updateAllViews(); } catch (e) { }
+
+                    // 3. Em segundo plano (sem travar a tela), sincroniza com Firebase Storage
+                    (async () => {
+                        try {
+                            const uploadedRef = storage.ref(`receipts/${currentUser.uid}/${targetTxRef.id}.${extension}`);
+                            const uploadPromise = uploadedRef.put(savedBlob, { contentType: savedBlob.type });
+                            const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Storage timeout')), 3500));
+                            await Promise.race([uploadPromise, timeoutPromise]);
+                            await targetTxRef.update({
+                                receiptPath: uploadedRef.fullPath,
+                                receiptBase64: firebase.firestore.FieldValue.delete()
+                            });
+                            console.log('Comprovante sincronizado com sucesso no Firebase Storage em segundo plano.');
+                        } catch (bgErr) {
+                            console.warn('Storage em segundo plano indisponível (CORS ou rede). Comprovante mantido com segurança no Firestore:', bgErr);
+                        }
+                    })();
                     return;
                 }
 
@@ -3289,16 +2625,12 @@
                 try {
                     const uploadedRef = storage.ref(`receipts/${currentUser.uid}/${receiptTransactionRef.id}.${extension}`);
                     const uploadPromise = uploadedRef.put(selectedReceiptBlob, { contentType: selectedReceiptBlob.type });
-                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Storage upload timeout')), 2500));
+                    const timeoutPromise = new Promise((_, reject) => setTimeout(() => reject(new Error('Storage upload timeout')), 4000));
                     await Promise.race([uploadPromise, timeoutPromise]);
                     await receiptTransactionRef.update({ receiptPath: uploadedRef.fullPath });
                     uploadSuccessful = true;
                 } catch (storageErr) {
-                    try {
-                        const fallbackB64 = await blobToBase64(selectedReceiptBlob);
-                        await receiptTransactionRef.update({ receiptBase64: fallbackB64 });
-                        uploadSuccessful = true;
-                    } catch (fbErr) {}
+                    console.warn('Falha no upload para o Firebase Storage:', storageErr);
                 }
 
                 if (uploadSuccessful) {
@@ -3361,594 +2693,6 @@
             document.getElementById('receiptPreviewPdf').src = 'about:blank';
             try { updateAllViews(); } catch (e) { }
         }
-
-        /* ==========================================================================
-           VOICE TRANSACTION & QUICK ADD SPEED DIAL SYSTEM
-           ========================================================================== */
-        let voiceRecognition = null;
-        let isVoiceListening = false;
-        let lastVoiceParsedData = null;
-
-        function toggleQuickAddMenu(force) {
-            const container = document.getElementById('quickAddContainer');
-            if (!container) return;
-            const willBeActive = typeof force === 'boolean' ? force : !container.classList.contains('active');
-            if (willBeActive) {
-                container.classList.add('active');
-            } else {
-                container.classList.remove('active');
-            }
-        }
-        window.toggleQuickAddMenu = toggleQuickAddMenu;
-
-        function handleQuickAddChoice(choice) {
-            toggleQuickAddMenu(false);
-            if (choice === 'voice') {
-                openVoiceTransactionModal();
-            } else if (choice === 'receipt') {
-                openReceiptPicker();
-            } else if (choice === 'manual') {
-                if (typeof showTab === 'function') {
-                    showTab('new-transaction');
-                }
-                const card = document.querySelector('.hero-transaction-card');
-                if (card) {
-                    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
-                const valInput = document.getElementById('transactionValue');
-                if (valInput) {
-                    setTimeout(() => valInput.focus(), 300);
-                }
-            }
-        }
-        window.handleQuickAddChoice = handleQuickAddChoice;
-
-        function openVoiceTransactionModal() {
-            const modal = document.getElementById('voiceTransactionModal');
-            if (!modal) return;
-            clearVoiceTranscript();
-            modal.classList.add('active');
-            setTimeout(() => {
-                startVoiceRecognition();
-            }, 300);
-        }
-        window.openVoiceTransactionModal = openVoiceTransactionModal;
-
-        function closeVoiceModal() {
-            stopVoiceRecognition();
-            const modal = document.getElementById('voiceTransactionModal');
-            if (modal) modal.classList.remove('active');
-        }
-        window.closeVoiceModal = closeVoiceModal;
-
-        function updateVoiceUiState(state) {
-            const visualizer = document.querySelector('.voice-visualizer-container');
-            const statusLabel = document.getElementById('voiceStatusLabel');
-            const statusSub = document.getElementById('voiceStatusSub');
-
-            if (!statusLabel || !visualizer) return;
-
-            if (state === 'listening') {
-                visualizer.classList.add('listening');
-                statusLabel.textContent = 'Ouvindo... Pode falar agora';
-                if (statusSub) statusSub.textContent = 'Diga a transação com clareza (ex: "receita 30 reais categoria freelance e descrição teste")';
-            } else if (state === 'denied') {
-                visualizer.classList.remove('listening');
-                statusLabel.textContent = 'Microfone bloqueado';
-                if (statusSub) statusSub.textContent = 'Permita o acesso ao microfone no navegador ou use a caixa de texto abaixo.';
-                const fb = document.getElementById('voiceTextFallback');
-                if (fb) fb.style.display = 'block';
-            } else {
-                visualizer.classList.remove('listening');
-                statusLabel.textContent = lastVoiceParsedData ? 'Áudio processado com sucesso!' : 'Toque no microfone para falar';
-                if (statusSub) statusSub.textContent = 'Fale naturalmente: valor, categoria e descrição.';
-            }
-        }
-
-        function clearVoiceTranscript() {
-            const transcriptEl = document.getElementById('voiceTranscriptionText');
-            if (transcriptEl) transcriptEl.textContent = 'Nenhuma fala capturada ainda. Toque no microfone e diga sua transação...';
-            const parsedCard = document.getElementById('voiceParsedCard');
-            if (parsedCard) parsedCard.style.display = 'none';
-            const btnSave = document.getElementById('btnVoiceConfirmAndSave');
-            const btnPrefill = document.getElementById('btnVoicePrefillForm');
-            if (btnSave) btnSave.disabled = true;
-            if (btnPrefill) btnPrefill.disabled = true;
-            const fallbackInput = document.getElementById('voiceFallbackInput');
-            if (fallbackInput) fallbackInput.value = '';
-            const clearFallback = document.getElementById('btnClearFallback');
-            if (clearFallback) clearFallback.style.display = 'none';
-            lastVoiceParsedData = null;
-        }
-        window.clearVoiceTranscript = clearVoiceTranscript;
-
-        function initVoiceRecognition() {
-            const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (!SpeechRec) {
-                const fb = document.getElementById('voiceTextFallback');
-                if (fb) fb.style.display = 'block';
-                return null;
-            }
-
-            const rec = new SpeechRec();
-            rec.lang = 'pt-BR';
-            rec.continuous = false;
-            rec.interimResults = true;
-            rec.maxAlternatives = 1;
-
-            rec.onstart = () => {
-                isVoiceListening = true;
-                updateVoiceUiState('listening');
-            };
-
-            rec.onresult = (event) => {
-                let interimTranscript = '';
-                let finalTranscript = '';
-
-                for (let i = event.resultIndex; i < event.results.length; ++i) {
-                    if (event.results[i].isFinal) {
-                        finalTranscript += event.results[i][0].transcript;
-                    } else {
-                        interimTranscript += event.results[i][0].transcript;
-                    }
-                }
-
-                const currentText = (finalTranscript || interimTranscript).trim();
-                const transcriptEl = document.getElementById('voiceTranscriptionText');
-                if (transcriptEl && currentText) {
-                    transcriptEl.textContent = currentText;
-                }
-
-                if (currentText) {
-                    const parsed = parseVoiceTransaction(currentText);
-                    renderParsedVoiceData(parsed);
-                }
-            };
-
-            rec.onerror = (event) => {
-                isVoiceListening = false;
-                updateVoiceUiState(event.error === 'not-allowed' ? 'denied' : 'idle');
-            };
-
-            rec.onend = () => {
-                isVoiceListening = false;
-                updateVoiceUiState('idle');
-            };
-
-            return rec;
-        }
-
-        function startVoiceRecognition() {
-            if (!voiceRecognition) {
-                voiceRecognition = initVoiceRecognition();
-            }
-            if (!voiceRecognition) {
-                return;
-            }
-            try {
-                voiceRecognition.start();
-            } catch (err) {
-                // Reconhecimento já estava em execução
-            }
-        }
-
-        function stopVoiceRecognition() {
-            if (voiceRecognition && isVoiceListening) {
-                try { voiceRecognition.stop(); } catch (e) {}
-            }
-            isVoiceListening = false;
-            updateVoiceUiState('idle');
-        }
-
-        function toggleVoiceListening() {
-            if (isVoiceListening) {
-                stopVoiceRecognition();
-            } else {
-                startVoiceRecognition();
-            }
-        }
-        window.toggleVoiceListening = toggleVoiceListening;
-
-        function parseVoiceTransaction(rawText) {
-            if (!rawText || typeof rawText !== 'string') return null;
-            const text = rawText.trim().toLowerCase();
-
-            // 1. Tipo (income ou expense)
-            let type = 'expense';
-            const incomeKeywords = [
-                'receita', 'ganho', 'ganhos', 'ganhei', 'recebi', 'recebimento', 'entrada',
-                'salário', 'salario', 'renda', 'pix recebido', 'venda', 'lucro', 'bônus', 'bonus', 'faturamento'
-            ];
-            const expenseKeywords = [
-                'despesa', 'gasto', 'gastos', 'gastei', 'paguei', 'pagamento', 'saída', 'saida',
-                'comprei', 'compra', 'conta', 'boleto', 'pix enviado', 'débito', 'debito'
-            ];
-
-            let foundIncome = false;
-            let foundExpense = false;
-            for (const kw of incomeKeywords) {
-                if (new RegExp('\\b' + kw + '\\b', 'i').test(text)) {
-                    foundIncome = true;
-                    break;
-                }
-            }
-            for (const kw of expenseKeywords) {
-                if (new RegExp('\\b' + kw + '\\b', 'i').test(text)) {
-                    foundExpense = true;
-                    break;
-                }
-            }
-            if (foundIncome && !foundExpense) {
-                type = 'income';
-            } else if (foundExpense && !foundIncome) {
-                type = 'expense';
-            } else if (foundIncome && foundExpense) {
-                const firstIncomeIdx = Math.min(...incomeKeywords.map(k => text.indexOf(k)).filter(i => i >= 0));
-                const firstExpenseIdx = Math.min(...expenseKeywords.map(k => text.indexOf(k)).filter(i => i >= 0));
-                type = firstIncomeIdx < firstExpenseIdx ? 'income' : 'expense';
-            }
-
-            // 2. Valor
-            let valor = 0;
-            const numberWords = {
-                'um': 1, 'uma': 1, 'dois': 2, 'duas': 2, 'três': 3, 'tres': 3, 'quatro': 4,
-                'cinco': 5, 'seis': 6, 'sete': 7, 'oito': 8, 'nove': 9, 'dez': 10,
-                'onze': 11, 'doze': 12, 'treze': 13, 'quatorze': 14, 'catorze': 14, 'quinze': 15,
-                'dezesseis': 16, 'dezessete': 17, 'dezoito': 18, 'dezenove': 19, 'vinte': 20,
-                'trinta': 30, 'quarenta': 40, 'cinquenta': 50, 'sessenta': 60, 'setenta': 70,
-                'oitenta': 80, 'noventa': 90, 'cem': 100, 'cento': 100, 'duzentos': 200,
-                'trezentos': 300, 'quatrocentos': 400, 'quinhentos': 500, 'seiscentos': 600,
-                'setecentos': 700, 'oitocentos': 800, 'novecentos': 900, 'mil': 1000
-            };
-
-            const matchDigWithCents = text.match(/(\d+(?:[.,]\d{1,2})?)\s*(?:reais|real|conto)?\s*(?:e|com)\s*(\d{1,2})\s*(?:centavos?)?/i);
-            const matchDigOnly = text.match(/(?:r\$\s*|valor\s*(?:de\s*)?)?(\d+(?:[.,]\d{1,2})?)\s*(?:reais|real|conto)?/i);
-
-            if (matchDigWithCents && !text.match(/categoria\s+\d/)) {
-                const reais = parseFloat(matchDigWithCents[1].replace(',', '.'));
-                const centavos = parseFloat(matchDigWithCents[2]) / (matchDigWithCents[2].length === 1 ? 10 : 100);
-                valor = Number((reais + centavos).toFixed(2));
-            } else if (matchDigOnly && matchDigOnly[1]) {
-                const rawNum = matchDigOnly[1].replace(',', '.');
-                valor = parseFloat(rawNum) || 0;
-            }
-
-            if (valor <= 0) {
-                const wordsMatch = text.match(/([a-zçãéíóú\s]+?)\s*(?:reais|real|conto)/i);
-                const candidateText = wordsMatch ? wordsMatch[1] : text;
-                const tokens = candidateText.split(/\s+/);
-                let accVal = 0;
-                let currentVal = 0;
-                let foundWordNumber = false;
-                for (const t of tokens) {
-                    if (numberWords[t] !== undefined) {
-                        foundWordNumber = true;
-                        const n = numberWords[t];
-                        if (n === 1000) {
-                            currentVal = (currentVal || 1) * 1000;
-                            accVal += currentVal;
-                            currentVal = 0;
-                        } else if (n >= 100) {
-                            currentVal += n;
-                        } else {
-                            currentVal += n;
-                        }
-                    }
-                }
-                accVal += currentVal;
-                if (foundWordNumber && accVal > 0) {
-                    valor = accVal;
-                }
-            }
-
-            // 3. Categoria
-            let category = '';
-            const categoryMap = {
-                'freelance': ['freelance', 'freela', 'bico', 'serviço', 'servico', 'projeto', 'consultoria'],
-                'salario': ['salário', 'salario', 'holerite', 'adiantamento', 'quinzena'],
-                'alimentacao': ['alimentação', 'alimentacao', 'almoço', 'almoco', 'jantar', 'lanche', 'comida', 'restaurante', 'padaria', 'ifood', 'café', 'cafe'],
-                'mercado': ['mercado', 'supermercado', 'compras', 'feira', 'açougue', 'acougue', 'sacolão', 'sacolao', 'hortifruti'],
-                'combustivel': ['combustível', 'combustivel', 'gasolina', 'etanol', 'álcool', 'alcool', 'posto', 'abastecimento', 'diesel', 'gnv'],
-                'transporte': ['transporte', 'uber', '99', 'ônibus', 'onibus', 'metrô', 'metro', 'táxi', 'taxi', 'passagem', 'pedágio', 'pedagio'],
-                'moradia': ['moradia', 'aluguel', 'condomínio', 'condominio', 'luz', 'água', 'agua', 'energia', 'internet', 'iptu', 'gás', 'gas'],
-                'saude': ['saúde', 'saude', 'farmácia', 'farmacia', 'remédio', 'remedio', 'médico', 'medico', 'consulta', 'exame', 'dentista', 'hospital'],
-                'educacao': ['educação', 'educacao', 'faculdade', 'curso', 'escola', 'livro', 'mensalidade', 'aula'],
-                'lazer': ['lazer', 'cinema', 'jogo', 'games', 'viagem', 'passeio', 'show', 'festa', 'bar', 'praia'],
-                'manutencao_veiculo': ['manutenção', 'manutencao', 'oficina', 'mecânico', 'mecanico', 'revisão', 'revisao', 'pneu', 'troca de óleo', 'oleo'],
-                'investimentos': ['investimento', 'investimentos', 'ações', 'acoes', 'cdb', 'dividendo', 'cripto', 'poupança', 'poupanca'],
-                'outros': ['outros', 'outro', 'diversos']
-            };
-
-            const catExplicitMatch = text.match(/categoria\s+(?:de\s+)?([a-zçãéíóú_]+)/i);
-            if (catExplicitMatch) {
-                const explicitWord = catExplicitMatch[1].trim();
-                for (const [catKey, syns] of Object.entries(categoryMap)) {
-                    if (catKey === explicitWord || syns.includes(explicitWord)) {
-                        category = catKey;
-                        break;
-                    }
-                }
-            }
-
-            if (!category) {
-                for (const [catKey, syns] of Object.entries(categoryMap)) {
-                    for (const s of syns) {
-                        if (new RegExp('\\b' + s + '\\b', 'i').test(text)) {
-                            category = catKey;
-                            break;
-                        }
-                    }
-                    if (category) break;
-                }
-            }
-
-            if (!category) {
-                category = 'outros';
-            }
-
-            if (['salario', 'freelance', 'investimentos'].includes(category) && !foundExpense) {
-                type = 'income';
-            }
-
-            // 4. Descrição
-            let description = '';
-            const descMatch = text.match(/(?:e\s+)?descri[cç][aã]o\s+(?:[eé]\s+|de\s+|:\s+)?(.+)$/i);
-            if (descMatch && descMatch[1]) {
-                description = descMatch[1].trim();
-            } else {
-                let cleaned = text
-                    .replace(new RegExp('\\b(' + incomeKeywords.join('|') + ')\\b', 'gi'), '')
-                    .replace(new RegExp('\\b(' + expenseKeywords.join('|') + ')\\b', 'gi'), '')
-                    .replace(/(?:r\$\s*)?\d+(?:[.,]\d{1,2})?\s*(?:reais|real|conto)?/gi, '')
-                    .replace(/categoria\s+(?:de\s+)?[a-zçãéíóú_]+/gi, '')
-                    .replace(/\b(hoje|ontem|amanhã|amanha|dia\s+\d+)\b/gi, '')
-                    .replace(/\s+/g, ' ')
-                    .trim();
-                
-                if (cleaned.length >= 3) {
-                    description = cleaned.charAt(0).toUpperCase() + cleaned.slice(1);
-                } else if (category && category !== 'outros') {
-                    description = getCategoryLabel(category);
-                } else {
-                    description = type === 'income' ? 'Receita por Voz' : 'Despesa por Voz';
-                }
-            }
-
-            if (description) {
-                description = description.replace(/[.,;!?]+$/, '').trim();
-                if (description) {
-                    description = description.charAt(0).toUpperCase() + description.slice(1);
-                }
-            }
-
-            // 5. Data
-            let date = new Date().toISOString().slice(0, 10);
-            if (/\bontem\b/i.test(text)) {
-                const d = new Date();
-                d.setDate(d.getDate() - 1);
-                date = d.toISOString().slice(0, 10);
-            } else if (/\bamanh[aã]\b/i.test(text)) {
-                const d = new Date();
-                d.setDate(d.getDate() + 1);
-                date = d.toISOString().slice(0, 10);
-            } else {
-                const dayMatch = text.match(/\bdia\s+(\d{1,2})\b/i);
-                if (dayMatch) {
-                    const dayNum = parseInt(dayMatch[1], 10);
-                    if (dayNum >= 1 && dayNum <= 31) {
-                        const now = new Date();
-                        const year = now.getFullYear();
-                        const month = String(now.getMonth() + 1).padStart(2, '0');
-                        date = `${year}-${month}-${String(dayNum).padStart(2, '0')}`;
-                    }
-                }
-            }
-
-            return {
-                type,
-                value: valor,
-                category,
-                description,
-                date,
-                rawText
-            };
-        }
-        window.parseVoiceTransaction = parseVoiceTransaction;
-
-        function renderParsedVoiceData(parsed) {
-            if (!parsed) return;
-            lastVoiceParsedData = parsed;
-
-            const card = document.getElementById('voiceParsedCard');
-            const badge = document.getElementById('voiceParsedTypeBadge');
-            const valEl = document.getElementById('voiceParsedVal');
-            const catEl = document.getElementById('voiceParsedCat');
-            const dateEl = document.getElementById('voiceParsedDate');
-            const descEl = document.getElementById('voiceParsedDesc');
-            const btnSave = document.getElementById('btnVoiceConfirmAndSave');
-            const btnPrefill = document.getElementById('btnVoicePrefillForm');
-
-            if (badge) {
-                badge.className = `parsed-badge ${parsed.type}`;
-                badge.textContent = parsed.type === 'income' ? 'Receita / Ganho' : 'Despesa / Gasto';
-            }
-            if (card) {
-                if (parsed.type === 'expense') card.classList.add('expense-card');
-                else card.classList.remove('expense-card');
-                card.style.display = 'block';
-                card.classList.remove('voice-card-pop');
-                void card.offsetWidth;
-                card.classList.add('voice-card-pop');
-                try {
-                    card.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-                } catch (e) {}
-            }
-            if (valEl) valEl.textContent = formatCurrency(parsed.value || 0);
-            if (catEl) catEl.textContent = getCategoryLabel(parsed.category);
-            if (dateEl) dateEl.textContent = formatDateForDisplay(parsed.date);
-            if (descEl) descEl.textContent = parsed.description || '—';
-
-            const isValid = (parsed.value > 0);
-            if (btnSave) btnSave.disabled = !isValid;
-            if (btnPrefill) btnPrefill.disabled = !isValid;
-        }
-
-        function simulateVoiceInput(phrase) {
-            const transcriptEl = document.getElementById('voiceTranscriptionText');
-            if (transcriptEl) transcriptEl.textContent = phrase;
-            const parsed = parseVoiceTransaction(phrase);
-            renderParsedVoiceData(parsed);
-            updateVoiceUiState('idle');
-        }
-        window.simulateVoiceInput = simulateVoiceInput;
-
-        function handleVoiceFallbackInputChange(input) {
-            const clearBtn = document.getElementById('btnClearFallback');
-            if (clearBtn) {
-                clearBtn.style.display = (input && input.value) ? 'flex' : 'none';
-            }
-        }
-        window.handleVoiceFallbackInputChange = handleVoiceFallbackInputChange;
-
-        function clearVoiceFallbackInput() {
-            const input = document.getElementById('voiceFallbackInput');
-            if (input) {
-                input.value = '';
-                input.focus();
-            }
-            const clearBtn = document.getElementById('btnClearFallback');
-            if (clearBtn) clearBtn.style.display = 'none';
-        }
-        window.clearVoiceFallbackInput = clearVoiceFallbackInput;
-
-        function parseVoiceManualInput() {
-            const input = document.getElementById('voiceFallbackInput');
-            const btn = document.getElementById('btnVoiceAnalyze');
-            const transcriptEl = document.getElementById('voiceTranscriptionText');
-
-            let phrase = input ? input.value.trim() : '';
-
-            // Se o campo manual estiver vazio, mas houver fala capturada na transcrição, aproveita a fala
-            if (!phrase && transcriptEl) {
-                const live = transcriptEl.textContent.trim();
-                if (live && !live.toLowerCase().includes('nenhuma fala')) {
-                    phrase = live;
-                    if (input) {
-                        input.value = live;
-                        handleVoiceFallbackInputChange(input);
-                    }
-                }
-            }
-
-            if (!phrase) {
-                if (input) {
-                    input.classList.remove('shake-input');
-                    void input.offsetWidth;
-                    input.classList.add('shake-input');
-                    setTimeout(() => input.classList.remove('shake-input'), 500);
-                    input.focus();
-                }
-                if (typeof showNotification === 'function') {
-                    showNotification('Digite ou fale uma transação para analisar (ex: receita 50 freelance)', 'info');
-                }
-                return;
-            }
-
-            // Feedback visual e tátil no botão Analisar
-            if (btn) {
-                btn.classList.add('loading');
-                setTimeout(() => btn.classList.remove('loading'), 450);
-            }
-
-            simulateVoiceInput(phrase);
-
-            const parsed = lastVoiceParsedData;
-            if (parsed && parsed.value > 0) {
-                if (typeof showNotification === 'function') {
-                    showNotification(`Identificado: ${formatCurrency(parsed.value)} (${getCategoryLabel(parsed.category)})`, 'success');
-                }
-            } else {
-                if (typeof showNotification === 'function') {
-                    showNotification('Não identificamos o valor da transação. Exemplo: "receita 30 reais freela"', 'warning');
-                }
-            }
-        }
-        window.parseVoiceManualInput = parseVoiceManualInput;
-
-        async function confirmVoiceTransaction(saveDirectly = true) {
-            if (!lastVoiceParsedData || !(lastVoiceParsedData.value > 0)) {
-                showNotification('Não foi possível identificar o valor da transação.', 'error');
-                return;
-            }
-            const data = lastVoiceParsedData;
-
-            if (!saveDirectly) {
-                closeVoiceModal();
-                setTransactionType(data.type);
-                const valInput = document.getElementById('transactionValue');
-                if (valInput) valInput.value = data.value;
-                const catInput = document.getElementById('transactionCategory');
-                if (catInput) catInput.value = data.category;
-                const descInput = document.getElementById('transactionDescription');
-                if (descInput) descInput.value = data.description;
-                const dateInput = document.getElementById('transactionDate');
-                if (dateInput) dateInput.value = data.date;
-
-                const datePillText = document.getElementById('datePillText');
-                if (datePillText) {
-                    const todayStr = new Date().toISOString().slice(0, 10);
-                    datePillText.textContent = (data.date === todayStr) ? 'HOJE' : formatDateForDisplay(data.date);
-                }
-
-                if (typeof showTab === 'function') {
-                    showTab('new-transaction');
-                }
-                const heroCard = document.querySelector('.hero-transaction-card');
-                if (heroCard) {
-                    heroCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                }
-                showNotification('Dados preenchidos por comando de voz! Confira e salve.', 'info');
-                return;
-            }
-
-            if (!currentUser) {
-                showNotification('Entre na sua conta para salvar a transação.', 'error');
-                return;
-            }
-
-            const now = new Date();
-            const h = String(now.getHours()).padStart(2, '0');
-            const min = String(now.getMinutes()).padStart(2, '0');
-            const currentTime = `${h}:${min}`;
-
-            try {
-                await db.collection('transactions').add({
-                    userId: currentUser.uid,
-                    type: data.type,
-                    date: data.date,
-                    time: currentTime,
-                    value: parseFloat(data.value.toFixed(2)),
-                    category: data.category || 'outros',
-                    description: escapeHtml(data.description || 'Lançamento por Voz'),
-                    favorite: false,
-                    createdAt: now.toISOString(),
-                    deleted: false
-                });
-
-                closeVoiceModal();
-                showNotification('Transação por voz salva com sucesso!', 'success');
-                if (data.type === 'income' && typeof triggerWealthBurst === 'function') {
-                    triggerWealthBurst();
-                }
-                if (typeof updateAllViews === 'function') {
-                    try { updateAllViews(); } catch (e) {}
-                }
-            } catch (err) {
-                console.error('Erro ao salvar transação por voz:', err);
-                showNotification('Erro ao salvar transação.', 'error');
-            }
-        }
-        window.confirmVoiceTransaction = confirmVoiceTransaction;
         let calcDisplayStr = '0'; let calcPrev = null; let calcOp = null; const CALC_MAX_DIGITS = 10;
         function countDigits(s) { return (s.match(/\d/g) || []).length; }
         function calcUpdateDisplay() { document.getElementById('calcDisplay').value = calcDisplayStr; }
@@ -4230,10 +2974,7 @@
                 .onSnapshot(snapshot => {
                     contasFixas = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
                     cfUpdateViews();
-                }, err => {
-                    if (err && String(err).includes('ERR_BLOCKED_BY_CLIENT')) return;
-                    console.warn('Aviso contasFixas listener:', err && err.message ? err.message : err);
-                });
+                }, err => console.error('Erro contasFixas listener:', err));
 
             // Real-time listener for user balance (userSettings)
             if (unsubscribeUserSettings) unsubscribeUserSettings();
@@ -4278,10 +3019,7 @@
                         if (inp && document.getElementById('cfBalanceEditRow')?.style.display !== 'none') inp.value = remoteBalance;
                         cfUpdateViews();
                     }
-                }, err => {
-                    if (err && String(err).includes('ERR_BLOCKED_BY_CLIENT')) return;
-                    console.warn('Aviso userSettings listener:', err && err.message ? err.message : err);
-                });
+                }, err => console.error('Erro userSettings listener:', err));
         }
 
         // Hook into the existing auth state change to also setup CF listener
@@ -5099,25 +3837,21 @@
             }
 
             let list = getActiveTransactions().filter(tx => tx.date >= startDate && tx.date <= endDate);
-            const typeEl = document.getElementById('chartTypeFilter');
-            const type = typeEl ? typeEl.value : 'both';
+            const type = document.getElementById('chartTypeFilter').value;
             if (type !== 'both') list = list.filter(tx => tx.type === type);
-            const favoritesEl = document.getElementById('chartFavorites');
-            const favorites = favoritesEl ? favoritesEl.value : 'all';
+            const favorites = document.getElementById('chartFavorites').value;
             if (favorites === 'favorites') list = list.filter(tx => tx.favorite);
             if (favorites === 'nonfavorites') list = list.filter(tx => !tx.favorite);
             if (selectedChartCategories.size) list = list.filter(tx => selectedChartCategories.has(tx.category));
 
-            const groupByEl = document.getElementById('chartGroupBy');
-            const groupBy = groupByEl ? groupByEl.value : 'category';
             const grouped = new Map();
             list.forEach(tx => {
-                const key = groupBy === 'date' ? tx.date : tx.category;
+                const key = document.getElementById('chartGroupBy').value === 'date' ? tx.date : tx.category;
                 if (!grouped.has(key)) grouped.set(key, { income: 0, expense: 0 });
                 grouped.get(key)[tx.type] += Number(tx.value) || 0;
             });
             const keys = Array.from(grouped.keys()).sort((a, b) => {
-                if (groupBy === 'date') return a.localeCompare(b);
+                if (document.getElementById('chartGroupBy').value === 'date') return a.localeCompare(b);
                 const totalA = grouped.get(a).income + grouped.get(a).expense;
                 const totalB = grouped.get(b).income + grouped.get(b).expense;
                 return totalB - totalA;
@@ -5126,7 +3860,7 @@
             const totalIncome = list.filter(tx => tx.type === 'income').reduce((sum, tx) => sum + (Number(tx.value) || 0), 0);
             const totalExpense = list.filter(tx => tx.type === 'expense').reduce((sum, tx) => sum + (Number(tx.value) || 0), 0);
             return {
-                labels: keys.map(key => groupBy === 'date' ? formatDateForDisplay(key) : getCategoryLabel(key)),
+                labels: keys.map(key => document.getElementById('chartGroupBy').value === 'date' ? formatDateForDisplay(key) : getCategoryLabel(key)),
                 income: keys.map(key => grouped.get(key).income),
                 expense: keys.map(key => grouped.get(key).expense),
                 transactions: list,
@@ -5141,19 +3875,13 @@
             if (!canvas) return;
             const data = getChartData();
             const empty = document.getElementById('chartEmptyState');
-            const hasData = data.labels && data.labels.length > 0;
+            const hasData = data.labels.length > 0;
             canvas.style.display = hasData ? 'block' : 'none';
             if (empty) empty.style.display = hasData ? 'none' : 'block';
-
-            const totalIncomeEl = document.getElementById('chartTotalIncome');
-            if (totalIncomeEl) totalIncomeEl.textContent = formatCurrency(data.totalIncome || 0);
-            const totalExpenseEl = document.getElementById('chartTotalExpense');
-            if (totalExpenseEl) totalExpenseEl.textContent = formatCurrency(data.totalExpense || 0);
-            const totalBalanceEl = document.getElementById('chartTotalBalance');
-            if (totalBalanceEl) totalBalanceEl.textContent = formatCurrency((data.totalIncome || 0) - (data.totalExpense || 0));
-            const txCountEl = document.getElementById('chartTransactionCount');
-            if (txCountEl) txCountEl.textContent = String((data.transactions || []).length);
-
+            document.getElementById('chartTotalIncome').textContent = formatCurrency(data.totalIncome || 0);
+            document.getElementById('chartTotalExpense').textContent = formatCurrency(data.totalExpense || 0);
+            document.getElementById('chartTotalBalance').textContent = formatCurrency((data.totalIncome || 0) - (data.totalExpense || 0));
+            document.getElementById('chartTransactionCount').textContent = String(data.transactions.length);
             if (typeof Chart === 'undefined') return;
             if (!hasData) {
                 if (financeChartInstance) {
@@ -5198,13 +3926,11 @@
             const count = document.getElementById('searchResultCount');
             const totalIncome = filtered.reduce((sum, tx) => sum + (tx.type === 'income' ? Number(tx.value) || 0 : 0), 0);
             const totalExpense = filtered.reduce((sum, tx) => sum + (tx.type === 'expense' ? Number(tx.value) || 0 : 0), 0);
-            const sti = document.getElementById('searchTotalIncome');
-            if (sti) sti.textContent = formatCurrency(totalIncome);
-            const ste = document.getElementById('searchTotalExpense');
-            if (ste) ste.textContent = formatCurrency(totalExpense);
-            if (count) count.textContent = `${filtered.length} ${t('transactionsFound')}`;
+            document.getElementById('searchTotalIncome').textContent = formatCurrency(totalIncome);
+            document.getElementById('searchTotalExpense').textContent = formatCurrency(totalExpense);
+            count.textContent = `${filtered.length} ${t('transactionsFound')}`;
             if (!filtered.length) {
-                if (list) list.innerHTML = `<div class="empty-state">${t('noTransactionsFound')}</div>`;
+                list.innerHTML = `<div class="empty-state">${t('noTransactionsFound')}</div>`;
                 return;
             }
             const byDate = {};
