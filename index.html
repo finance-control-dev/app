@@ -8,96 +8,15 @@
     <title>Controle Financeiro Aprimorado</title>
     <link rel="icon" type="image/png" href="./assets/icons/favicon.png">
     <link rel="shortcut icon" type="image/png" href="./assets/icons/favicon.png">
-    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <!-- Chart.js for Apple Pro Analytics -->
     <script defer src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script defer src="https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js"></script>
-    <script defer src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <!-- Heavy libraries (xlsx, tesseract, pdf.js) are loaded on-demand via ensureXLSX, ensureTesseract, ensurePdfLib -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap"
         rel="stylesheet">
     <link rel="manifest" href="./manifest.json">
     <meta name="theme-color" content="#000000">
-    <template>
-                <div class="search-results">
-                    <div class="search-result-header"><h3 data-i18n="searchResults">Resultados</h3><span class="search-result-count" id="searchResultCount">0 transações</span></div>
-                    <div class="search-totals" aria-live="polite">
-                        <div class="search-total-income"><span>Receitas na busca</span><strong id="searchTotalIncome">R$ 0,00</strong></div>
-                        <div class="search-total-expense"><span>Despesas na busca</span><strong id="searchTotalExpense">R$ 0,00</strong></div>
-                    </div>
-                    <div id="searchResultsList"></div>
-                </div>
-            </div>
-        </div>
-
-        <!-- New Transaction Tab -->
-        <div id="new-transaction" class="tab-content active">
-            <div class="card">
-                <div class="new-transaction-header">
-                    <h2 class="mb-2" data-i18n="newTransaction">Nova Transacao</h2>
-                    <button type="button" class="btn-voice-header" id="btnVoiceHeader" onclick="openVoiceTransactionModal()" title="Adicionar por Voz" aria-label="Adicionar por Voz">
-                        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
-                            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-                            <line x1="12" y1="19" x2="12" y2="23"></line>
-                            <line x1="8" y1="23" x2="16" y2="23"></line>
-                        </svg>
-                    </button>
-                </div>
-                <form id="transactionForm">
-                    <div class="segmented-control-container">
-                        <div class="segmented-background" id="segmentedBackground"></div>
-                        <button type="button" class="segmented-btn active" id="btnIncome" onclick="setTransactionType('income')"><span data-i18n="gains">Ganho</span></button>
-                        <button type="button" class="segmented-btn" id="btnExpense" onclick="setTransactionType('expense')"><span data-i18n="spending">Gasto</span></button>
-                    </div>
-                    <div class="value-display-section" id="valueDisplaySection">
-                        <div class="value-display-label" data-i18n="value">VALOR DO LANCAMENTO</div>
-                        <div class="value-input-wrapper"><input type="number" id="transactionValue" class="value-display-amount" step="0.01" min="0" placeholder="0,00" required></div>
-                    </div>
-                    <div class="home-date-nav">
-                        <button type="button" class="home-date-arrow" onclick="event.stopPropagation();previousDay();" title="Dia anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
-                        <button type="button" class="home-date-pill" id="datePillButton" onclick="event.stopPropagation();openCustomDateModal();" title="Calendário"><span id="datePillText">HOJE</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></button>
-                        <button type="button" class="home-date-arrow" onclick="event.stopPropagation();nextDay();" title="Próximo dia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
-                    </div>
-                    <input type="date" id="transactionDate" required style="display:none;">
-                    <div class="form-row-label" data-i18n="category">CATEGORIA</div>
-                    <div class="form-row-styled"><div class="form-row-icon"><span class="form-icon">📋</span></div><select id="transactionCategory" class="form-select" required style="flex:1;"><option value="" data-i18n="selectCategory">Selecione uma categoria</option><option value="alimentacao">&#127869; Alimentacao</option><option value="mercado">&#128722; Mercado</option><option value="combustivel">&#9981; Combustivel</option><option value="manutencao_veiculo">&#128295; Manutencao Veiculo</option><option value="transporte">&#128663; Transporte</option><option value="moradia">&#127968; Moradia</option><option value="saude">&#127973; Saude</option><option value="educacao">&#128218; Educacao</option><option value="lazer">&#127918; Lazer</option><option value="salario">&#128188; Salario</option><option value="freelance">&#128187; Freelance</option><option value="investimentos">&#128200; Investimentos</option><option value="outros">&#128230; Outros</option></select></div>
-                    <div class="form-row-label" data-i18n="description">DESCRICAO</div>
-                    <div class="form-row-styled"><div class="form-row-icon"><span class="form-icon">📝</span></div><input type="text" id="transactionDescription" class="form-input" data-i18n-placeholder="placeholderDescShort" placeholder="Descrição da transação" required style="flex:1;"></div>
-                    <label class="favorite-row"><input type="checkbox" id="transactionFavorite"><span class="toggle-slider"></span><span style="font-size:0.9rem;font-weight:500;">&#11088; <span data-i18n="favoriteTransaction">Favoritar esta transação</span></span></label>
-                    <button type="button" class="btn-save-transaction" id="btnSaveTransaction" onclick="saveNewTransaction()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12" /></svg><span data-i18n="saveTransaction">Salvar Transacao</span></button>
-                </form>
-            </div>
-            <div class="card">
-                <h3 class="mb-2" data-i18n="dailyTransactions">Transacoes do Dia Selecionado</h3>
-                <div class="stats-grid mb-2">
-                    <div class="stat-card income"><div class="stat-icon">&#128176;</div><div class="stat-value" id="dailyIncome">R$ 0,00</div><div class="stat-label" data-i18n="gains">Ganhos</div></div>
-                    <div class="stat-card expense"><div class="stat-icon">&#128184;</div><div class="stat-value" id="dailyExpense">R$ 0,00</div><div class="stat-label" data-i18n="spending">Gastos</div></div>
-                    <div class="stat-card balance"><div class="stat-icon">&#128202;</div><div class="stat-value" id="dailyBalance">R$ 0,00</div><div class="stat-label" data-i18n="balance">Saldo</div></div>
-                </div>
-                <div id="dailyTransactionsList"></div>
-            </div>
-        </div>
-
-        <!-- Charts Tab -->
-        <div id="charts" class="tab-content">
-            <div class="card">
-                <div class="chart-heading"><div><h2 data-i18n="chartsTitle">Receitas e despesas</h2><p>Compare valores por categoria ou ao longo do tempo.</p></div><span class="chart-kind-label">Gráfico de barras</span></div>
-                <div class="chart-toolbar">
-                    <div class="form-group"><label class="form-label" for="chartPeriod">Período</label><select id="chartPeriod" class="form-select" onchange="toggleChartPeriodInputs()"><option value="last3">Últimos 3 meses</option><option value="last6">Últimos 6 meses</option><option value="month">Mês específico</option><option value="year">Ano específico</option><option value="custom">Intervalo personalizado</option></select></div>
-                    <div class="form-group chart-period-input" id="chartCustomGroup" style="display:none"><label class="form-label">Datas</label><div class="chart-date-range"><input type="date" id="chartStartDate" class="form-input" aria-label="Data inicial" onchange="updateChart()"><input type="date" id="chartEndDate" class="form-input" aria-label="Data final" onchange="updateChart()"></div></div>
-                    <div class="form-group chart-period-input" id="chartMonthGroup" style="display:none"><label class="form-label" for="chartMonth">Mês</label><input type="month" id="chartMonth" class="form-input" onchange="updateChart()"></div>
-                    <div class="form-group chart-period-input" id="chartYearGroup" style="display:none"><label class="form-label" for="chartYear">Ano</label><input type="number" id="chartYear" class="form-input" min="2020" max="2030" onchange="updateChart()"></div>
-                    <div class="form-group"><label class="form-label" for="chartTypeFilter">Movimento</label><select id="chartTypeFilter" class="form-select" onchange="updateChart()"><option value="both">Receitas e despesas</option><option value="expense">Despesas</option><option value="income">Receitas</option></select></div>
-                    <div class="form-group"><label class="form-label" for="chartFavorites">Favoritas</label><select id="chartFavorites" class="form-select" onchange="updateChart()"><option value="all">Todas</option><option value="favorites">Só favoritas</option><option value="nonfavorites">Sem favoritas</option></select></div>
-                    <div class="form-group"><label class="form-label" for="chartGroupBy">Agrupar por</label><select id="chartGroupBy" class="form-select" onchange="updateChart()"><option value="category">Categoria</option><option value="date">Dia</option></select></div>
-                    <button class="btn btn-secondary chart-category-filter" type="button" onclick="openCategorySelectionModal('chart')">Categorias <span id="chartCategorySummary">Todas</span></button>
-                </div>
-                <div class="chart-totals" aria-live="polite"><div><span>Receitas</span><strong id="chartTotalIncome">R$ 0,00</strong></div><div><span>Despesas</span><strong id="chartTotalExpense">R$ 0,00</strong></div><div><span>Saldo</span><strong id="chartTotalBalance">R$ 0,00</strong></div><div><span>Lançamentos</span><strong id="chartTransactionCount">0</strong></div></div>
-                <div class="chart-container-wrapper"><canvas id="financeChart" role="img" aria-label="Gráfico de barras de receitas e despesas"></canvas><div id="chartEmptyState" class="empty-state" hidden>Nenhum lançamento encontrado neste período.</div></div>
-            </div>
-        </div>
-    </template>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
@@ -148,17 +67,35 @@
     <!-- Header -->
     <header class="header">
         <div class="header-new-left">
-            <button class="menu-button" onclick="toggleMenu()">
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                    stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="3" y1="12" x2="21" y2="12"></line>
-                    <line x1="3" y1="6" x2="21" y2="6"></line>
-                    <line x1="3" y1="18" x2="21" y2="18"></line>
-                </svg>
-            </button>
-            <div class="header-icon-circle">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+            <div class="header-icon-circle" aria-label="Finanças Pro" title="Controle Financeiro">
+                <div class="header-icon-ambient-glow"></div>
+                <svg viewBox="0 0 28 28" width="24" height="24" fill="none" class="header-icon-svg">
+                    <defs>
+                        <linearGradient id="appleHdrEmerald" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#34D399" />
+                            <stop offset="50%" stop-color="#10B981" />
+                            <stop offset="100%" stop-color="#059669" />
+                        </linearGradient>
+                        <linearGradient id="appleHdrGold" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#FDE68A" />
+                            <stop offset="100%" stop-color="#F59E0B" />
+                        </linearGradient>
+                        <linearGradient id="appleHdrStroke" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.85" />
+                            <stop offset="100%" stop-color="#6EE7B7" stop-opacity="0.45" />
+                        </linearGradient>
+                    </defs>
+                    <!-- Glass Card Contour -->
+                    <rect x="2.5" y="5.5" width="23" height="17" rx="4.5" stroke="url(#appleHdrStroke)" stroke-width="1.6" fill="rgba(16, 185, 129, 0.12)" />
+                    <!-- Holographic Stripe -->
+                    <path d="M2.5 10.5h23" stroke="url(#appleHdrStroke)" stroke-width="1.2" stroke-opacity="0.35" />
+                    <!-- Growth Trend Path -->
+                    <path d="M6 18.5l4.5-4 4 3 6.5-6.5" stroke="url(#appleHdrEmerald)" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round" />
+                    <!-- Trend Arrow -->
+                    <path d="M17.5 11h3.5v3.5" stroke="#30D158" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" />
+                    <!-- Gold Smart Nodes -->
+                    <circle cx="6" cy="18.5" r="1.8" fill="url(#appleHdrGold)" />
+                    <circle cx="20.5" cy="19" r="2.2" fill="url(#appleHdrGold)" />
                 </svg>
             </div>
             <div class="header-new-info">
@@ -260,93 +197,88 @@
         </div>
         <div class="menu-items">
             <button class="menu-item active" onclick="showTab('new-transaction', this)">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="12" y1="8" x2="12" y2="16" />
-                    <line x1="8" y1="12" x2="16" y2="12" />
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round">
+                    <circle cx="12" cy="12" r="9.5"></circle>
+                    <line x1="12" y1="8" x2="12" y2="16"></line>
+                    <line x1="8" y1="12" x2="16" y2="12"></line>
                 </svg>
-                <span data-i18n="menuNewTransaction">Nova Transacao</span>
+                <span data-i18n="menuNewTransaction">Nova Transação</span>
             </button>
             <button class="menu-item" onclick="showTab('contas-fixas', this)">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="2" y="5" width="20" height="14" rx="2" />
-                    <line x1="2" y1="10" x2="22" y2="10" />
-                    <line x1="6" y1="15" x2="10" y2="15" />
-                    <line x1="14" y1="15" x2="18" y2="15" />
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="4.5" width="18" height="15" rx="3.5"></rect>
+                    <line x1="3" y1="9.5" x2="21" y2="9.5"></line>
+                    <path d="M7 14.5h4"></path>
                 </svg>
                 <span data-i18n="menuFixedAccounts">Contas Fixas</span>
             </button>
             <button class="menu-item" onclick="showTab('summaries', this)">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                    <polyline points="14,2 14,8 20,8" />
-                    <line x1="16" y1="13" x2="8" y2="13" />
-                    <line x1="16" y1="17" x2="8" y2="17" />
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3.5" y="4" width="17" height="16" rx="3.5"></rect>
+                    <path d="M7.5 9h9M7.5 13h6M7.5 17h4"></path>
                 </svg>
                 <span data-i18n="menuSummaries">Resumos</span>
             </button>
             <button class="menu-item" onclick="showTab('search', this)">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="11" cy="11" r="8" />
-                    <path d="m21 21-4.35-4.35" />
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="7.5"></circle>
+                    <path d="m16.5 16.5 4.5 4.5"></path>
                 </svg>
                 <span data-i18n="menuSearch">Buscar</span>
             </button>
             <button class="menu-item" onclick="showTab('transactions', this)">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                    <polyline points="14,2 14,8 20,8" />
-                    <line x1="16" y1="13" x2="8" y2="13" />
-                    <line x1="16" y1="17" x2="8" y2="17" />
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 6h16M4 12h16M4 18h10"></path>
                 </svg>
-                <span data-i18n="menuTransactions">Transacoes</span>
+                <span data-i18n="menuTransactions">Transações</span>
             </button>
             <button class="menu-item" onclick="showTab('charts', this)">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <line x1="18" y1="20" x2="18" y2="10" />
-                    <line x1="12" y1="20" x2="12" y2="4" />
-                    <line x1="6" y1="20" x2="6" y2="14" />
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3.5" y="13" width="4" height="7" rx="1.5"></rect>
+                    <rect x="10" y="8" width="4" height="12" rx="1.5"></rect>
+                    <rect x="16.5" y="3.5" width="4" height="16.5" rx="1.5"></rect>
                 </svg>
-                <span data-i18n="menuCharts">Grafico</span>
+                <span data-i18n="menuCharts">Gráfico</span>
             </button>
             <button class="menu-item" onclick="showTab('goals', this)">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10" />
-                    <polygon points="10,8 16,12 10,16 10,8" />
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round">
+                    <circle cx="12" cy="12" r="9"></circle>
+                    <circle cx="12" cy="12" r="5"></circle>
+                    <circle cx="12" cy="12" r="1.5" fill="currentColor"></circle>
                 </svg>
                 <span data-i18n="menuGoals">Metas</span>
             </button>
             <button class="menu-item" onclick="showTab('trash', this)">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <polyline points="3,6 5,6 21,6" />
-                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                    <line x1="10" y1="11" x2="10" y2="17" />
-                    <line x1="14" y1="11" x2="14" y2="17" />
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M4 7h16M10 11v6M14 11v6M6 7l1 13a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-13M9 7V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v3"></path>
                 </svg>
                 <span data-i18n="menuTrash">Lixeira</span>
             </button>
             <button class="menu-item" onclick="showTab('backup', this)">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                    <polyline points="7,10 12,15 17,10" />
-                    <line x1="12" y1="15" x2="12" y2="3" />
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M19 16.5A4.5 4.5 0 0 0 17.5 8 7 7 0 0 0 5 11.5a4.5 4.5 0 0 0 1 8.5h13zM12 12v6M9 15l3 3 3-3"></path>
                 </svg>
                 <span data-i18n="menuBackup">Backup</span>
             </button>
             <button class="menu-item" onclick="showTab('sobre', this)">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="12" y1="16" x2="12" y2="12" />
-                    <line x1="12" y1="8" x2="12.01" y2="8" />
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round">
+                    <circle cx="12" cy="12" r="9.5"></circle>
+                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                    <circle cx="12" cy="8.2" r="0.8" fill="currentColor"></circle>
                 </svg>
                 <span data-i18n="menuAbout">Sobre</span>
             </button>
             <button class="menu-item" onclick="showTab('contato', this)">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
-                    <path
-                        d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
+                    <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
                 </svg>
                 <span data-i18n="menuContact">Contato</span>
+            </button>
+            <button class="menu-item" onclick="optimizeAppMemoryAndCache(true); closeMenu();" style="color: #30D158;">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" fill="rgba(48,209,88,0.18)"></polygon>
+                </svg>
+                <span data-i18n="cleanCacheBtn">Limpar Cache & Otimizar</span>
             </button>
             <div class="menu-font-control">
                 <span class="menu-font-label" data-i18n="fontSizeTitle">Tamanho do Texto</span>
@@ -370,6 +302,69 @@
 
     <!-- Main Content -->
     <main class="main-content">
+        <!-- New Transaction Tab -->
+        <div id="new-transaction" class="tab-content active">
+            <div class="card new-transaction-card">
+                <div class="new-transaction-header">
+                    <h2 class="mb-2" data-i18n="newTransaction">Nova Transacao</h2>
+                    <button type="button" class="btn-voice-header" id="btnVoiceHeader" onclick="openVoiceTransactionModal()" title="Adicionar por Voz" aria-label="Adicionar por Voz">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                            <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                            <line x1="12" y1="19" x2="12" y2="23"></line>
+                            <line x1="8" y1="23" x2="16" y2="23"></line>
+                        </svg>
+                    </button>
+                </div>
+                <form id="transactionForm">
+                    <div class="segmented-control-container">
+                        <div class="segmented-background" id="segmentedBackground"></div>
+                        <button type="button" class="segmented-btn active" id="btnIncome" onclick="setTransactionType('income')"><span data-i18n="gains">Ganho</span></button>
+                        <button type="button" class="segmented-btn" id="btnExpense" onclick="setTransactionType('expense')"><span data-i18n="spending">Gasto</span></button>
+                    </div>
+                    <div class="value-display-section" id="valueDisplaySection">
+                        <div class="value-display-header">
+                            <span class="value-display-label" data-i18n="value">VALOR DO LANCAMENTO</span>
+                            <div class="home-date-nav">
+                                <button type="button" class="home-date-arrow" onclick="event.stopPropagation();previousDay();" title="Dia anterior"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg></button>
+                                <button type="button" class="home-date-pill" id="datePillButton" onclick="event.stopPropagation();openCustomDateModal();" title="Calendário"><span id="datePillText">HOJE</span><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg></button>
+                                <button type="button" class="home-date-arrow" onclick="event.stopPropagation();nextDay();" title="Próximo dia"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg></button>
+                            </div>
+                        </div>
+                        <div class="value-input-wrapper"><input type="number" id="transactionValue" class="value-display-amount" step="0.01" min="0" placeholder="0,00" required></div>
+                    </div>
+                    <input type="date" id="transactionDate" required style="display:none;">
+                    <div class="new-tx-fields-row">
+                        <div class="new-tx-field">
+                            <div class="form-row-label" data-i18n="category">CATEGORIA</div>
+                            <div class="form-row-styled"><div class="form-row-icon"><span class="form-icon">📋</span></div><select id="transactionCategory" class="form-select" required style="flex:1;"><option value="" data-i18n="selectCategory">Selecione uma categoria</option><option value="alimentacao">&#127869; Alimentacao</option><option value="mercado">&#128722; Mercado</option><option value="combustivel">&#9981; Combustivel</option><option value="manutencao_veiculo">&#128295; Manutencao Veiculo</option><option value="transporte">&#128663; Transporte</option><option value="moradia">&#127968; Moradia</option><option value="saude">&#127973; Saude</option><option value="educacao">&#128218; Educacao</option><option value="lazer">&#127918; Lazer</option><option value="salario">&#128188; Salario</option><option value="freelance">&#128187; Freelance</option><option value="investimentos">&#128200; Investimentos</option><option value="outros">&#128230; Outros</option></select></div>
+                        </div>
+                        <div class="new-tx-field">
+                            <div class="form-row-label" data-i18n="description">DESCRICAO</div>
+                            <div class="form-row-styled"><div class="form-row-icon"><span class="form-icon">📝</span></div><input type="text" id="transactionDescription" class="form-input" data-i18n-placeholder="placeholderDescShort" placeholder="Descrição da transação" required style="flex:1;"></div>
+                        </div>
+                    </div>
+                    <label class="favorite-row" for="transactionFavorite">
+                        <span class="favorite-row-label">&#11088; <span data-i18n="favoriteTransaction">Favoritar esta transação</span></span>
+                        <span class="favorite-toggle-wrap">
+                            <input type="checkbox" id="transactionFavorite">
+                            <span class="toggle-slider"></span>
+                        </span>
+                    </label>
+                    <button type="button" class="btn-save-transaction" id="btnSaveTransaction" onclick="saveNewTransaction()"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20,6 9,17 4,12" /></svg><span data-i18n="saveTransaction">Salvar Transacao</span></button>
+                </form>
+            </div>
+            <div class="card">
+                <h3 class="mb-2" data-i18n="dailyTransactions">Transacoes do Dia Selecionado</h3>
+                <div class="stats-grid mb-2">
+                    <div class="stat-card income"><div class="stat-icon">&#128176;</div><div class="stat-value" id="dailyIncome">R$ 0,00</div><div class="stat-label" data-i18n="gains">Ganhos</div></div>
+                    <div class="stat-card expense"><div class="stat-icon">&#128184;</div><div class="stat-value" id="dailyExpense">R$ 0,00</div><div class="stat-label" data-i18n="spending">Gastos</div></div>
+                    <div class="stat-card balance"><div class="stat-icon">&#128202;</div><div class="stat-value" id="dailyBalance">R$ 0,00</div><div class="stat-label" data-i18n="balance">Saldo</div></div>
+                </div>
+                <div id="dailyTransactionsList"></div>
+            </div>
+        </div>
+
         <!-- Transactions Tab -->
         <div id="transactions" class="tab-content">
             <div class="card">
@@ -427,190 +422,221 @@
                     </div>
                 </div>
                 <div class="search-results">
-                    <div class="search-result-header">
-                        <div class="chart-heading">
-                            <div><h2 data-i18n="chartsTitle">Receitas e despesas</h2><p>Compare valores por categoria ou ao longo do tempo.</p></div>
-                            <span class="chart-kind-label">Gráfico de barras</span>
-                        </div>
-                        <div class="chart-toolbar">
-                            <div class="form-group"><label class="form-label" for="chartPeriod">Período</label>
-                                <select id="chartPeriod" class="form-select" onchange="toggleChartPeriodInputs()">
-                                    <option value="last3">Últimos 3 meses</option>
-                                    <option value="last6">Últimos 6 meses</option>
-                                    <option value="month">Mês específico</option>
-                                    <option value="year">Ano específico</option>
-                                    <option value="custom">Intervalo personalizado</option>
-                                </select>
-                            </div>
-                            <div class="form-group chart-period-input" id="chartCustomGroup" style="display:none"><label class="form-label">Datas</label><div class="chart-date-range"><input type="date" id="chartStartDate" class="form-input" aria-label="Data inicial" onchange="updateChart()"><input type="date" id="chartEndDate" class="form-input" aria-label="Data final" onchange="updateChart()"></div></div>
-                            <div class="form-group chart-period-input" id="chartMonthGroup" style="display:none"><label class="form-label" for="chartMonth">Mês</label><input type="month" id="chartMonth" class="form-input" onchange="updateChart()"></div>
-                            <div class="form-group chart-period-input" id="chartWeekGroup" style="display:none"><label class="form-label" for="chartWeek">Semana</label><input type="week" id="chartWeek" class="form-input" onchange="updateChart()"></div>
-                            <div class="form-group chart-period-input" id="chartYearGroup" style="display:none"><label class="form-label" for="chartYear">Ano</label><input type="number" id="chartYear" class="form-input" min="2020" max="2030" onchange="updateChart()"></div>
-                            <div class="form-group"><label class="form-label" for="chartTypeFilter">Movimento</label><select id="chartTypeFilter" class="form-select" onchange="updateChart()"><option value="both">Receitas e despesas</option><option value="expense">Despesas</option><option value="income">Receitas</option></select></div>
-                            <div class="form-group"><label class="form-label" for="chartFavorites">Favoritas</label><select id="chartFavorites" class="form-select" onchange="updateChart()"><option value="all">Todas</option><option value="favorites">Só favoritas</option><option value="nonfavorites">Sem favoritas</option></select></div>
-                            <div class="form-group"><label class="form-label" for="chartGroupBy">Agrupar por</label><select id="chartGroupBy" class="form-select" onchange="updateChart()"><option value="category">Categoria</option><option value="date">Dia</option></select></div>
-                            <button class="btn btn-secondary chart-category-filter" type="button" onclick="openCategorySelectionModal('chart')">Categorias <span id="chartCategorySummary">Todas</span></button>
-                        </div>
-                        <div class="chart-totals" aria-live="polite">
-                            <div><span>Receitas</span><strong id="chartTotalIncome">R$ 0,00</strong></div>
-                            <div><span>Despesas</span><strong id="chartTotalExpense">R$ 0,00</strong></div>
-                            <div><span>Saldo</span><strong id="chartTotalBalance">R$ 0,00</strong></div>
-                            <div><span>Lançamentos</span><strong id="chartTransactionCount">0</strong></div>
-                        </div>
-                        <div class="chart-container-wrapper"><canvas id="financeChart" role="img" aria-label="Gráfico de barras de receitas e despesas"></canvas><div id="chartEmptyState" class="empty-state" hidden>Nenhum lançamento encontrado neste período.</div></div>
-                        </button>
-
-                        <button type="button" class="home-date-arrow" onclick="event.stopPropagation();nextDay();" title="Próximo dia">
-                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                        </button>
+                    <div class="search-result-header"><h3 data-i18n="searchResults">Resultados</h3><span class="search-result-count" id="searchResultCount">0 transações</span></div>
+                    <div class="search-totals" aria-live="polite">
+                        <div class="search-total-income"><span>Receitas na busca</span><strong id="searchTotalIncome">R$ 0,00</strong></div>
+                        <div class="search-total-expense"><span>Despesas na busca</span><strong id="searchTotalExpense">R$ 0,00</strong></div>
                     </div>
-                    <input type="date" id="transactionDate" required style="display:none;">
-
-                    <!-- Category Row -->
-                    <div class="form-row-label" data-i18n="category">CATEGORIA</div>
-                    <div class="form-row-styled">
-                        <div class="form-row-icon">
-                            <span class="form-icon">📋</span>
-                        </div>
-                        <select id="transactionCategory" class="form-select" required style="flex:1;">
-                            <option value="" data-i18n="selectCategory">Selecione uma categoria</option>
-                            <option value="alimentacao">&#127869; Alimentacao</option>
-                            <option value="mercado">&#128722; Mercado</option>
-                            <option value="combustivel">&#9981; Combustivel</option>
-                            <option value="manutencao_veiculo">&#128295; Manutencao Veiculo</option>
-                            <option value="transporte">&#128663; Transporte</option>
-                            <option value="moradia">&#127968; Moradia</option>
-                            <option value="saude">&#127973; Saude</option>
-                            <option value="educacao">&#128218; Educacao</option>
-                            <option value="lazer">&#127918; Lazer</option>
-                            <option value="salario">&#128188; Salario</option>
-                            <option value="freelance">&#128187; Freelance</option>
-                            <option value="investimentos">&#128200; Investimentos</option>
-                            <option value="outros">&#128230; Outros</option>
-                        </select>
-                    </div>
-
-                    <!-- Description Row -->
-                    <div class="form-row-label" data-i18n="description">DESCRICAO</div>
-                    <div class="form-row-styled">
-                        <div class="form-row-icon">
-                            <span class="form-icon">📝</span>
-                        </div>
-                        <input type="text" id="transactionDescription" class="form-input"
-                            data-i18n-placeholder="placeholderDescShort" placeholder="Descrição da transação" required
-                            style="flex:1;">
-                    </div>
-
-                    <!-- Favorite -->
-                    <label class="favorite-row">
-                        <input type="checkbox" id="transactionFavorite">
-                        <span class="toggle-slider"></span>
-                        <span style="font-size:0.9rem;font-weight:500;">&#11088; <span
-                                data-i18n="favoriteTransaction">Favoritar esta transação</span></span>
-                    </label>
-
-                    <!-- Save Button -->
-                    <button type="button" class="btn-save-transaction" id="btnSaveTransaction"
-                        onclick="saveNewTransaction()">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-                            stroke-width="2.5">
-                            <polyline points="20,6 9,17 4,12" />
-                        </svg>
-                        <span data-i18n="saveTransaction">Salvar Transacao</span>
-                    </button>
-                </form>
-            </div>
-            <div class="card">
-                <h3 class="mb-2" data-i18n="dailyTransactions">Transacoes do Dia Selecionado</h3>
-                <div class="stats-grid mb-2">
-                    <div class="stat-card income">
-                        <div class="stat-icon">&#128176;</div>
-                        <div class="stat-value" id="dailyIncome">R$ 0,00</div>
-                        <div class="stat-label" data-i18n="gains">Ganhos</div>
-                    </div>
-                    <div class="stat-card expense">
-                        <div class="stat-icon">&#128184;</div>
-                        <div class="stat-value" id="dailyExpense">R$ 0,00</div>
-                        <div class="stat-label" data-i18n="spending">Gastos</div>
-                    </div>
-                    <div class="stat-card balance">
-                        <div class="stat-icon">&#128202;</div>
-                        <div class="stat-value" id="dailyBalance">R$ 0,00</div>
-                        <div class="stat-label" data-i18n="balance">Saldo</div>
-                    </div>
+                    <div id="searchResultsList"></div>
                 </div>
-                <div id="dailyTransactionsList"></div>
             </div>
         </div>
 
-        <!-- Charts Tab -->
+        <!-- Charts Tab (Apple Pro Financial Intelligence Dashboard) -->
         <div id="charts" class="tab-content">
-            <div class="card">
-                <h2 class="mb-2" data-i18n="chartsTitle">Graficos de Receitas e Despesas</h2>
-                <div class="chart-grid">
-                    <div class="chart-panel">
-                        <div class="chart-panel-header">
-                            <div>
-                                <h3>Filtros Avançados</h3>
-                                <p class="chart-panel-subtitle">Monte a visualização ideal para seus resultados.</p>
+            <div class="apple-chart-dashboard">
+                <!-- Apple Pro Analytics Hero Card -->
+                <div class="card apple-chart-hero-card">
+                    <div class="apple-chart-hero-header">
+                        <div>
+                            <div class="apple-badge-pro">
+                                <span class="apple-badge-dot"></span>
+                                <span>ANALYTICS PRO</span>
                             </div>
-                            <button class="btn btn-secondary" onclick="openCategorySelectionModal('chart')">Selecionar categorias</button>
+                            <h2 class="apple-chart-title" data-i18n="chartsTitle">Inteligência Financeira</h2>
+                            <p class="apple-chart-subtitle">Visão 360°, evolução temporal e composição dos seus recursos</p>
                         </div>
-                        <div class="chart-filter-grid">
-                            <div class="form-group"><label class="form-label" data-i18n="period">Periodo</label>
-                                <select id="chartPeriod" class="form-select" onchange="toggleChartPeriodInputs();updateChart();">
-                                    <option value="custom" data-i18n="customPeriod">Período personalizado</option>
-                                    <option value="month" data-i18n="monthSpecific">Mes especifico</option>
-                                    <option value="week" data-i18n="weekSpecific">Semana especifica</option>
-                                    <option value="year" data-i18n="yearSpecific">Ano especifico</option>
-                                    <option value="last3" data-i18n="last3Months">Ultimos 3 meses</option>
-                                    <option value="last6" data-i18n="last6Months">Ultimos 6 meses</option>
-                                </select>
-                            </div>
-                            <div class="form-group chart-period-input" id="chartCustomGroup"><label class="form-label" data-i18n="dateRange">Intervalo de datas</label>
-                                <div class="chart-date-range">
-                                    <input type="date" id="chartStartDate" class="form-input" placeholder="Data inicial" onchange="updateChart()">
-                                    <input type="date" id="chartEndDate" class="form-input" placeholder="Data final" onchange="updateChart()">
-                                </div>
-                            </div>
-                            <div class="form-group chart-period-input" id="chartMonthGroup" style="display:none;"><label class="form-label" data-i18n="month">Mes</label><input type="month" id="chartMonth" class="form-input" onchange="updateChart()"></div>
-                            <div class="form-group chart-period-input" id="chartWeekGroup" style="display:none;"><label class="form-label" data-i18n="week">Semana</label><input type="week" id="chartWeek" class="form-input" onchange="updateChart()"></div>
-                            <div class="form-group chart-period-input" id="chartYearGroup" style="display:none;"><label class="form-label" data-i18n="year">Ano</label><input type="number" id="chartYear" class="form-input" min="2020" max="2030" onchange="updateChart()"></div>
-                            <div class="form-group"><label class="form-label" data-i18n="view">Visualizar</label>
-                                <select id="chartTypeFilter" class="form-select" onchange="updateChart()">
-                                    <option value="both" data-i18n="incomeExpense">Receitas e Despesas</option>
-                                    <option value="expense" data-i18n="expenseOnly">Apenas Despesas</option>
-                                    <option value="income" data-i18n="incomeOnly">Apenas Receitas</option>
-                                </select>
-                            </div>
-                            <div class="form-group"><label class="form-label" data-i18n="favorites">Favoritas</label>
-                                <select id="chartFavorites" class="form-select" onchange="updateChart()">
-                                    <option value="all">Todas</option>
-                                    <option value="favorites">Apenas favoritas</option>
-                                    <option value="nonfavorites">Excluir favoritas</option>
-                                </select>
-                            </div>
-                            <div class="form-group"><label class="form-label" data-i18n="chartType">Tipo de grafico</label>
-                                <div class="chart-type-toggle">
-                                    <button type="button" class="chart-type-btn active" data-type="pie" onclick="setChartType('pie')">&#129383; <span data-i18n="pie">Pizza</span></button>
-                                    <button type="button" class="chart-type-btn" data-type="bar" onclick="setChartType('bar')">&#128202; <span data-i18n="bar">Barras</span></button>
-                                    <button type="button" class="chart-type-btn" data-type="line" onclick="setChartType('line')">&#128200; <span data-i18n="line">Linha</span></button>
-                                </div>
-                            </div>
-                            <div class="form-group"><label class="form-label" data-i18n="groupBy">Agrupar por</label>
-                                <select id="chartGroupBy" class="form-select" onchange="updateChart()">
-                                    <option value="category">Categoria</option>
-                                    <option value="date">Data</option>
-                                </select>
-                            </div>
+                        <div class="apple-hero-actions">
+                            <button type="button" class="apple-btn-secondary" onclick="exportChartAsImage()" title="Baixar imagem do gráfico">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                                    <polyline points="7 10 12 15 17 10"></polyline>
+                                    <line x1="12" y1="15" x2="12" y2="3"></line>
+                                </svg>
+                                <span>Exportar Imagem</span>
+                            </button>
                         </div>
-                        <div class="chart-panel-footer">
-                            <div><strong>Categorias selecionadas:</strong> <span id="chartCategorySummary">Todas</span></div>
-                            <button class="btn btn-secondary" type="button" onclick="clearChartCategories()">Limpar categorias</button>
+                    </div>
+
+                    <!-- Apple Health / Wallet KPI Grid -->
+                    <div class="apple-kpi-grid">
+                        <div class="apple-kpi-card income">
+                            <div class="apple-kpi-header">
+                                <span class="apple-kpi-icon">&#128200;</span>
+                                <span class="apple-kpi-label" data-i18n="gains">Receitas</span>
+                            </div>
+                            <div class="apple-kpi-value" id="chartTotalIncome">R$ 0,00</div>
+                            <div class="apple-kpi-sub" id="chartIncomeRatio">100% das movimentações</div>
+                        </div>
+
+                        <div class="apple-kpi-card expense">
+                            <div class="apple-kpi-header">
+                                <span class="apple-kpi-icon">&#128201;</span>
+                                <span class="apple-kpi-label" data-i18n="spending">Despesas</span>
+                            </div>
+                            <div class="apple-kpi-value" id="chartTotalExpense">R$ 0,00</div>
+                            <div class="apple-kpi-sub" id="chartExpenseRatio">0% das movimentações</div>
+                        </div>
+
+                        <div class="apple-kpi-card balance" id="chartKpiBalanceCard">
+                            <div class="apple-kpi-header">
+                                <span class="apple-kpi-icon">&#128176;</span>
+                                <span class="apple-kpi-label" data-i18n="balance">Saldo Líquido</span>
+                            </div>
+                            <div class="apple-kpi-value" id="chartTotalBalance">R$ 0,00</div>
+                            <div class="apple-kpi-sub" id="chartBalanceStatus">Superávit</div>
+                        </div>
+
+                        <div class="apple-kpi-card savings">
+                            <div class="apple-kpi-header">
+                                <span class="apple-kpi-icon">&#127919;</span>
+                                <span class="apple-kpi-label">Taxa de Poupança</span>
+                            </div>
+                            <div class="apple-kpi-value" id="chartSavingsRate">0.0%</div>
+                            <div class="apple-kpi-sub" id="chartSavingsLabel">Do total recebido</div>
+                        </div>
+                    </div>
+
+                    <!-- Apple Insight Banner -->
+                    <div class="apple-insight-banner" id="chartInsightBanner">
+                        <div class="apple-insight-icon" id="chartInsightIcon">✨</div>
+                        <div class="apple-insight-text">
+                            <strong id="chartInsightTitle">Diagnóstico do Período</strong>
+                            <p id="chartInsightDesc">Analise seus padrões de receitas e despesas com alta precisão.</p>
                         </div>
                     </div>
                 </div>
-                <div class="chart-container-wrapper"><canvas id="financeChart"></canvas></div>
+
+                <!-- Main Chart Canvas & Controls Card -->
+                <div class="card apple-chart-main-card">
+                    <!-- Segmented Period Selector (Apple Pills) -->
+                    <div class="apple-segmented-group">
+                        <div class="apple-segmented-pills" id="chartPeriodPills">
+                            <button type="button" class="apple-pill-btn" data-period="last3" onclick="selectAppleChartPeriod('last3')">3 Meses</button>
+                            <button type="button" class="apple-pill-btn" data-period="last6" onclick="selectAppleChartPeriod('last6')">6 Meses</button>
+                            <button type="button" class="apple-pill-btn active" data-period="month" onclick="selectAppleChartPeriod('month')">Mês</button>
+                            <button type="button" class="apple-pill-btn" data-period="year" onclick="selectAppleChartPeriod('year')">Ano</button>
+                            <button type="button" class="apple-pill-btn" data-period="custom" onclick="selectAppleChartPeriod('custom')">Personalizado</button>
+                        </div>
+                        <select id="chartPeriod" class="form-select" style="display:none;" onchange="toggleChartPeriodInputs(); updateChart();">
+                            <option value="last3">Últimos 3 meses</option>
+                            <option value="last6">Últimos 6 meses</option>
+                            <option value="month" selected>Mês específico</option>
+                            <option value="year">Ano específico</option>
+                            <option value="custom">Personalizado</option>
+                        </select>
+                    </div>
+
+                    <!-- Dynamic Period Input Fields -->
+                    <div class="chart-period-input apple-period-inputs" id="chartCustomGroup" style="display:none;">
+                        <div class="apple-date-range-row">
+                            <div class="apple-input-wrapper">
+                                <label class="apple-mini-label">Data Inicial</label>
+                                <input type="date" id="chartStartDate" class="form-input" onchange="updateChart()">
+                            </div>
+                            <span class="apple-range-sep">→</span>
+                            <div class="apple-input-wrapper">
+                                <label class="apple-mini-label">Data Final</label>
+                                <input type="date" id="chartEndDate" class="form-input" onchange="updateChart()">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="chart-period-input apple-period-inputs" id="chartMonthGroup" style="display:block;">
+                        <label class="apple-mini-label">Mês Selecionado</label>
+                        <input type="month" id="chartMonth" class="form-input" onchange="updateChart()">
+                    </div>
+                    <div class="chart-period-input apple-period-inputs" id="chartYearGroup" style="display:none;">
+                        <label class="apple-mini-label">Ano Selecionado</label>
+                        <input type="number" id="chartYear" class="form-input" min="2020" max="2035" onchange="updateChart()">
+                    </div>
+                    <div class="chart-period-input" id="chartWeekGroup" style="display:none;">
+                        <input type="week" id="chartWeek" class="form-input" onchange="updateChart()">
+                    </div>
+
+                    <!-- Chart Type Selector (Apple Segmented Bar with Icons) -->
+                    <div class="apple-chart-types-wrapper">
+                        <div class="apple-chart-type-selector" id="chartTypeSelector">
+                            <button type="button" class="apple-type-btn active" data-type="donut" onclick="setChartType('donut')" title="Distribuição por Categoria">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"></circle><circle cx="12" cy="12" r="4"></circle></svg>
+                                <span>Rosca</span>
+                            </button>
+                            <button type="button" class="apple-type-btn" data-type="bar" onclick="setChartType('bar')" title="Comparativo em Colunas">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M18 20V10M12 20V4M6 20V14"></path></svg>
+                                <span>Barras</span>
+                            </button>
+                            <button type="button" class="apple-type-btn" data-type="line" onclick="setChartType('line')" title="Evolução Temporal Suave">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M3 17l6-6 4 4 8-8"></path></svg>
+                                <span>Tendência</span>
+                            </button>
+                            <button type="button" class="apple-type-btn" data-type="radar" onclick="setChartType('radar')" title="Equilíbrio Multidimensional">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><polygon points="12 2 22 8.5 22 15.5 12 22 2 15.5 2 8.5 12 2"></polygon></svg>
+                                <span>Radar</span>
+                            </button>
+                            <button type="button" class="apple-type-btn" data-type="stacked" onclick="setChartType('stacked')" title="Composição Empilhada">
+                                <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2"><rect x="3" y="14" width="18" height="7" rx="2"></rect><rect x="3" y="3" width="18" height="7" rx="2"></rect></svg>
+                                <span>Empilhado</span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Secondary Filters Row (Movement, Grouping, Favorites, Categories) -->
+                    <div class="apple-filters-row">
+                        <div class="apple-filter-item">
+                            <label class="apple-mini-label">Movimento</label>
+                            <select id="chartTypeFilter" class="form-select apple-select" onchange="updateChart()">
+                                <option value="both">Receitas e Despesas</option>
+                                <option value="expense">Apenas Despesas</option>
+                                <option value="income">Apenas Receitas</option>
+                            </select>
+                        </div>
+                        <div class="apple-filter-item">
+                            <label class="apple-mini-label">Agrupar por</label>
+                            <select id="chartGroupBy" class="form-select apple-select" onchange="updateChart()">
+                                <option value="category">Por Categoria</option>
+                                <option value="date">Por Data</option>
+                            </select>
+                        </div>
+                        <div class="apple-filter-item">
+                            <label class="apple-mini-label">Favoritas</label>
+                            <select id="chartFavorites" class="form-select apple-select" onchange="updateChart()">
+                                <option value="all">Todas</option>
+                                <option value="favorites">Só Favoritas</option>
+                                <option value="nonfavorites">Sem Favoritas</option>
+                            </select>
+                        </div>
+                        <div class="apple-filter-item apple-category-filter-item">
+                            <label class="apple-mini-label">Filtro de Categorias</label>
+                            <button type="button" class="btn btn-secondary apple-cat-btn" onclick="openCategorySelectionModal('chart')">
+                                <span>Categorias:</span>
+                                <strong id="chartCategorySummary">Todas</strong>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Chart Canvas Section -->
+                    <div class="chart-container-wrapper apple-canvas-container" id="appleChartWrapper">
+                        <canvas id="financeChart" role="img" aria-label="Painel de Inteligência Financeira"></canvas>
+                        <div id="chartEmptyState" class="empty-state" hidden>
+                            <div class="apple-empty-icon">&#128202;</div>
+                            <h3>Nenhum lançamento no período</h3>
+                            <p>Tente selecionar outro intervalo ou adicione novos lançamentos para visualizar análises detalhadas.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Category Breakdown Ranking Card -->
+                <div class="card apple-breakdown-card" id="chartBreakdownCard">
+                    <div class="apple-breakdown-header">
+                        <div>
+                            <h3 class="apple-breakdown-title">Composição por Categoria</h3>
+                            <p class="apple-breakdown-subtitle">Distribuição percentual e ranking dos seus valores</p>
+                        </div>
+                        <span class="apple-badge-sub" id="chartTransactionCountBadge"><span id="chartTransactionCount">0</span> lançamentos</span>
+                    </div>
+                    <div class="apple-category-bars-list" id="appleCategoryBarsList">
+                        <!-- Populated dynamically by JS -->
+                    </div>
+                </div>
             </div>
         </div>
 
@@ -619,11 +645,12 @@
             <div class="summary-section">
                 <div class="summary-header" onclick="toggleSummary('daily')">
                     <div class="summary-title"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"
-                            stroke="currentColor" stroke-width="2">
-                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-                            <line x1="16" y1="2" x2="16" y2="6" />
-                            <line x1="8" y1="2" x2="8" y2="6" />
-                            <line x1="3" y1="10" x2="21" y2="10" />
+                            stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="3.5" />
+                            <line x1="16" y1="2" x2="16" y2="5" />
+                            <line x1="8" y1="2" x2="8" y2="5" />
+                            <line x1="3" y1="9.5" x2="21" y2="9.5" />
+                            <circle cx="12" cy="15.5" r="2" fill="currentColor" />
                         </svg><span data-i18n="dailySummary">Resumo Diario</span></div><svg class="expand-icon"
                         width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <polyline points="6,9 12,15 18,9" />
@@ -658,10 +685,12 @@
                     <div class="summary-title">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                            <line x1="16" y1="2" x2="16" y2="6"></line>
-                            <line x1="8" y1="2" x2="8" y2="6"></line>
-                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                            <rect x="3" y="4" width="18" height="18" rx="3.5"></rect>
+                            <line x1="16" y1="2" x2="16" y2="5"></line>
+                            <line x1="8" y1="2" x2="8" y2="5"></line>
+                            <line x1="3" y1="9.5" x2="21" y2="9.5"></line>
+                            <line x1="7" y1="13.5" x2="17" y2="13.5"></line>
+                            <line x1="7" y1="17" x2="13" y2="17"></line>
                         </svg>
                         <span data-i18n="weeklySummary">Resumo Semanal</span>
                     </div>
@@ -699,10 +728,16 @@
                     <div class="summary-title">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                            <line x1="8" y1="2" x2="8" y2="6"></line>
-                            <line x1="16" y1="2" x2="16" y2="6"></line>
-                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                            <rect x="3" y="4" width="18" height="18" rx="3.5"></rect>
+                            <line x1="8" y1="2" x2="8" y2="5"></line>
+                            <line x1="16" y1="2" x2="16" y2="5"></line>
+                            <line x1="3" y1="9.5" x2="21" y2="9.5"></line>
+                            <circle cx="8" cy="13.5" r="1.1" fill="currentColor"></circle>
+                            <circle cx="12" cy="13.5" r="1.1" fill="currentColor"></circle>
+                            <circle cx="16" cy="13.5" r="1.1" fill="currentColor"></circle>
+                            <circle cx="8" cy="17" r="1.1" fill="currentColor"></circle>
+                            <circle cx="12" cy="17" r="1.1" fill="currentColor"></circle>
+                            <circle cx="16" cy="17" r="1.1" fill="currentColor"></circle>
                         </svg>
                         <span data-i18n="monthlySummary">Resumo Mensal</span>
                     </div>
@@ -740,10 +775,12 @@
                     <div class="summary-title">
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor"
                             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
-                            <line x1="16" y1="2" x2="16" y2="6"></line>
-                            <line x1="8" y1="2" x2="8" y2="6"></line>
-                            <line x1="3" y1="10" x2="21" y2="10"></line>
+                            <rect x="3" y="4" width="18" height="18" rx="3.5"></rect>
+                            <line x1="16" y1="2" x2="16" y2="5"></line>
+                            <line x1="8" y1="2" x2="8" y2="5"></line>
+                            <line x1="3" y1="9.5" x2="21" y2="9.5"></line>
+                            <rect x="7" y="13" width="4" height="4" rx="1" fill="currentColor" fill-opacity="0.25"></rect>
+                            <rect x="13" y="13" width="4" height="4" rx="1" fill="currentColor" fill-opacity="0.25"></rect>
                         </svg>
                         <span data-i18n="yearlySummary">Resumo Anual</span>
                     </div>
@@ -1132,6 +1169,46 @@
                     </button>
                 </div>
                 <input type="file" id="importFile" accept=".json" style="display:none;" onchange="importData(event)">
+            </div>
+
+            <!-- Apple Storage & Cache Optimization Card -->
+            <div class="card apple-storage-card">
+                <div class="apple-storage-header">
+                    <div class="apple-storage-icon-circle">
+                        <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                        </svg>
+                    </div>
+                    <div>
+                        <h3 style="font-size: 1.15rem; font-weight: 700; margin-bottom: 2px;">Otimização & Limpeza de Cache</h3>
+                        <p style="font-size: 0.88rem; color: var(--dark-text-3);">Mantenha o app veloz, leve e responsivo no seu Android / PWA</p>
+                    </div>
+                </div>
+                <div class="apple-storage-stats-grid">
+                    <div class="apple-storage-stat-item">
+                        <span class="apple-storage-stat-label">Armazenamento em Uso</span>
+                        <strong class="apple-storage-stat-value" id="storageEstimateValue">Calculando...</strong>
+                    </div>
+                    <div class="apple-storage-stat-item">
+                        <span class="apple-storage-stat-label">Lançamentos em Cache</span>
+                        <strong class="apple-storage-stat-value" id="storageTransactionsCount">0</strong>
+                    </div>
+                    <div class="apple-storage-stat-item">
+                        <span class="apple-storage-stat-label">Desempenho da Memória</span>
+                        <strong class="apple-storage-stat-value" id="storageHealthStatus" style="color: #30D158;">Excelente</strong>
+                    </div>
+                </div>
+                <div class="apple-storage-actions">
+                    <button type="button" class="btn btn-primary apple-clean-cache-btn" onclick="optimizeAppMemoryAndCache(true)">
+                        <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                            <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon>
+                        </svg>
+                        <span>Limpar Cache & Otimizar Memória Agora</span>
+                    </button>
+                    <button type="button" class="btn btn-secondary" onclick="clearOrphanedReceipts()" style="font-size: 0.85rem;">
+                        Limpar Imagens Temporárias
+                    </button>
+                </div>
             </div>
         </div>
 
@@ -1645,10 +1722,10 @@
                 </div>
                 <div class="fab-dial-icon fab-dial-icon-voice">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
-                        <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-                        <line x1="12" y1="19" x2="12" y2="23"></line>
-                        <line x1="8" y1="23" x2="16" y2="23"></line>
+                        <rect x="9" y="2" width="6" height="12" rx="3"></rect>
+                        <path d="M5 10a7 7 0 0 0 14 0"></path>
+                        <line x1="12" y1="17" x2="12" y2="21"></line>
+                        <line x1="8" y1="21" x2="16" y2="21"></line>
                     </svg>
                 </div>
             </button>
@@ -1661,11 +1738,10 @@
                 </div>
                 <div class="fab-dial-icon fab-dial-icon-doc">
                     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                        <polyline points="14 2 14 8 20 8"></polyline>
-                        <line x1="16" y1="13" x2="8" y2="13"></line>
-                        <line x1="16" y1="17" x2="8" y2="17"></line>
-                        <polyline points="10 9 9 9 8 9"></polyline>
+                        <path d="M4 7V4h3M20 7V4h-3M4 17v3h3M20 17v3h-3"></path>
+                        <rect x="6.5" y="6.5" width="11" height="11" rx="2"></rect>
+                        <line x1="9.5" y1="10" x2="14.5" y2="10"></line>
+                        <line x1="9.5" y1="13.5" x2="13" y2="13.5"></line>
                     </svg>
                 </div>
             </button>
@@ -1873,18 +1949,19 @@
         </div>
     </div>
     <button class="floating-calc-btn" onclick="toggleCalculator()" title="Calculadora">
-        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
             stroke-linecap="round" stroke-linejoin="round">
-            <rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect>
-            <line x1="8" y1="6" x2="16" y2="6"></line>
-            <line x1="16" y1="14" x2="16" y2="18"></line>
-            <path d="M16 10h.01"></path>
-            <path d="M12 10h.01"></path>
-            <path d="M8 10h.01"></path>
-            <path d="M12 14h.01"></path>
-            <path d="M8 14h.01"></path>
-            <path d="M12 18h.01"></path>
-            <path d="M8 18h.01"></path>
+            <rect x="4" y="2" width="16" height="20" rx="4"></rect>
+            <rect x="7.5" y="5.5" width="9" height="3" rx="1" fill="currentColor" fill-opacity="0.18"></rect>
+            <circle cx="8" cy="12" r="1" fill="currentColor"></circle>
+            <circle cx="12" cy="12" r="1" fill="currentColor"></circle>
+            <circle cx="16" cy="12" r="1" fill="currentColor"></circle>
+            <circle cx="8" cy="16" r="1" fill="currentColor"></circle>
+            <circle cx="12" cy="16" r="1" fill="currentColor"></circle>
+            <line x1="15" y1="16" x2="17" y2="16"></line>
+            <line x1="15" y1="18.5" x2="17" y2="18.5"></line>
+            <circle cx="8" cy="19.5" r="0.75" fill="currentColor"></circle>
+            <circle cx="12" cy="19.5" r="0.75" fill="currentColor"></circle>
         </svg>
     </button>
 
@@ -1946,6 +2023,66 @@
             </div>
         </div>
     </div>
+
+    <!-- Apple Bottom Tab Bar -->
+    <nav class="apple-tab-bar" id="appleTabBar" role="navigation" aria-label="Navegação Principal">
+        <!-- 1. Buscar (Substituindo Extrato) -->
+        <button type="button" class="apple-tab-item" data-tab="search" onclick="switchAppleTab('search')" aria-label="Buscar">
+            <div class="apple-tab-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="7.5"></circle>
+                    <path d="m16.5 16.5 4.5 4.5"></path>
+                </svg>
+            </div>
+            <span class="apple-tab-label" data-i18n="tabSearch">Buscar</span>
+        </button>
+
+        <!-- 2. Gráficos -->
+        <button type="button" class="apple-tab-item" data-tab="charts" onclick="switchAppleTab('charts')" aria-label="Gráficos">
+            <div class="apple-tab-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3.5" y="13" width="4" height="7" rx="1.5"></rect>
+                    <rect x="10" y="8" width="4" height="12" rx="1.5"></rect>
+                    <rect x="16.5" y="3.5" width="4" height="16.5" rx="1.5"></rect>
+                </svg>
+            </div>
+            <span class="apple-tab-label" data-i18n="tabCharts">Gráficos</span>
+        </button>
+
+        <!-- 3. Lançar (No Centro com Destaque Especial Apple) -->
+        <button type="button" class="apple-tab-item apple-tab-item-center active" data-tab="new-transaction" onclick="switchAppleTab('new-transaction')" aria-label="Novo Lançamento">
+            <div class="apple-tab-icon apple-tab-center-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+            </div>
+            <span class="apple-tab-label" data-i18n="tabNew">Lançar</span>
+        </button>
+
+        <!-- 4. Resumos -->
+        <button type="button" class="apple-tab-item" data-tab="summaries" onclick="switchAppleTab('summaries')" aria-label="Resumos">
+            <div class="apple-tab-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3.5" y="4" width="17" height="16" rx="3.5"></rect>
+                    <path d="M7.5 9h9M7.5 13h6M7.5 17h4"></path>
+                </svg>
+            </div>
+            <span class="apple-tab-label" data-i18n="tabSummaries">Resumos</span>
+        </button>
+
+        <!-- 5. Mais -->
+        <button type="button" class="apple-tab-item" data-tab="menu" onclick="toggleMenu()" aria-label="Menu">
+            <div class="apple-tab-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round">
+                    <circle cx="12" cy="12" r="1.8" fill="currentColor"></circle>
+                    <circle cx="5.5" cy="12" r="1.8" fill="currentColor"></circle>
+                    <circle cx="18.5" cy="12" r="1.8" fill="currentColor"></circle>
+                </svg>
+            </div>
+            <span class="apple-tab-label" data-i18n="tabMore">Mais</span>
+        </button>
+    </nav>
 
     <script src="./js/app.js"></script>
 </body>

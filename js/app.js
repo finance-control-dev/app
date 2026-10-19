@@ -61,7 +61,7 @@
 
         let currentUser = null;
         let pendingSharedReceiptFile = null;
-        let transactions = []; let goals = []; let editingTransactionId = null; let editingGoalId = null; let lastSearchResults = []; let financeChartInstance = null; let currentChartType = 'bar';
+        let transactions = []; let goals = []; let editingTransactionId = null; let editingGoalId = null; let lastSearchResults = []; let financeChartInstance = null; let currentChartType = 'donut';
         let contasFixas = []; let cfBalance = 0; let cfBalanceSavedAt = null; let editingContaFixaId = null;
         let lastBackupDate = localStorage.getItem('lastBackupDate') || '';
         let currentLang = localStorage.getItem('lang') || 'pt-BR';
@@ -309,12 +309,15 @@
         const i18n = {
             'pt-BR': {
                 logout: 'Sair', pageTitle: 'Controle Financeiro Aprimorado', appTitle: 'Finan\u00E7as', saveTransaction: 'Salvar Transa\u00E7\u00E3o', placeholderDescShort: 'Descrição da sua transação', menuNewTransaction: 'Nova Transa\u00E7\u00E3o', menuTransactions: 'Transa\u00E7\u00F5es', menuSearch: 'Buscar', menuCharts: 'Gr\u00E1fico', menuSummaries: 'Resumos', menuGoals: 'Metas', menuTrash: 'Lixeira', menuBackup: 'Backup', menuFixedAccounts: 'Contas Fixas', menuAbout: 'Sobre', menuContact: 'Contato', menu: 'Menu', allTransactions: 'Todas as Transa\u00E7\u00F5es', searchTransactions: 'Buscar Transa\u00E7\u00F5es', searchByName: 'Buscar por nome/descri\u00E7\u00E3o', category: 'Categoria', type: 'Tipo', monthYear: 'M\u00EAs/Ano', allCategories: 'Todas as categorias', allTypes: 'Todos os tipos', income: 'Receita', expense: 'Despesa', favorites: 'Favoritas', favoritesOnly: 'Apenas favoritas', search: 'Buscar', clearFilters: 'Limpar Filtros', exportResults: 'Exportar Resultados', searchResults: 'Resultados da Busca', transactionsFound: 'transa\u00E7\u00F5es encontradas', searchIncome: 'Receitas na Busca', searchExpense: 'Despesas na Busca', searchBalance: 'Saldo da Busca', noTransactionsFound: 'Nenhuma transa\u00E7\u00E3o encontrada com os filtros aplicados', newTransaction: 'Nova Transa\u00E7\u00E3o', date: 'Data', value: 'Valor (R$)', description: 'Descri\u00E7\u00E3o', selectCategory: 'Selecione uma categoria', placeholderDesc: 'Descreva a transa\u00E7\u00E3o...', favoriteTransaction: 'Favoritar esta transa\u00E7\u00E3o', clear: 'Limpar', clearAll: 'Limpar Tudo', gains: 'Ganhos', spending: 'Gastos', balance: 'Saldo', dailyTransactions: 'Transa\u00E7\u00F5es do Dia Selecionado', chartsTitle: 'Gr\u00E1ficos de Receitas e Despesas', period: 'Per\u00EDodo', month: 'M\u00EAs', week: 'Semana', year: 'Ano', monthSpecific: 'M\u00EAs espec\u00EDfico', weekSpecific: 'Semana espec\u00EDfica', yearSpecific: 'Ano espec\u00EDfico', last3Months: '\u00DAltimos 3 meses', last6Months: '\u00DAltimos 6 meses', customPeriod: 'Personalizado', dateRange: 'Intervalo de Datas', startDate: 'Data Inicial', endDate: 'Data Final', today: 'Hoje', groupBy: 'Agrupar por', view: 'Visualizar', incomeExpense: 'Receitas e Despesas', expenseOnly: 'Apenas Despesas', incomeOnly: 'Apenas Receitas', chartType: 'Tipo de gr\u00E1fico', pie: 'Pizza', bar: 'Barras', line: 'Linhas', dailySummary: 'Resumo Di\u00E1rio', weeklySummary: 'Resumo Semanal', monthlySummary: 'Resumo Mensal', yearlySummary: 'Resumo Anual', selectDay: 'Selecionar Dia', selectWeek: 'Selecionar Semana', selectMonth: 'Selecionar M\u00EAs', selectYear: 'Selecionar Ano', allMonths: 'Todos os meses', financialGoals: 'Metas Financeiras', newGoal: 'Nova Meta', emptyTrash: 'Esvaziar lixeira', trashInfo: 'Transa\u00E7\u00F5es exclu\u00EDdas podem ser restauradas ou removidas permanentemente.', backupExport: 'Backup e Exporta\u00E7\u00E3o', exportJson: 'Exportar JSON', importJson: 'Importar JSON', exportExcel: 'Exportar Excel', manualSync: 'Sincronizar na nuvem',
+                tabSearch: 'Buscar', tabCharts: 'Gráficos', tabNew: 'Lançar', tabSummaries: 'Resumos', tabMore: 'Mais', chartTypeDonut: 'Rosca', chartTypeBar: 'Barras', chartTypeLine: 'Tendência', chartTypeRadar: 'Radar', chartTypeStacked: 'Empilhado', cleanCacheBtn: 'Limpar Cache & Otimizar',
                 editTransaction: 'Editar Transa\u00E7\u00E3o', save: 'Salvar', cancel: 'Cancelar', addGoal: 'Nova Meta', goalDescription: 'Descri\u00E7\u00E3o da Meta', goalTarget: 'Valor da Meta (R$)', goalCurrent: 'Valor Atual (R$)', saveGoal: 'Salvar Meta', editGoal: 'Editar Meta', exportToExcel: 'Exportar para Excel', allRecords: 'Todos os registros', onlyIncome: 'Apenas ganhos', onlyExpense: 'Apenas gastos', calculator: 'Calculadora', edit: 'Editar', delete: 'Excluir', deletePermanent: 'Excluir permanentemente', moveToTrash: 'Mover esta transa\u00E7\u00E3o para a lixeira?', movedToTrash: 'Transa\u00E7\u00E3o movida para a lixeira.', deletePermanentConfirm: 'Excluir permanentemente? Esta a\u00E7\u00E3o n\u00E3o pode ser desfeita.', trashEmpty: 'A lixeira j\u00E1 est\u00E1 vazia.', emptyTrashConfirm: 'Excluir permanentemente as', trashEmptyConfirm: 'transa\u00E7\u00F5es) da lixeira? Esta a\u00E7\u00E3o n\u00E3o pode ser desfeita.', trashEmptied: 'Lixeira esvaziada.', noTrash: 'Nenhuma transa\u00E7\u00E3o na lixeira', fillGoalFields: 'Por favor, preencha os campos da meta!', currentNotGreater: 'O valor atual n\u00E3o pode ser maior que a meta!', goalAdded: 'Meta adicionada!', goalEdited: 'Meta editada!', deleteGoalConfirm: 'Tem certeza que deseja excluir esta meta?', goalDeleted: 'Meta exclu\u00EDda!', noGoals: 'Nenhuma meta cadastrada', restore: 'Restaurar', saveError: 'Erro ao salvar dados!', goalPlaceholder: 'Ex: Comprar um carro', noExport: 'Nenhuma transa\u00E7\u00E3o para exportar!', fillAllFields: 'Por favor, preencha todos os campos!', transactionAdded: 'Transa\u00E7\u00E3o adicionada com sucesso!', transactionEdited: 'Transa\u00E7\u00E3o editada!', transactionRestored: 'Transa\u00E7\u00E3o restaurada!', transactionDeletedPerm: 'Transa\u00E7\u00E3o exclu\u00EDda permanentemente.', noTransactionsPeriod: 'Nenhuma transa\u00E7\u00E3o para este per\u00EDodo', noTransactionsDay: 'Nenhuma transa\u00E7\u00E3o para este dia', noTransactionsFilters: 'Nenhuma transa\u00E7\u00E3o encontrada com os filtros!', exportSuccess: 'Exportado para Excel com sucesso!', exportError: 'Erro ao exportar para Excel!', importConfirm: 'Importar este arquivo ir\u00E1 substituir todos os dados atuais. Deseja continuar?', importSuccess: 'Dados importados com sucesso!', clearConfirm: '\u26A0\uFE0F ATEN\u00C7\u00C3O: Esta a\u00E7\u00E3o ir\u00E1 apagar TODOS os dados. Deseja continuar?', allDataCleared: 'Todos os dados foram apagados!', backupExported: 'Backup JSON exportado!', backupExportError: 'Erro ao exportar o backup!', loadError: 'Erro ao carregar dados!', fillGoalCorrect: 'Preencha os campos corretamente!', noTransactionsFoundShort: 'Nenhuma transa\u00E7\u00E3o encontrada', viewReceipt: 'Ver comprovante anexado', viewReceiptModalTitle: 'Comprovante Anexado', downloadReceipt: 'Baixar Comprovante', openInNewTab: 'Abrir em Nova Aba', close: 'Fechar', receiptDownloaded: 'Comprovante baixado com sucesso!', receiptLoading: 'Carregando comprovante...', fontSizeTitle: 'Tamanho do Texto', fontSmall: 'Pequeno', fontNormal: 'Padrão', fontMedium: 'Médio', fontLarge: 'Grande'
             }, 'en': {
                 pageTitle: 'Financial Management - Pro', appTitle: 'Finances', saveTransaction: 'Save Transaction', placeholderDescShort: 'Transaction description', menuNewTransaction: 'New Transaction', menuTransactions: 'Transactions', menuSearch: 'Search', menuCharts: 'Charts', menuSummaries: 'Summaries', menuGoals: 'Goals', menuTrash: 'Trash', menuBackup: 'Backup', menuFixedAccounts: 'Fixed Expenses', menuAbout: 'About', menuContact: 'Contact', menu: 'Menu', allTransactions: 'All Transactions', searchTransactions: 'Search Transactions', searchByName: 'Search by description or name', category: 'Category', type: 'Type', monthYear: 'Month/Year', allCategories: 'All categories', allTypes: 'All types', income: 'Income', expense: 'Expense', favorites: 'Favorites', favoritesOnly: 'Favorites only', search: 'Search', clearFilters: 'Clear Filters', exportResults: 'Export Results', searchResults: 'Search Results', transactionsFound: 'transactions found', searchIncome: 'Search Income', searchExpense: 'Search Expenses', searchBalance: 'Search Balance', noTransactionsFound: 'No transactions found matching the applied filters', newTransaction: 'New Transaction', date: 'Date', value: 'Amount ($)', description: 'Description', selectCategory: 'Select a category', placeholderDesc: 'Enter transaction description...', favoriteTransaction: 'Add to favorites', clear: 'Clear', clearAll: 'Clear All', gains: 'Income', spending: 'Expenses', balance: 'Balance', dailyTransactions: 'Transactions for Selected Day', chartsTitle: 'Income & Expense Charts', period: 'Period', month: 'Month', week: 'Week', year: 'Year', monthSpecific: 'Specific month', weekSpecific: 'Specific week', yearSpecific: 'Specific year', last3Months: 'Last 3 months', last6Months: 'Last 6 months', customPeriod: 'Custom range', dateRange: 'Date Range', startDate: 'Start Date', endDate: 'End Date', today: 'Today', groupBy: 'Group by', view: 'View', incomeExpense: 'Income and Expenses', expenseOnly: 'Expenses only', incomeOnly: 'Income only', chartType: 'Chart type', logout: 'Log Out', pie: 'Pie', bar: 'Bar', line: 'Line', dailySummary: 'Daily Summary', weeklySummary: 'Weekly Summary', monthlySummary: 'Monthly Summary', yearlySummary: 'Yearly Summary', selectDay: 'Select Day', selectWeek: 'Select Week', selectMonth: 'Select Month', selectYear: 'Select Year', allMonths: 'All months', financialGoals: 'Financial Goals', newGoal: 'New Goal', emptyTrash: 'Empty Trash', trashInfo: 'Deleted transactions can be restored or permanently removed.', backupExport: 'Backup and Export', exportJson: 'Export JSON', importJson: 'Import JSON', exportExcel: 'Export to Excel', manualSync: 'Sync to Cloud',
+                tabSearch: 'Search', tabCharts: 'Charts', tabNew: 'New', tabSummaries: 'Summaries', tabMore: 'More', chartTypeDonut: 'Donut', chartTypeBar: 'Bars', chartTypeLine: 'Trend', chartTypeRadar: 'Radar', chartTypeStacked: 'Stacked', cleanCacheBtn: 'Clear Cache & Optimize',
                 editTransaction: 'Edit Transaction', save: 'Save', cancel: 'Cancel', addGoal: 'New Goal', goalDescription: 'Goal Description', goalTarget: 'Target Amount ($)', goalCurrent: 'Current Amount ($)', saveGoal: 'Save Goal', editGoal: 'Edit Goal', exportToExcel: 'Export to Excel', allRecords: 'All records', onlyIncome: 'Income only', onlyExpense: 'Expenses only', calculator: 'Calculator', edit: 'Edit', delete: 'Delete', deletePermanent: 'Delete permanently', moveToTrash: 'Move this transaction to trash?', movedToTrash: 'Transaction moved to trash.', deletePermanentConfirm: 'Delete permanently? This action cannot be undone.', trashEmpty: 'Trash is already empty.', emptyTrashConfirm: 'Permanently delete the', trashEmptyConfirm: 'transaction(s) from trash? This action cannot be undone.', trashEmptied: 'Trash emptied.', noTrash: 'No transactions in trash', fillGoalFields: 'Please fill in all goal fields.', currentNotGreater: 'Current amount cannot exceed the target amount.', goalAdded: 'Goal created successfully!', goalEdited: 'Goal updated successfully!', deleteGoalConfirm: 'Are you sure you want to delete this goal?', goalDeleted: 'Goal deleted.', noGoals: 'No goals found', restore: 'Restore', saveError: 'Error saving data.', goalPlaceholder: 'e.g. Buy a car', noExport: 'No transactions to export.', fillAllFields: 'Please fill in all fields.', transactionAdded: 'Transaction added successfully!', transactionEdited: 'Transaction updated successfully!', transactionRestored: 'Transaction restored successfully.', transactionDeletedPerm: 'Transaction permanently deleted.', noTransactionsPeriod: 'No transactions found for this period', noTransactionsDay: 'No transactions found for this day', noTransactionsFilters: 'No transactions found matching the filters.', exportSuccess: 'Exported to Excel successfully!', exportError: 'Error exporting to Excel.', importConfirm: 'Importing this file will replace all current data. Do you want to continue?', importSuccess: 'Data imported successfully!', clearConfirm: '\u26A0\uFE0F WARNING: This action will permanently erase ALL data. Do you want to continue?', allDataCleared: 'All data has been cleared.', backupExported: 'JSON backup exported successfully!', backupExportError: 'Error exporting backup.', loadError: 'Error loading data.', fillGoalCorrect: 'Please fill in the fields correctly.', noTransactionsFoundShort: 'No transactions found', viewReceipt: 'View attached receipt', viewReceiptModalTitle: 'Attached Receipt', downloadReceipt: 'Download Receipt', openInNewTab: 'Open in New Tab', close: 'Close', receiptDownloaded: 'Receipt downloaded successfully!', receiptLoading: 'Loading receipt...', fontSizeTitle: 'Text Size', fontSmall: 'Small', fontNormal: 'Default', fontMedium: 'Medium', fontLarge: 'Large'
             }, 'es': {
-                logout: 'Cerrar sesi\u00F3n', pageTitle: 'Control Financiero Avanzado', appTitle: 'Finanzas', saveTransaction: 'Guardar Transacci\u00F3n', placeholderDescShort: 'Descripci\u00F3n de la transacci\u00F3n', menuNewTransaction: 'Nueva Transacci\u00F3n', menuTransactions: 'Transacciones', menuSearch: 'Buscar', menuCharts: 'Gr\u00E1ficos', menuSummaries: 'Res\u00FAmenes', menuGoals: 'Metas', menuTrash: 'Papelera', menuBackup: 'Copia de Seguridad', menuFixedAccounts: 'Cuentas Fijas', menuAbout: 'Acerca de', menuContact: 'Contacto', menu: 'Men\u00FA', allTransactions: 'Todas las Transacciones', searchTransactions: 'Buscar Transacciones', searchByName: 'Buscar por nombre o descripci\u00F3n', category: 'Categor\u00EDa', type: 'Tipo', monthYear: 'Mes/A\u00F1o', allCategories: 'Todas las categor\u00EDas', allTypes: 'Todos los tipos', income: 'Ingreso', expense: 'Gasto', favorites: 'Favoritas', favoritesOnly: 'Solo favoritas', search: 'Buscar', clearFilters: 'Limpiar Filtros', exportResults: 'Exportar Resultados', searchResults: 'Resultados de la B\u00FAsqueda', transactionsFound: 'transacciones encontradas', searchIncome: 'Ingresos en B\u00FAsqueda', searchExpense: 'Gastos en B\u00FAsqueda', searchBalance: 'Saldo de B\u00FAsqueda', noTransactionsFound: 'Ninguna transacci\u00F3n encontrada con los filtros aplicados', newTransaction: 'Nueva Transacci\u00F3n', date: 'Fecha', value: 'Importe (R$)', description: 'Descripci\u00F3n', selectCategory: 'Selecciona una categor\u00EDa', placeholderDesc: 'Describe la transacci\u00F3n...', favoriteTransaction: 'A\u00F1adir a favoritas', clear: 'Limpiar', clearAll: 'Limpiar Todo', gains: 'Ingresos', spending: 'Gastos', balance: 'Saldo', dailyTransactions: 'Transacciones del D\u00EDa Seleccionado', chartsTitle: 'Gr\u00E1ficos de Ingresos y Gastos', period: 'Per\u00EDodo', month: 'Mes', week: 'Semana', year: 'A\u00F1o', monthSpecific: 'Mes espec\u00EDfico', weekSpecific: 'Semana espec\u00EDfica', yearSpecific: 'A\u00F1o espec\u00EDfico', last3Months: '\u00DAltimos 3 meses', last6Months: '\u00DAltimos 6 meses', customPeriod: 'Per\u00EDodo personalizado', dateRange: 'Rango de Fechas', startDate: 'Fecha Inicial', endDate: 'Fecha Final', today: 'Hoy', groupBy: 'Agrupar por', view: 'Visualizar', incomeExpense: 'Ingresos y Gastos', expenseOnly: 'Solo Gastos', incomeOnly: 'Solo Ingresos', chartType: 'Tipo de gr\u00E1fico', pie: 'Circular', bar: 'Barras', line: 'L\u00EDneas', dailySummary: 'Resumen Diario', weeklySummary: 'Resumen Semanal', monthlySummary: 'Resumen Mensual', yearlySummary: 'Resumen Anual', selectDay: 'Seleccionar D\u00EDa', selectWeek: 'Seleccionar Semana', selectMonth: 'Seleccionar Mes', selectYear: 'Seleccionar A\u00F1o', allMonths: 'Todos os meses', financialGoals: 'Metas Financieras', newGoal: 'Nueva Meta', emptyTrash: 'Vaciar papelera', trashInfo: 'Las transacciones eliminadas pueden restaurarse o eliminarse permanentemente.', backupExport: 'Copia de Seguridad y Exportaci\u00F3n', exportJson: 'Exportar JSON', importJson: 'Importar JSON', exportExcel: 'Exportar a Excel', manualSync: 'Sincronizar en la nube',
+                logout: 'Cerrar sesi\u00F3n', pageTitle: 'Control Financiero Avanzado', appTitle: 'Finanzas', saveTransaction: 'Guardar Transacci\u00F3n', placeholderDescShort: 'Descripci\u00F3n de la transacci\u00F3n', menuNewTransaction: 'Nueva Transacci\u00F3n', menuTransactions: 'Transacciones', menuSearch: 'Buscar', menuCharts: 'Gr\u00E1ficos', menuSummaries: 'Res\u00FAmenes', menuGoals: 'Metas', menuTrash: 'Papelera', menuBackup: 'Copia de Seguridad', menuFixedAccounts: 'Cuentas Fijas', menuAbout: 'Acerca de', menuContact: 'Contacto', menu: 'Men\u00FA', allTransactions: 'Todas las Transacciones', searchTransactions: 'Buscar Transacciones', searchByName: 'Buscar por nombre o descripci\u00F3n', category: 'Categor\u00EDa', type: 'Tipo', monthYear: 'Mes/A\u00F1o', allCategories: 'Todas las categor\u00EDas', allTypes: 'Todos os tipos', income: 'Ingreso', expense: 'Gasto', favorites: 'Favoritas', favoritesOnly: 'Solo favoritas', search: 'Buscar', clearFilters: 'Limpiar Filtros', exportResults: 'Exportar Resultados', searchResults: 'Resultados de la B\u00FAsqueda', transactionsFound: 'transacciones encontradas', searchIncome: 'Ingresos en B\u00FAsqueda', searchExpense: 'Gastos en B\u00FAsqueda', searchBalance: 'Saldo de B\u00FAsqueda', noTransactionsFound: 'Ninguna transacci\u00F3n encontrada con los filtros aplicados', newTransaction: 'Nueva Transacci\u00F3n', date: 'Fecha', value: 'Importe (R$)', description: 'Descripci\u00F3n', selectCategory: 'Selecciona una categor\u00EDa', placeholderDesc: 'Describe la transacci\u00F3n...', favoriteTransaction: 'A\u00F1adir a favoritas', clear: 'Limpiar', clearAll: 'Limpiar Todo', gains: 'Ingresos', spending: 'Gastos', balance: 'Saldo', dailyTransactions: 'Transacciones del D\u00EDa Seleccionado', chartsTitle: 'Gr\u00E1ficos de Ingresos y Gastos', period: 'Per\u00EDodo', month: 'Mes', week: 'Semana', year: 'A\u00F1o', monthSpecific: 'Mes espec\u00EDfico', weekSpecific: 'Semana espec\u00EDfica', yearSpecific: 'A\u00F1o espec\u00EDfico', last3Months: '\u00DAltimos 3 meses', last6Months: '\u00DAltimos 6 meses', customPeriod: 'Per\u00EDodo personalizado', dateRange: 'Rango de Fechas', startDate: 'Fecha Inicial', endDate: 'Fecha Final', today: 'Hoy', groupBy: 'Agrupar por', view: 'Visualizar', incomeExpense: 'Ingresos y Gastos', expenseOnly: 'Solo Gastos', incomeOnly: 'Solo Ingresos', chartType: 'Tipo de gr\u00E1fico', pie: 'Circular', bar: 'Barras', line: 'L\u00EDneas', dailySummary: 'Resumen Diario', weeklySummary: 'Resumen Semanal', monthlySummary: 'Resumen Mensual', yearlySummary: 'Resumen Anual', selectDay: 'Seleccionar D\u00EDa', selectWeek: 'Seleccionar Semana', selectMonth: 'Seleccionar Mes', selectYear: 'Seleccionar A\u00F1o', allMonths: 'Todos os meses', financialGoals: 'Metas Financieras', newGoal: 'Nueva Meta', emptyTrash: 'Vaciar papelera', trashInfo: 'Las transacciones eliminadas pueden restaurarse o eliminarse permanentemente.', backupExport: 'Copia de Seguridad y Exportaci\u00F3n', exportJson: 'Exportar JSON', importJson: 'Importar JSON', exportExcel: 'Exportar a Excel', manualSync: 'Sincronizar en la nube',
+                tabSearch: 'Buscar', tabCharts: 'Gráficos', tabNew: 'Nuevo', tabSummaries: 'Resúmenes', tabMore: 'Más', chartTypeDonut: 'Rosca', chartTypeBar: 'Barras', chartTypeLine: 'Tendencia', chartTypeRadar: 'Radar', chartTypeStacked: 'Apilado', cleanCacheBtn: 'Limpiar Caché y Optimizar',
                 editTransaction: 'Editar Transacci\u00F3n', save: 'Guardar', cancel: 'Cancelar', addGoal: 'Nueva Meta', goalDescription: 'Descripci\u00F3n de la Meta', goalTarget: 'Importe de la Meta (R$)', goalCurrent: 'Importe Actual (R$)', saveGoal: 'Guardar Meta', editGoal: 'Editar Meta', exportToExcel: 'Exportar a Excel', allRecords: 'Todos los registros', onlyIncome: 'Solo ingresos', onlyExpense: 'Solo gastos', calculator: 'Calculadora', edit: 'Editar', delete: 'Eliminar', deletePermanent: 'Eliminar permanentemente', moveToTrash: '\u00BFMover esta transacci\u00F3n a la papelera?', movedToTrash: 'Transacci\u00F3n movida a la papelera.', deletePermanentConfirm: '\u00BFEliminar permanentemente? Esta acci\u00F3n no se puede deshacer.', trashEmpty: 'La papelera ya est\u00E1 vac\u00EDa.', emptyTrashConfirm: '\u00BFEliminar permanentemente las', trashEmptyConfirm: 'transacciones de la papelera? Esta acci\u00F3n no se puede deshacer.', trashEmptied: 'Papelera vaciada.', noTrash: 'Ninguna transacci\u00F3n en la papelera', fillGoalFields: '\u00A1Por favor, completa los campos de la meta!', currentNotGreater: '\u00A1El importe actual no puede superar la meta!', goalAdded: '\u00A1Meta creada con \u00E9xito!', goalEdited: '\u00A1Meta actualizada con \u00E9xito!', deleteGoalConfirm: '\u00BFEst\u00E1s seguro de que deseas eliminar esta meta?', goalDeleted: '\u00A1Meta eliminada!', noGoals: 'Ninguna meta registrada', restore: 'Restaurar', saveError: '\u00A1Error al guardar datos!', goalPlaceholder: 'Ej: Comprar un coche', noExport: '\u00A1Ninguna transacci\u00F3n para exportar!', fillAllFields: '\u00A1Por favor, completa todos los campos!', transactionAdded: '\u00A1Transacci\u00F3n a\u00F1adida con \u00E9xito!', transactionEdited: '\u00A1Transacci\u00F3n actualizada con \u00E9xito!', transactionRestored: '\u00A1Transacci\u00F3n restaurada!', transactionDeletedPerm: 'Transacci\u00F3n eliminada permanentemente.', noTransactionsPeriod: 'Ninguna transacci\u00F3n para este per\u00EDodo', noTransactionsDay: 'Ninguna transacci\u00F3n para este d\u00EDa', noTransactionsFilters: '\u00A1Ninguna transacci\u00F3n encontrada con los filtros!', exportSuccess: '\u00A1Exportado a Excel con \u00E9xito!', exportError: '\u00A1Error al exportar a Excel!', importConfirm: 'Importar este archivo reemplazar\u00E1 todos los datos actuales. \u00BFDeseas continuar?', importSuccess: '\u00A1Datos importados con \u00E9xito!', clearConfirm: '\u26A0\uFE0F ATENCI\u00D3N: Esta acci\u00F3n borrar\u00E1 TODOS los datos. \u00BFDeseas continuar?', allDataCleared: '\u00A1Todos los datos han sido borrados!', backupExported: '\u00A1Copia de seguridad JSON exportada!', backupExportError: '\u00A1Error al exportar la copia de seguridad!', loadError: '\u00A1Error al cargar datos!', fillGoalCorrect: '\u00A1Completa los campos correctamente!', noTransactionsFoundShort: 'Ninguna transacci\u00F3n encontrada', viewReceipt: 'Ver comprobante adjunto', viewReceiptModalTitle: 'Comprobante Adjunto', downloadReceipt: 'Descargar Comprobante', openInNewTab: 'Abrir en Nueva Pesta\u00F1a', close: 'Cerrar', receiptDownloaded: '\u00A1Comprobante descargado con \u00E9xito!', receiptLoading: 'Cargando comprobante...', fontSizeTitle: 'Tama\u00F1o del Texto', fontSmall: 'Peque\u00F1o', fontNormal: 'Normal', fontMedium: 'Medio', fontLarge: 'Grande'
             }
         };
@@ -422,6 +425,17 @@
             try { if (typeof performSearch === 'function') performSearch(); } catch (e) { console.error('performSearch error:', e); }
             try { if (typeof updateHeaderGreeting === 'function') updateHeaderGreeting(); } catch (e) { console.error('updateHeaderGreeting error:', e); }
             try { if (typeof updateDatePillText === 'function') updateDatePillText(); } catch (e) { console.error('updateDatePillText error:', e); }
+            try {
+                document.querySelectorAll('.apple-tab-item[data-tab]').forEach(btn => {
+                    const labelSpan = btn.querySelector('.apple-tab-label[data-i18n]');
+                    if (labelSpan) {
+                        const key = labelSpan.getAttribute('data-i18n');
+                        if (i18n[lang] && i18n[lang][key]) {
+                            btn.setAttribute('aria-label', i18n[lang][key]);
+                        }
+                    }
+                });
+            } catch (e) {}
         }
 
         // Font Size Management
@@ -596,7 +610,46 @@
         function toggleMenu() { document.getElementById('menuOverlay').classList.add('active'); document.getElementById('sideMenu').classList.add('active'); }
         function closeMenu() { document.getElementById('menuOverlay').classList.remove('active'); document.getElementById('sideMenu').classList.remove('active'); }
 
-        function showTab(tabName, el) { document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active')); document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active')); document.getElementById(tabName).classList.add('active'); if (el) el.classList.add('active'); closeMenu(); if (tabName === 'new-transaction') updateDailyTransactions(); else if (tabName === 'search') { populateYearSelect(); updateMonthPickerButtonText(); updateCategorySummaryLabels(); performSearch(); } else if (tabName === 'trash') { updateTrashList(); setTimeout(updateTrashList, 50); } else if (tabName === 'charts') { toggleChartPeriodInputs(); updateCategorySummaryLabels(); } }
+        function showTab(tabName, el) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.menu-item').forEach(i => i.classList.remove('active'));
+            const target = document.getElementById(tabName);
+            if (target) target.classList.add('active');
+            if (el) el.classList.add('active');
+            updateAppleTabBarActive(tabName);
+            closeMenu();
+            if (tabName === 'new-transaction') {
+                updateDailyTransactions();
+            } else if (tabName === 'search') {
+                populateYearSelect();
+                updateMonthPickerButtonText();
+                updateCategorySummaryLabels();
+                performSearch();
+            } else if (tabName === 'trash') {
+                updateTrashList();
+                setTimeout(updateTrashList, 50);
+            } else if (tabName === 'charts') {
+                initChartPeriodInputs();
+                toggleChartPeriodInputs();
+                updateCategorySummaryLabels();
+                updateChart();
+            } else if (tabName === 'backup') {
+                updateStorageStatsUI();
+            }
+        }
+
+        function switchAppleTab(tabName) {
+            if (navigator.vibrate) {
+                try { navigator.vibrate(6); } catch (_) {}
+            }
+            showTab(tabName);
+        }
+
+        function updateAppleTabBarActive(tabName) {
+            document.querySelectorAll('.apple-tab-item').forEach(item => {
+                item.classList.toggle('active', item.dataset.tab === tabName);
+            });
+        }
 
         let selectedSearchCategories = new Set();
         let selectedChartCategories = new Set();
@@ -1461,8 +1514,9 @@
             exportToExcel(f, `relatorio-financeiro-${getTodayInBrasiliaISO()}`, periodText);
             closeModal('exportExcelModal');
         }
-        function exportToExcel(data, filename, periodText) {
+        async function exportToExcel(data, filename, periodText) {
             try {
+                await ensureXLSX();
                 const isEn = currentLang === 'en';
                 const isEs = currentLang === 'es';
 
@@ -2045,11 +2099,8 @@
             }
         }
 
-        function setChartType(type) { currentChartType = type; document.querySelectorAll('.chart-type-btn').forEach(btn => { btn.classList.toggle('active', btn.dataset.type === type); }); updateChart(); }
-        function toggleChartPeriodInputs() { const p = document.getElementById('chartPeriod').value; document.getElementById('chartCustomGroup').style.display = p === 'custom' ? 'block' : 'none'; document.getElementById('chartMonthGroup').style.display = p === 'month' ? 'block' : 'none'; document.getElementById('chartWeekGroup').style.display = p === 'week' ? 'block' : 'none'; document.getElementById('chartYearGroup').style.display = p === 'year' ? 'block' : 'none'; initChartPeriodInputs(); updateChart(); }
-        function initChartPeriodInputs() { const n = new Date(); const y = n.getFullYear(); const m = String(n.getMonth() + 1).padStart(2, '0'); const mi = document.getElementById('chartMonth'); const wi = document.getElementById('chartWeek'); const yi = document.getElementById('chartYear'); if (mi && !mi.value) mi.value = `${y}-${m}`; if (yi && !yi.value) yi.value = y; if (wi && !wi.value) { const d = new Date(n); d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7)); const yw = d.getUTCFullYear(); const wn = Math.ceil((((d - new Date(Date.UTC(yw, 0, 1))) / 86400000) + 1) / 7); wi.value = `${yw}-W${String(wn).padStart(2, '0')}`; } }
-        function getChartData() { const p = document.getElementById('chartPeriod').value; const tf = document.getElementById('chartTypeFilter').value; const n = new Date(); let ss, es; if (p === 'custom') { ss = document.getElementById('chartStartDate').value; es = document.getElementById('chartEndDate').value; if (!ss || !es) return []; } else if (p === 'month') { const v = document.getElementById('chartMonth').value; if (!v) return []; ss = v + '-01'; const [y, m] = v.split('-'); const ld = new Date(parseInt(y), parseInt(m), 0).getDate(); es = `${v}-${String(ld).padStart(2, '0')}`; } else if (p === 'week') { const wv = document.getElementById('chartWeek').value; if (!wv) return []; const [yr, wn] = wv.split('-W'); if (!yr || !wn) return []; const fy = new Date(Date.UTC(parseInt(yr, 10), 0, 1)); const ds = (parseInt(wn, 10) - 1) * 7; const sd = new Date(fy.getTime() + ds * 86400000); const dow = sd.getUTCDay(); const diff = sd.getUTCDate() - dow + (dow === 0 ? -6 : 1); const mon = new Date(sd); mon.setUTCDate(diff); const sun = new Date(mon); sun.setUTCDate(mon.getUTCDate() + 6); ss = mon.toISOString().split('T')[0]; es = sun.toISOString().split('T')[0]; } else if (p === 'year') { const y = document.getElementById('chartYear').value; if (!y) return []; ss = `${y}-01-01`; es = `${y}-12-31`; } else if (p === 'last3') { const d = new Date(n); d.setMonth(d.getMonth() - 3); ss = d.toISOString().split('T')[0]; es = n.toISOString().split('T')[0]; } else if (p === 'last6') { const d = new Date(n); d.setMonth(d.getMonth() - 6); ss = d.toISOString().split('T')[0]; es = n.toISOString().split('T')[0]; } else { ss = `${n.getFullYear()}-01-01`; es = n.toISOString().split('T')[0]; } let list = getActiveTransactions().filter(tx => tx.date >= ss && tx.date <= es); if (tf === 'income') list = list.filter(tx => tx.type === 'income'); else if (tf === 'expense') list = list.filter(tx => tx.type === 'expense'); const favFilter = document.getElementById('chartFavorites').value; if (favFilter === 'favorites') list = list.filter(tx => tx.favorite); else if (favFilter === 'nonfavorites') list = list.filter(tx => !tx.favorite); const selectedCats = Array.from(selectedChartCategories); if (selectedCats.length > 0) list = list.filter(tx => selectedCats.includes(tx.category)); const groupBy = document.getElementById('chartGroupBy').value; if (groupBy === 'date') { const bc = {}; list.forEach(tx => { if (!bc[tx.date]) bc[tx.date] = 0; bc[tx.date] += tx.value; }); return Object.entries(bc).map(([date, val]) => ({ label: formatDateForDisplay(date), value: val })).sort((a, b) => a.label.localeCompare(b.label)); } else { const bc = {}; list.forEach(tx => { if (!bc[tx.category]) bc[tx.category] = 0; bc[tx.category] += tx.value; }); if (tf === 'both') { const ti = list.filter(tx => tx.type === 'income').reduce((s, tx) => s + tx.value, 0); const te = list.filter(tx => tx.type === 'expense').reduce((s, tx) => s + tx.value, 0); const r = []; if (ti > 0) r.push({ label: '\u{1F4B0} ' + t('income'), value: ti }); if (te > 0) r.push({ label: '\u{1F4B8} ' + t('expense'), value: te }); return r; } return Object.entries(bc).map(([cat, val]) => ({ label: categories[cat] || cat, value: val })).sort((a, b) => b.value - a.value); } }
-        function updateChart() { const cv = document.getElementById('financeChart'); if (!cv) return; const data = getChartData(); if (data.length === 0) { if (financeChartInstance) { financeChartInstance.destroy(); financeChartInstance = null; } return; } const isDark = document.body.classList.contains('dark'); const tc = isDark ? '#f1f5f9' : '#1e293b'; const gc = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)'; if (financeChartInstance) financeChartInstance.destroy(); const cd = { labels: data.map(d => d.label), datasets: [{ data: data.map(d => d.value), backgroundColor: ['#0D9488', '#14B8A6', '#059669', '#F59E0B', '#DC2626', '#8B5CF6', '#EC4899', '#06B6D4', '#F97316', '#6366F1'], borderColor: isDark ? 'rgba(255,255,255,0.1)' : 'rgba(255,255,255,0.8)', borderWidth: 2 }] }; const cfg = { type: currentChartType, data: cd, options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: 'bottom', labels: { color: tc, font: { size: 11, family: 'Inter' } } } }, scales: currentChartType === 'bar' ? { y: { beginAtZero: true, grid: { color: gc }, ticks: { color: tc } }, x: { grid: { color: gc }, ticks: { color: tc, maxRotation: 45 } } } : {} } }; financeChartInstance = new Chart(cv, cfg); }
+        // Chart logic is handled by the unified Apple Pro Financial Intelligence Dashboard below (lines ~4050+)
+
 
         function toggleCalculator() { const o = document.getElementById('calcOverlay'); o.classList.toggle('active'); if (o.classList.contains('active')) calcClear(); }
         function openReceiptPicker() {
@@ -2205,6 +2256,7 @@
 
         async function prepareReceiptForOcr(file) {
             if (file.type === 'application/pdf') {
+                await ensurePdfLib();
                 if (!window.pdfjsLib) throw new Error('O leitor de PDF não foi carregado. Recarregue a página e tente novamente.');
                 pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
                 const pdf = await pdfjsLib.getDocument({ data: await file.arrayBuffer() }).promise;
@@ -2249,6 +2301,7 @@
         }
 
         async function getReceiptOcrWorker() {
+            await ensureTesseract();
             if (!window.Tesseract) throw new Error('O mecanismo OCR não carregou. Verifique sua conexão e tente novamente.');
             if (!receiptOcrWorkerPromise) {
                 receiptOcrWorkerPromise = Tesseract.createWorker('por', 1, {
@@ -4011,29 +4064,115 @@
             updateTransactionsList();
         }
 
-        function setChartType() {
-            currentChartType = 'bar';
+        /* ==========================================================================
+           APPLE PRO FINANCIAL INTELLIGENCE DASHBOARD & CHART ENGINE
+           ========================================================================== */
+
+        currentChartType = 'donut';
+
+        const APPLE_CHART_PALETTE = [
+            '#30D158', '#FF453A', '#0A84FF', '#BF5AF2', '#FF9F0A',
+            '#64D2FF', '#5E5CE6', '#FFD60A', '#FF375F', '#34C759',
+            '#AC8E68', '#8E8E93'
+        ];
+
+        const CATEGORY_APPLE_COLORS = {
+            'alimentacao': '#FF9F0A',
+            'mercado': '#30D158',
+            'combustivel': '#FF453A',
+            'manutencao_veiculo': '#64D2FF',
+            'transporte': '#0A84FF',
+            'moradia': '#BF5AF2',
+            'saude': '#FF375F',
+            'educacao': '#5E5CE6',
+            'lazer': '#FFD60A',
+            'salario': '#34C759',
+            'freelance': '#66D4CF',
+            'investimentos': '#0A84FF',
+            'outros': '#8E8E93'
+        };
+
+        function setChartType(type) {
+            currentChartType = type || 'donut';
+            document.querySelectorAll('.apple-type-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.type === currentChartType);
+            });
+            if (navigator.vibrate) {
+                try { navigator.vibrate(6); } catch (_) {}
+            }
+            updateChart();
+        }
+
+        function selectAppleChartPeriod(periodKey) {
+            const sel = document.getElementById('chartPeriod');
+            if (sel) sel.value = periodKey;
+            document.querySelectorAll('.apple-pill-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.dataset.period === periodKey);
+            });
+            if (navigator.vibrate) {
+                try { navigator.vibrate(6); } catch (_) {}
+            }
+            toggleChartPeriodInputs();
+        }
+
+        function toggleChartPeriodInputs() {
+            const periodEl = document.getElementById('chartPeriod');
+            const period = periodEl ? periodEl.value : 'month';
+            const visibility = { custom: 'chartCustomGroup', month: 'chartMonthGroup', year: 'chartYearGroup', week: 'chartWeekGroup' };
+            Object.entries(visibility).forEach(([key, id]) => {
+                const group = document.getElementById(id);
+                if (group) group.style.display = period === key ? 'block' : 'none';
+            });
+            initChartPeriodInputs();
+            updateChart();
+        }
+
+        function initChartPeriodInputs() {
+            const n = new Date();
+            const y = n.getFullYear();
+            const m = String(n.getMonth() + 1).padStart(2, '0');
+            const mi = document.getElementById('chartMonth');
+            const wi = document.getElementById('chartWeek');
+            const yi = document.getElementById('chartYear');
+            if (mi && !mi.value) mi.value = `${y}-${m}`;
+            if (yi && !yi.value) yi.value = y;
+            if (wi && !wi.value) {
+                const d = new Date(n);
+                d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+                const yw = d.getUTCFullYear();
+                const wn = Math.ceil((((d - new Date(Date.UTC(yw, 0, 1))) / 86400000) + 1) / 7);
+                wi.value = `${yw}-W${String(wn).padStart(2, '0')}`;
+            }
+        }
+
+        function clearChartCategories() {
+            selectedChartCategories.clear();
+            updateCategorySummaryLabels();
             updateChart();
         }
 
         function getChartData() {
-            const period = document.getElementById('chartPeriod').value;
+            const periodEl = document.getElementById('chartPeriod');
+            const period = periodEl ? periodEl.value : 'month';
             const today = getTodayInBrasiliaISO();
             let startDate;
             let endDate;
+
             if (period === 'custom') {
-                startDate = document.getElementById('chartStartDate').value;
-                endDate = document.getElementById('chartEndDate').value;
-                if (!startDate || !endDate || startDate > endDate) return { labels: [], income: [], expense: [], transactions: [] };
+                startDate = document.getElementById('chartStartDate')?.value;
+                endDate = document.getElementById('chartEndDate')?.value;
+                if (!startDate || !endDate || startDate > endDate) {
+                    return { labels: [], income: [], expense: [], transactions: [], byCategory: new Map(), totalIncome: 0, totalExpense: 0 };
+                }
             } else if (period === 'month') {
-                const month = document.getElementById('chartMonth').value;
-                if (!month) return { labels: [], income: [], expense: [], transactions: [] };
+                const month = document.getElementById('chartMonth')?.value;
+                if (!month) return { labels: [], income: [], expense: [], transactions: [], byCategory: new Map(), totalIncome: 0, totalExpense: 0 };
                 startDate = `${month}-01`;
                 const [year, monthNumber] = month.split('-').map(Number);
                 endDate = `${month}-${String(new Date(year, monthNumber, 0).getDate()).padStart(2, '0')}`;
             } else if (period === 'week') {
-                const week = document.getElementById('chartWeek').value;
-                if (!week) return { labels: [], income: [], expense: [], transactions: [] };
+                const week = document.getElementById('chartWeek')?.value;
+                if (!week) return { labels: [], income: [], expense: [], transactions: [], byCategory: new Map(), totalIncome: 0, totalExpense: 0 };
                 const [year, weekNumber] = week.split('-W').map(Number);
                 const firstDay = new Date(Date.UTC(year, 0, 1 + (weekNumber - 1) * 7));
                 const weekday = firstDay.getUTCDay() || 7;
@@ -4043,8 +4182,8 @@
                 startDate = firstDay.toISOString().slice(0, 10);
                 endDate = lastDay.toISOString().slice(0, 10);
             } else if (period === 'year') {
-                const year = document.getElementById('chartYear').value;
-                if (!year) return { labels: [], income: [], expense: [], transactions: [] };
+                const year = document.getElementById('chartYear')?.value;
+                if (!year) return { labels: [], income: [], expense: [], transactions: [], byCategory: new Map(), totalIncome: 0, totalExpense: 0 };
                 startDate = `${year}-01-01`;
                 endDate = `${year}-12-31`;
             } else {
@@ -4055,87 +4194,524 @@
             }
 
             let list = getActiveTransactions().filter(tx => tx.date >= startDate && tx.date <= endDate);
-            const type = document.getElementById('chartTypeFilter').value;
-            if (type !== 'both') list = list.filter(tx => tx.type === type);
-            const favorites = document.getElementById('chartFavorites').value;
-            if (favorites === 'favorites') list = list.filter(tx => tx.favorite);
-            if (favorites === 'nonfavorites') list = list.filter(tx => !tx.favorite);
-            if (selectedChartCategories.size) list = list.filter(tx => selectedChartCategories.has(tx.category));
+            const typeFilter = document.getElementById('chartTypeFilter')?.value || 'both';
+            if (typeFilter !== 'both') list = list.filter(tx => tx.type === typeFilter);
 
+            const favFilter = document.getElementById('chartFavorites')?.value || 'all';
+            if (favFilter === 'favorites') list = list.filter(tx => tx.favorite);
+            if (favFilter === 'nonfavorites') list = list.filter(tx => !tx.favorite);
+
+            if (selectedChartCategories.size) {
+                list = list.filter(tx => selectedChartCategories.has(tx.category));
+            }
+
+            const groupBy = document.getElementById('chartGroupBy')?.value || 'category';
             const grouped = new Map();
+            const byCategory = new Map();
+
             list.forEach(tx => {
-                const key = document.getElementById('chartGroupBy').value === 'date' ? tx.date : tx.category;
-                if (!grouped.has(key)) grouped.set(key, { income: 0, expense: 0 });
-                grouped.get(key)[tx.type] += Number(tx.value) || 0;
+                const val = Number(tx.value) || 0;
+                // Accumulate by category for ranking & distribution
+                if (!byCategory.has(tx.category)) {
+                    byCategory.set(tx.category, { income: 0, expense: 0, count: 0 });
+                }
+                byCategory.get(tx.category)[tx.type] += val;
+                byCategory.get(tx.category).count += 1;
+
+                // Group for main axis
+                const groupKey = groupBy === 'date' ? tx.date : tx.category;
+                if (!grouped.has(groupKey)) {
+                    grouped.set(groupKey, { income: 0, expense: 0, count: 0 });
+                }
+                grouped.get(groupKey)[tx.type] += val;
+                grouped.get(groupKey).count += 1;
             });
+
             const keys = Array.from(grouped.keys()).sort((a, b) => {
-                if (document.getElementById('chartGroupBy').value === 'date') return a.localeCompare(b);
+                if (groupBy === 'date') return a.localeCompare(b);
                 const totalA = grouped.get(a).income + grouped.get(a).expense;
                 const totalB = grouped.get(b).income + grouped.get(b).expense;
                 return totalB - totalA;
             });
-            const currency = value => formatCurrency(value);
+
             const totalIncome = list.filter(tx => tx.type === 'income').reduce((sum, tx) => sum + (Number(tx.value) || 0), 0);
             const totalExpense = list.filter(tx => tx.type === 'expense').reduce((sum, tx) => sum + (Number(tx.value) || 0), 0);
+
             return {
-                labels: keys.map(key => document.getElementById('chartGroupBy').value === 'date' ? formatDateForDisplay(key) : getCategoryLabel(key)),
+                labels: keys.map(key => groupBy === 'date' ? formatDateForDisplay(key) : getCategoryLabel(key)),
+                rawKeys: keys,
                 income: keys.map(key => grouped.get(key).income),
                 expense: keys.map(key => grouped.get(key).expense),
                 transactions: list,
+                byCategory,
                 totalIncome,
-                totalExpense,
-                currency
+                totalExpense
             };
         }
 
         function updateChart() {
             const canvas = document.getElementById('financeChart');
             if (!canvas) return;
+
             const data = getChartData();
             const empty = document.getElementById('chartEmptyState');
             const hasData = data.labels.length > 0;
+
             canvas.style.display = hasData ? 'block' : 'none';
             if (empty) empty.style.display = hasData ? 'none' : 'block';
-            document.getElementById('chartTotalIncome').textContent = formatCurrency(data.totalIncome || 0);
-            document.getElementById('chartTotalExpense').textContent = formatCurrency(data.totalExpense || 0);
-            document.getElementById('chartTotalBalance').textContent = formatCurrency((data.totalIncome || 0) - (data.totalExpense || 0));
-            document.getElementById('chartTransactionCount').textContent = String(data.transactions.length);
-            if (typeof Chart === 'undefined') return;
-            if (!hasData) {
-                if (financeChartInstance) {
-                    financeChartInstance.destroy();
-                    financeChartInstance = null;
+
+            const totalInc = data.totalIncome || 0;
+            const totalExp = data.totalExpense || 0;
+            const netBalance = totalInc - totalExp;
+            const totalTurnover = totalInc + totalExp;
+
+            // 1. Update KPI Values
+            const incEl = document.getElementById('chartTotalIncome');
+            const expEl = document.getElementById('chartTotalExpense');
+            const balEl = document.getElementById('chartTotalBalance');
+            const countEl = document.getElementById('chartTransactionCount');
+            const savingsEl = document.getElementById('chartSavingsRate');
+            const incRatioEl = document.getElementById('chartIncomeRatio');
+            const expRatioEl = document.getElementById('chartExpenseRatio');
+            const balStatusEl = document.getElementById('chartBalanceStatus');
+
+            if (incEl) incEl.textContent = formatCurrency(totalInc);
+            if (expEl) expEl.textContent = formatCurrency(totalExp);
+            if (balEl) balEl.textContent = formatCurrency(netBalance);
+            if (countEl) countEl.textContent = String(data.transactions.length);
+
+            // Ratios & Savings Rate
+            if (totalTurnover > 0) {
+                const incPct = ((totalInc / totalTurnover) * 100).toFixed(0);
+                const expPct = ((totalExp / totalTurnover) * 100).toFixed(0);
+                if (incRatioEl) incRatioEl.textContent = `${incPct}% do fluxo financeiro`;
+                if (expRatioEl) expRatioEl.textContent = `${expPct}% do fluxo financeiro`;
+            } else {
+                if (incRatioEl) incRatioEl.textContent = 'Sem movimentação';
+                if (expRatioEl) expRatioEl.textContent = 'Sem movimentação';
+            }
+
+            const savingsRate = totalInc > 0 ? Math.max(0, ((totalInc - totalExp) / totalInc) * 100).toFixed(1) : '0.0';
+            if (savingsEl) savingsEl.textContent = `${savingsRate}%`;
+
+            if (balStatusEl) {
+                if (netBalance > 0) {
+                    balStatusEl.textContent = 'Superávit Líquido';
+                    balStatusEl.style.color = '#30D158';
+                } else if (netBalance === 0 && totalTurnover > 0) {
+                    balStatusEl.textContent = 'Equilíbrio Exato';
+                    balStatusEl.style.color = '#0A84FF';
+                } else if (netBalance < 0) {
+                    balStatusEl.textContent = 'Déficit no Período';
+                    balStatusEl.style.color = '#FF453A';
+                } else {
+                    balStatusEl.textContent = 'Nenhum lançamento';
+                    balStatusEl.style.color = 'var(--dark-text-3)';
                 }
+            }
+
+            // 2. Update Apple Insight Banner
+            renderAppleInsightBanner(totalInc, totalExp, netBalance, Number(savingsRate), data.byCategory);
+
+            // 3. Update Category Breakdown List with Progress Bars
+            renderAppleCategoryBars(data.byCategory, totalTurnover);
+
+            // 4. Render Chart.js Canvas
+            if (typeof Chart === 'undefined') return;
+
+            if (financeChartInstance) {
+                financeChartInstance.destroy();
+                financeChartInstance = null;
+            }
+
+            if (!hasData) return;
+
+            const isDark = document.body.classList.contains('dark');
+            const textColor = isDark ? '#F1F5F9' : '#1E293B';
+            const subTextColor = isDark ? '#94A3B8' : '#64748B';
+            const gridColor = isDark ? 'rgba(255, 255, 255, 0.07)' : 'rgba(0, 0, 0, 0.06)';
+            const typeFilter = document.getElementById('chartTypeFilter')?.value || 'both';
+
+            let chartConfig;
+
+            if (currentChartType === 'donut') {
+                // DONUT / PIE CHART (Category or Income vs Expense Distribution)
+                const isGroupByDate = document.getElementById('chartGroupBy')?.value === 'date';
+                let donutLabels = [];
+                let donutValues = [];
+                let donutColors = [];
+
+                if (isGroupByDate) {
+                    donutLabels = data.labels;
+                    donutValues = data.labels.map((_, i) => (data.income[i] || 0) + (data.expense[i] || 0));
+                    donutColors = data.labels.map((_, i) => APPLE_CHART_PALETTE[i % APPLE_CHART_PALETTE.length]);
+                } else if (typeFilter === 'both' && data.byCategory.size > 0) {
+                    // Show top categories by expense, or income if no expense
+                    const sortedCats = Array.from(data.byCategory.entries())
+                        .map(([cat, info]) => ({
+                            cat,
+                            val: (info.income + info.expense)
+                        }))
+                        .sort((a, b) => b.val - a.val);
+
+                    donutLabels = sortedCats.map(c => getCategoryLabel(c.cat));
+                    donutValues = sortedCats.map(c => c.val);
+                    donutColors = sortedCats.map(c => CATEGORY_APPLE_COLORS[c.cat] || APPLE_CHART_PALETTE[Math.abs(c.cat.length) % APPLE_CHART_PALETTE.length]);
+                } else {
+                    const sortedCats = Array.from(data.byCategory.entries())
+                        .map(([cat, info]) => ({
+                            cat,
+                            val: typeFilter === 'income' ? info.income : info.expense
+                        }))
+                        .filter(c => c.val > 0)
+                        .sort((a, b) => b.val - a.val);
+
+                    donutLabels = sortedCats.map(c => getCategoryLabel(c.cat));
+                    donutValues = sortedCats.map(c => c.val);
+                    donutColors = sortedCats.map(c => CATEGORY_APPLE_COLORS[c.cat] || APPLE_CHART_PALETTE[Math.abs(c.cat.length) % APPLE_CHART_PALETTE.length]);
+                }
+
+                chartConfig = {
+                    type: 'doughnut',
+                    data: {
+                        labels: donutLabels,
+                        datasets: [{
+                            data: donutValues,
+                            backgroundColor: donutColors,
+                            borderColor: isDark ? '#141B29' : '#FFFFFF',
+                            borderWidth: 3,
+                            hoverOffset: 8
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        cutout: '66%',
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                                labels: {
+                                    color: textColor,
+                                    font: { family: 'Inter', size: 11, weight: '600' },
+                                    padding: 14,
+                                    usePointStyle: true,
+                                    boxWidth: 8
+                                }
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    label: (ctx) => {
+                                        const val = ctx.parsed || 0;
+                                        const sum = donutValues.reduce((s, v) => s + v, 0);
+                                        const pct = sum > 0 ? ((val / sum) * 100).toFixed(1) : '0';
+                                        return ` ${ctx.label}: ${formatCurrency(val)} (${pct}%)`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                };
+
+            } else if (currentChartType === 'line') {
+                // SMOOTH TREND AREA / LINE CHART
+                const datasets = [];
+                if (typeFilter === 'both' || typeFilter === 'income') {
+                    datasets.push({
+                        label: 'Receitas',
+                        data: data.income,
+                        borderColor: '#30D158',
+                        backgroundColor: 'rgba(48, 209, 88, 0.18)',
+                        fill: true,
+                        tension: 0.38,
+                        pointRadius: 4,
+                        pointHoverRadius: 7,
+                        pointBackgroundColor: '#30D158',
+                        borderWidth: 2.5
+                    });
+                }
+                if (typeFilter === 'both' || typeFilter === 'expense') {
+                    datasets.push({
+                        label: 'Despesas',
+                        data: data.expense,
+                        borderColor: '#FF453A',
+                        backgroundColor: 'rgba(255, 69, 58, 0.16)',
+                        fill: true,
+                        tension: 0.38,
+                        pointRadius: 4,
+                        pointHoverRadius: 7,
+                        pointBackgroundColor: '#FF453A',
+                        borderWidth: 2.5
+                    });
+                }
+
+                chartConfig = {
+                    type: 'line',
+                    data: { labels: data.labels, datasets },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: { mode: 'index', intersect: false },
+                        plugins: {
+                            legend: { position: 'top', align: 'end', labels: { color: textColor, usePointStyle: true, boxWidth: 8 } },
+                            tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${formatCurrency(ctx.parsed.y || 0)}` } }
+                        },
+                        scales: {
+                            y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: subTextColor, callback: v => formatCurrency(v) } },
+                            x: { grid: { display: false }, ticks: { color: subTextColor, maxRotation: 35, autoSkip: true, maxTicksLimit: 12 } }
+                        }
+                    }
+                };
+
+            } else if (currentChartType === 'radar') {
+                // RADAR / SPIDER CHART (Category Multidimensional Balance)
+                const topCats = Array.from(data.byCategory.entries())
+                    .slice(0, 8)
+                    .map(([cat, info]) => ({
+                        label: getCategoryLabel(cat),
+                        income: info.income,
+                        expense: info.expense
+                    }));
+
+                const radarLabels = topCats.length > 0 ? topCats.map(c => c.label) : data.labels.slice(0, 8);
+                const radarDatasets = [];
+
+                if (typeFilter === 'both' || typeFilter === 'expense') {
+                    radarDatasets.push({
+                        label: 'Despesas',
+                        data: topCats.length > 0 ? topCats.map(c => c.expense) : data.expense.slice(0, 8),
+                        borderColor: '#FF453A',
+                        backgroundColor: 'rgba(255, 69, 58, 0.22)',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#FF453A'
+                    });
+                }
+                if (typeFilter === 'both' || typeFilter === 'income') {
+                    radarDatasets.push({
+                        label: 'Receitas',
+                        data: topCats.length > 0 ? topCats.map(c => c.income) : data.income.slice(0, 8),
+                        borderColor: '#30D158',
+                        backgroundColor: 'rgba(48, 209, 88, 0.22)',
+                        borderWidth: 2,
+                        pointBackgroundColor: '#30D158'
+                    });
+                }
+
+                chartConfig = {
+                    type: 'radar',
+                    data: { labels: radarLabels, datasets: radarDatasets },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: { position: 'top', align: 'end', labels: { color: textColor, usePointStyle: true } },
+                            tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${formatCurrency(ctx.raw || 0)}` } }
+                        },
+                        scales: {
+                            r: {
+                                grid: { color: gridColor },
+                                angleLines: { color: gridColor },
+                                pointLabels: { color: textColor, font: { family: 'Inter', size: 11, weight: '600' } },
+                                ticks: { display: false }
+                            }
+                        }
+                    }
+                };
+
+            } else if (currentChartType === 'stacked') {
+                // STACKED BAR CHART
+                const datasets = [];
+                if (typeFilter === 'both' || typeFilter === 'income') {
+                    datasets.push({
+                        label: 'Receitas',
+                        data: data.income,
+                        backgroundColor: 'rgba(48, 209, 88, 0.85)',
+                        borderColor: '#30D158',
+                        borderWidth: 1,
+                        borderRadius: 6,
+                        maxBarThickness: 38
+                    });
+                }
+                if (typeFilter === 'both' || typeFilter === 'expense') {
+                    datasets.push({
+                        label: 'Despesas',
+                        data: data.expense,
+                        backgroundColor: 'rgba(255, 69, 58, 0.85)',
+                        borderColor: '#FF453A',
+                        borderWidth: 1,
+                        borderRadius: 6,
+                        maxBarThickness: 38
+                    });
+                }
+
+                chartConfig = {
+                    type: 'bar',
+                    data: { labels: data.labels, datasets },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: { mode: 'index', intersect: false },
+                        plugins: {
+                            legend: { position: 'top', align: 'end', labels: { color: textColor, usePointStyle: true, boxWidth: 8 } },
+                            tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${formatCurrency(ctx.parsed.y || 0)}` } }
+                        },
+                        scales: {
+                            x: { stacked: true, grid: { display: false }, ticks: { color: subTextColor, maxRotation: 35, autoSkip: true, maxTicksLimit: 12 } },
+                            y: { stacked: true, beginAtZero: true, grid: { color: gridColor }, ticks: { color: subTextColor, callback: v => formatCurrency(v) } }
+                        }
+                    }
+                };
+
+            } else {
+                // DEFAULT APPLE COMPARATIVE BAR CHART
+                const datasets = [];
+                if (typeFilter === 'both' || typeFilter === 'income') {
+                    datasets.push({
+                        label: 'Receitas',
+                        data: data.income,
+                        backgroundColor: 'rgba(48, 209, 88, 0.85)',
+                        borderColor: '#30D158',
+                        borderWidth: 1.5,
+                        borderRadius: 8,
+                        maxBarThickness: 36
+                    });
+                }
+                if (typeFilter === 'both' || typeFilter === 'expense') {
+                    datasets.push({
+                        label: 'Despesas',
+                        data: data.expense,
+                        backgroundColor: 'rgba(255, 69, 58, 0.85)',
+                        borderColor: '#FF453A',
+                        borderWidth: 1.5,
+                        borderRadius: 8,
+                        maxBarThickness: 36
+                    });
+                }
+
+                chartConfig = {
+                    type: 'bar',
+                    data: { labels: data.labels, datasets },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        interaction: { mode: 'index', intersect: false },
+                        plugins: {
+                            legend: { position: 'top', align: 'end', labels: { color: textColor, usePointStyle: true, boxWidth: 8, font: { size: 12, weight: '600' } } },
+                            tooltip: { callbacks: { label: ctx => ` ${ctx.dataset.label}: ${formatCurrency(ctx.parsed.y || 0)}` } }
+                        },
+                        scales: {
+                            y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: subTextColor, callback: v => formatCurrency(v) } },
+                            x: { grid: { display: false }, ticks: { color: subTextColor, maxRotation: 35, autoSkip: true, maxTicksLimit: 12 } }
+                        }
+                    }
+                };
+            }
+
+            financeChartInstance = new Chart(canvas, chartConfig);
+        }
+
+        function renderAppleInsightBanner(income, expense, balance, savingsRate, byCategory) {
+            const iconEl = document.getElementById('chartInsightIcon');
+            const titleEl = document.getElementById('chartInsightTitle');
+            const descEl = document.getElementById('chartInsightDesc');
+            if (!iconEl || !titleEl || !descEl) return;
+
+            // Find top spending category
+            let topCat = null;
+            let topCatExp = 0;
+            byCategory.forEach((info, cat) => {
+                if (info.expense > topCatExp) {
+                    topCatExp = info.expense;
+                    topCat = cat;
+                }
+            });
+
+            if (income === 0 && expense === 0) {
+                iconEl.textContent = 'ℹ️';
+                titleEl.textContent = 'Sem Movimentações';
+                descEl.textContent = 'Não há transações no período selecionado. Adicione novas movimentações para gerar diagnósticos.';
                 return;
             }
-            const dark = document.body.classList.contains('dark');
-            const textColor = dark ? '#F1F5F9' : '#30343B';
-            const gridColor = dark ? 'rgba(255,255,255,0.08)' : 'rgba(20,25,30,0.08)';
-            const type = document.getElementById('chartTypeFilter').value;
-            const datasets = [];
-            if (type === 'both' || type === 'income') datasets.push({ label: 'Receitas', data: data.income, backgroundColor: 'rgba(48, 190, 135, 0.82)', borderColor: '#30BE87', borderWidth: 1, borderRadius: 6, maxBarThickness: 38 });
-            if (type === 'both' || type === 'expense') datasets.push({ label: 'Despesas', data: data.expense, backgroundColor: 'rgba(255, 107, 107, 0.78)', borderColor: '#FF6B6B', borderWidth: 1, borderRadius: 6, maxBarThickness: 38 });
-            const chartData = { labels: data.labels, datasets };
-            const options = {
-                responsive: true,
-                maintainAspectRatio: false,
-                animation: false,
-                interaction: { mode: 'index', intersect: false },
-                plugins: {
-                    legend: { position: 'top', align: 'start', labels: { color: textColor, usePointStyle: true, boxWidth: 8, padding: 18, font: { size: 12 } } },
-                    tooltip: { callbacks: { label: context => `${context.dataset.label}: ${formatCurrency(context.parsed.y || 0)}` } }
-                },
-                scales: {
-                    y: { beginAtZero: true, grid: { color: gridColor }, ticks: { color: textColor, callback: value => formatCurrency(value) } },
-                    x: { grid: { display: false }, ticks: { color: textColor, maxRotation: 35, autoSkip: true, maxTicksLimit: 12 } }
-                }
-            };
-            if (!financeChartInstance) {
-                financeChartInstance = new Chart(canvas, { type: 'bar', data: chartData, options });
+
+            if (balance > 0 && savingsRate >= 20) {
+                iconEl.textContent = '🌟';
+                titleEl.textContent = 'Saúde Financeira Notável';
+                descEl.textContent = `Excelente gestão! Você poupou ${savingsRate}% das suas receitas com um superávit de ${formatCurrency(balance)}.`;
+            } else if (balance > 0) {
+                iconEl.textContent = '✨';
+                titleEl.textContent = 'Saldo Positivo';
+                descEl.textContent = `Você encerrou o período no positivo com saldo de ${formatCurrency(balance)}. Sua taxa de poupança foi de ${savingsRate}%.`;
+            } else if (balance === 0) {
+                iconEl.textContent = '⚖️';
+                titleEl.textContent = 'Orçamento Equilibrado';
+                descEl.textContent = 'Suas receitas cobriram exatamente as despesas neste período.';
             } else {
-                financeChartInstance.data = chartData;
-                financeChartInstance.options = options;
-                financeChartInstance.update('none');
+                iconEl.textContent = '⚠️';
+                titleEl.textContent = 'Atenção aos Gastos';
+                const catText = topCat ? ` O maior volume de despesa foi em ${getCategoryLabel(topCat)} (${formatCurrency(topCatExp)}).` : '';
+                descEl.textContent = `As despesas superaram os ganhos em ${formatCurrency(Math.abs(balance))}.${catText}`;
+            }
+        }
+
+        function renderAppleCategoryBars(byCategory, totalTurnover) {
+            const listEl = document.getElementById('appleCategoryBarsList');
+            if (!listEl) return;
+
+            if (!byCategory || byCategory.size === 0) {
+                listEl.innerHTML = '<div class="empty-state" style="padding: 1.5rem 0;">Nenhuma categoria registrada no período.</div>';
+                return;
+            }
+
+            const sorted = Array.from(byCategory.entries())
+                .map(([cat, info]) => ({
+                    cat,
+                    income: info.income,
+                    expense: info.expense,
+                    total: info.income + info.expense,
+                    count: info.count
+                }))
+                .sort((a, b) => b.total - a.total);
+
+            const maxVal = sorted[0]?.total || 1;
+
+            listEl.innerHTML = sorted.map(item => {
+                const label = getCategoryLabel(item.cat);
+                const color = CATEGORY_APPLE_COLORS[item.cat] || '#0A84FF';
+                const pct = totalTurnover > 0 ? ((item.total / totalTurnover) * 100).toFixed(1) : '0';
+                const barWidth = Math.max(4, ((item.total / maxVal) * 100)).toFixed(0);
+
+                return `
+                    <div class="apple-category-bar-item">
+                        <div class="apple-cat-row-top">
+                            <span class="apple-cat-name">${label} <small style="font-weight:400; opacity:0.65;">(${item.count})</small></span>
+                            <div class="apple-cat-amounts">
+                                <span class="apple-cat-val">${formatCurrency(item.total)}</span>
+                                <span class="apple-cat-pct">${pct}%</span>
+                            </div>
+                        </div>
+                        <div class="apple-cat-progress-track">
+                            <div class="apple-cat-progress-fill" style="width: ${barWidth}%; background: ${color};"></div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function exportChartAsImage() {
+            const canvas = document.getElementById('financeChart');
+            if (!canvas) return;
+
+            try {
+                const url = canvas.toDataURL('image/png');
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `grafico-financeiro-${getTodayInBrasiliaISO()}.png`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                showNotification('Imagem do gráfico exportada com sucesso!', 'success');
+            } catch (e) {
+                console.error('Erro ao exportar gráfico:', e);
+                showNotification('Não foi possível exportar a imagem do gráfico.', 'error');
             }
         }
 
@@ -4144,9 +4720,13 @@
             const count = document.getElementById('searchResultCount');
             const totalIncome = filtered.reduce((sum, tx) => sum + (tx.type === 'income' ? Number(tx.value) || 0 : 0), 0);
             const totalExpense = filtered.reduce((sum, tx) => sum + (tx.type === 'expense' ? Number(tx.value) || 0 : 0), 0);
-            document.getElementById('searchTotalIncome').textContent = formatCurrency(totalIncome);
-            document.getElementById('searchTotalExpense').textContent = formatCurrency(totalExpense);
-            count.textContent = `${filtered.length} ${t('transactionsFound')}`;
+            const incEl = document.getElementById('searchTotalIncome');
+            const expEl = document.getElementById('searchTotalExpense');
+            if (incEl) incEl.textContent = formatCurrency(totalIncome);
+            if (expEl) expEl.textContent = formatCurrency(totalExpense);
+            if (count) count.textContent = `${filtered.length} ${t('transactionsFound')}`;
+            if (!list) return;
+
             if (!filtered.length) {
                 list.innerHTML = `<div class="empty-state">${t('noTransactionsFound')}</div>`;
                 return;
@@ -4159,47 +4739,199 @@
             ).join('') + '</div>';
         }
 
-        function clearChartCategories() {
-            selectedChartCategories.clear();
-            updateCategorySummaryLabels();
-            updateChart();
-        }
+        /* ==========================================================================
+           MEMORY & CACHE OPTIMIZER ENGINE (ANDROID PWA FLUIDITY)
+           ========================================================================== */
 
-        function toggleChartPeriodInputs() {
-            const period = document.getElementById('chartPeriod').value;
-            const visibility = { custom: 'chartCustomGroup', month: 'chartMonthGroup', year: 'chartYearGroup' };
-            Object.entries(visibility).forEach(([key, id]) => {
-                const group = document.getElementById(id);
-                if (group) group.style.display = period === key ? 'block' : 'none';
+        let isOptimizingCache = false;
+
+        function loadScriptAsync(src) {
+            return new Promise((resolve, reject) => {
+                const existing = document.querySelector(`script[src="${src}"]`);
+                if (existing) {
+                    if (existing.dataset.loaded === 'true' || window.XLSX || window.Tesseract || window.pdfjsLib) {
+                        return resolve();
+                    }
+                    existing.addEventListener('load', () => resolve());
+                    existing.addEventListener('error', e => reject(e));
+                    return;
+                }
+                const s = document.createElement('script');
+                s.src = src;
+                s.async = true;
+                s.onload = () => { s.dataset.loaded = 'true'; resolve(); };
+                s.onerror = e => reject(e);
+                document.head.appendChild(s);
             });
-            initChartPeriodInputs();
-            updateChart();
         }
 
-        function repairRedesignedTabs() {
-            const main = document.querySelector('.main-content');
-            const search = document.getElementById('search');
-            const templates = document.querySelector('template')?.content;
-            const transactionTemplate = templates?.querySelector('#new-transaction');
-            const chartTemplate = templates?.querySelector('#charts');
-            if (!main || !search || !transactionTemplate || !chartTemplate) return;
+        async function ensureXLSX() {
+            if (window.XLSX) return window.XLSX;
+            await loadScriptAsync('https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js');
+            return window.XLSX;
+        }
 
-            search.querySelectorAll('.tab-content').forEach(tab => main.appendChild(tab));
-            const searchCard = search.querySelector(':scope > .card');
-            const searchTitle = searchCard?.querySelector(':scope > h2');
-            const searchFilters = searchCard?.querySelector('.search-filter-panel');
-            const searchResults = templates.querySelector('.search-results')?.cloneNode(true);
-            if (searchCard && searchTitle && searchFilters && searchResults) {
-                searchCard.replaceChildren(searchTitle, searchFilters, searchResults);
+        async function ensurePdfLib() {
+            if (window.pdfjsLib) return window.pdfjsLib;
+            await loadScriptAsync('https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js');
+            return window.pdfjsLib;
+        }
+
+        async function ensureTesseract() {
+            if (window.Tesseract) return window.Tesseract;
+            await loadScriptAsync('https://cdn.jsdelivr.net/npm/tesseract.js@6.0.1/dist/tesseract.min.js');
+            return window.Tesseract;
+        }
+
+        async function getStorageMetrics() {
+            let usageBytes = 0;
+            if (navigator.storage && navigator.storage.estimate) {
+                try {
+                    const estimate = await navigator.storage.estimate();
+                    usageBytes = estimate.usage || 0;
+                } catch (_) {}
+            }
+            if (!usageBytes) {
+                try {
+                    for (let key in localStorage) {
+                        if (localStorage.hasOwnProperty(key)) {
+                            usageBytes += ((localStorage[key].length + key.length) * 2);
+                        }
+                    }
+                } catch (_) {}
             }
 
-            const oldChart = document.getElementById('charts');
-            const chart = chartTemplate.cloneNode(true);
-            if (oldChart) oldChart.replaceWith(chart);
-            main.insertBefore(transactionTemplate.cloneNode(true), chart);
+            return {
+                usageBytes,
+                transactionCount: getActiveTransactions().length
+            };
         }
 
-        repairRedesignedTabs();
+        async function updateStorageStatsUI() {
+            const valEl = document.getElementById('storageEstimateValue');
+            const txEl = document.getElementById('storageTransactionsCount');
+            const healthEl = document.getElementById('storageHealthStatus');
+            if (!valEl && !txEl) return;
+
+            try {
+                const metrics = await getStorageMetrics();
+                const mb = (metrics.usageBytes / (1024 * 1024)).toFixed(2);
+                const kb = (metrics.usageBytes / 1024).toFixed(0);
+                const displaySize = metrics.usageBytes > (1024 * 1024) ? `${mb} MB` : `${kb} KB`;
+
+                if (valEl) valEl.textContent = displaySize;
+                if (txEl) txEl.textContent = String(metrics.transactionCount);
+                if (healthEl) {
+                    if (metrics.usageBytes > 50 * 1024 * 1024) {
+                        healthEl.textContent = 'Atenção (Alto)';
+                        healthEl.style.color = '#FF9F0A';
+                    } else {
+                        healthEl.textContent = 'Excelente (Fluido)';
+                        healthEl.style.color = '#30D158';
+                    }
+                }
+            } catch (e) {
+                console.warn('Erro ao ler métricas de armazenamento:', e);
+            }
+        }
+
+        async function optimizeAppMemoryAndCache(interactive = true) {
+            if (isOptimizingCache) return;
+            isOptimizingCache = true;
+
+            if (navigator.vibrate) {
+                try { navigator.vibrate([10, 30, 10]); } catch (_) {}
+            }
+
+            if (interactive) {
+                showNotification('Otimizando memória e limpando cache...', 'info');
+            }
+
+            try {
+                // 1. Destroy and release Chart.js canvas memory buffer
+                if (financeChartInstance) {
+                    financeChartInstance.destroy();
+                    financeChartInstance = null;
+                }
+
+                // 2. Revoke any lingering blob preview URLs
+                if (receiptPreviewUrl) {
+                    try { URL.revokeObjectURL(receiptPreviewUrl); } catch (_) {}
+                    receiptPreviewUrl = null;
+                }
+
+                // 3. Clear Service Worker caches (keep only current static shell)
+                if ('serviceWorker' in navigator && navigator.serviceWorker.controller) {
+                    navigator.serviceWorker.controller.postMessage({ action: 'CLEAR_CACHES' });
+                } else if ('caches' in window) {
+                    const keys = await caches.keys();
+                    for (const key of keys) {
+                        if (key !== 'finance-pwa-v2') {
+                            await caches.delete(key);
+                        }
+                    }
+                }
+
+                // 4. Prune orphaned shared receipts
+                await clearOrphanedReceipts(false);
+
+                // 5. Update timestamp
+                localStorage.setItem('lastCacheOptimizationTimestamp', String(Date.now()));
+
+                // 6. Refresh UI stats
+                await updateStorageStatsUI();
+
+                // 7. Refresh current tab if it was charts
+                const activeTab = document.querySelector('.tab-content.active')?.id;
+                if (activeTab === 'charts') {
+                    updateChart();
+                }
+
+                if (interactive) {
+                    showNotification('✨ Memória otimizada! Cache limpo e navegação acelerada.', 'success');
+                }
+            } catch (err) {
+                console.error('Erro na otimização de memória:', err);
+                if (interactive) {
+                    showNotification('Otimização concluída.', 'info');
+                }
+            } finally {
+                isOptimizingCache = false;
+            }
+        }
+
+        async function clearOrphanedReceipts(notify = true) {
+            try {
+                if ('caches' in window) {
+                    const cache = await caches.open('finance-shared-receipts-v1');
+                    const keys = await cache.keys();
+                    for (const req of keys) {
+                        await cache.delete(req);
+                    }
+                }
+                if (notify) {
+                    showNotification('Arquivos temporários limpos.', 'success');
+                    updateStorageStatsUI();
+                }
+            } catch (e) {
+                console.warn('Erro ao limpar comprovantes temporários:', e);
+            }
+        }
+
+        function initAutoCacheCleanup() {
+            try {
+                const last = Number(localStorage.getItem('lastCacheOptimizationTimestamp')) || 0;
+                const now = Date.now();
+                if (!last || (now - last) > 24 * 60 * 60 * 1000) {
+                    setTimeout(() => {
+                        optimizeAppMemoryAndCache(false);
+                    }, 4000);
+                }
+            } catch (_) {}
+        }
+
+        // Initialize auto cleanup on startup
+        initAutoCacheCleanup();
 
         /* ==========================================================================
            SPEED DIAL FLOATING ACTION MENU & VOICE TRANSACTION WITH AI

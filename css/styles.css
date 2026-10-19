@@ -55,30 +55,42 @@
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "SF Pro", "Inter", "Segoe UI", Helvetica, Arial, sans-serif;
-            transition: background var(--transition), color var(--transition);
+            transition: color var(--transition);
             overflow-x: hidden;
             min-height: 100vh;
             -webkit-font-smoothing: antialiased;
+            position: relative;
+        }
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: -1;
+            will-change: transform;
+            transition: background var(--transition);
         }
         body.dark {
-            background-color: #0B0E14;
-            background-image: radial-gradient(circle at 50% -20%, #1A2436 0%, #0B0E14 65%);
-            background-attachment: fixed;
+            background-color: #080B10;
             color: var(--dark-text);
-            --glass-bg: rgba(20, 27, 41, 0.78);
+            --glass-bg: rgba(18, 24, 38, 0.78);
             --glass-border: rgba(255, 255, 255, 0.08);
             --bg-color: rgba(255, 255, 255, 0.05);
             --ios-gray: #141B29;
         }
+        body.dark::before {
+            background: radial-gradient(circle at 50% -10%, #162032 0%, #080B10 65%);
+        }
         body.light {
-            background-color: #F8FAFC;
-            background-image: radial-gradient(circle at 50% -20%, #EEF2F6 0%, #F8FAFC 70%);
-            background-attachment: fixed;
+            background-color: #F2F4F7;
             color: var(--light-text);
-            --glass-bg: rgba(255, 255, 255, 0.85);
-            --glass-border: rgba(0, 0, 0, 0.07);
+            --glass-bg: rgba(255, 255, 255, 0.88);
+            --glass-border: rgba(0, 0, 0, 0.06);
             --bg-color: rgba(0, 0, 0, 0.03);
             --ios-gray: #F1F5F9;
+        }
+        body.light::before {
+            background: radial-gradient(circle at 50% -10%, #E2E8F0 0%, #F2F4F7 70%);
         }
         @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px) } to { opacity: 1; transform: translateY(0) } }
         @keyframes fadeIn { from { opacity: 0 } to { opacity: 1 } }
@@ -183,22 +195,76 @@
         }
 
         .header-icon-circle {
-            width: 38px;
-            height: 38px;
-            min-width: 38px;
-            border-radius: 12px;
-            background: linear-gradient(135deg, var(--primary), var(--primary-light));
+            width: 42px;
+            height: 42px;
+            min-width: 42px;
+            border-radius: 13px;
+            background: linear-gradient(145deg, #1A2234 0%, #0F1626 100%);
+            border: 1px solid rgba(255, 255, 255, 0.16);
             display: flex;
             align-items: center;
             justify-content: center;
-            box-shadow: 0 2px 10px var(--primary-glow);
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.35), 0 0 0 1px rgba(16, 185, 129, 0.25), inset 0 1px 1px rgba(255, 255, 255, 0.35);
+            transition: transform 0.22s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease;
+            cursor: pointer;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
-        .header-icon-circle svg {
-            color: white;
-            width: 20px;
-            height: 20px;
+        .header-icon-circle::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 48%;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0) 100%);
+            border-radius: 12px 12px 0 0;
+            pointer-events: none;
         }
+
+        .header-icon-ambient-glow {
+            position: absolute;
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            background: #10B981;
+            filter: blur(14px);
+            opacity: 0.35;
+            pointer-events: none;
+        }
+
+        .header-icon-circle:hover {
+            transform: scale(1.06);
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.35), 0 0 0 1px rgba(16, 185, 129, 0.4), inset 0 1px 1px rgba(255, 255, 255, 0.5);
+        }
+
+        .header-icon-circle:active {
+            transform: scale(0.93);
+        }
+
+        .light .header-icon-circle {
+            background: linear-gradient(145deg, #FFFFFF 0%, #F1F5F9 100%);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06), 0 0 0 1px rgba(16, 185, 129, 0.2), inset 0 1px 1px rgba(255, 255, 255, 0.95);
+        }
+
+        .light .header-icon-circle::before {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.6) 0%, rgba(255, 255, 255, 0) 100%);
+        }
+
+        .header-icon-circle .header-icon-svg {
+            position: relative;
+            z-index: 2;
+            filter: drop-shadow(0 2px 6px rgba(0, 0, 0, 0.3));
+        }
+
+        .light .header-icon-circle .header-icon-svg {
+            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.1));
+        }
+
 
         .header-new-info {
             display: flex;
@@ -299,35 +365,68 @@
             background: currentColor;
         }
 
-        /* VALUE DISPLAY REDESIGN */
+        /* VALUE DISPLAY REDESIGN & COMPACT TRANSACTION FORM */
+        .new-transaction-card {
+            padding: 1.15rem 1.25rem;
+            margin-bottom: 1rem;
+            border-radius: 16px;
+        }
+
+        .new-transaction-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.65rem;
+        }
+
+        .new-transaction-header h2 {
+            font-size: 1.25rem;
+            font-weight: 700;
+            margin: 0 !important;
+            letter-spacing: -0.3px;
+        }
+
         .value-display-section {
             text-align: left;
-            margin-bottom: 1rem;
-            padding: 1rem 0.5rem;
-            background: transparent;
+            margin-bottom: 0.65rem;
+            padding: 0.65rem 0.85rem;
+            background: rgba(255, 255, 255, 0.035);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            border-radius: 12px;
             transition: all var(--transition);
         }
 
         .light .value-display-section {
-            background: transparent;
+            background: #f8fafc;
+            border-color: #e2e8f0;
         }
 
         .value-display-section.expense-mode {
-            background: transparent;
+            border-color: rgba(239, 68, 68, 0.25);
+            background: rgba(239, 68, 68, 0.03);
         }
 
         .light .value-display-section.expense-mode {
-            background: transparent;
+            border-color: rgba(239, 68, 68, 0.2);
+            background: #fef2f2;
+        }
+
+        .value-display-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            margin-bottom: 0.2rem;
         }
 
         .value-display-label {
-            font-size: 0.75rem;
+            font-size: 0.68rem;
             font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 1.2px;
+            letter-spacing: 0.8px;
             color: var(--dark-text-3);
-            margin-bottom: 0px;
-            opacity: 0.6;
+            margin: 0;
+            opacity: 0.8;
             font-family: inherit;
         }
 
@@ -342,8 +441,7 @@
         }
 
         .value-display-amount {
-            font-size: 3rem;
-            /* Matched to previous prefix size */
+            font-size: 2.2rem;
             font-weight: 800;
             color: var(--primary);
             background: transparent;
@@ -353,8 +451,8 @@
             width: 100%;
             font-family: inherit;
             transition: color var(--transition);
-            line-height: 1;
-            letter-spacing: -1px;
+            line-height: 1.1;
+            letter-spacing: -0.5px;
         }
 
         .expense-mode .value-display-amount {
@@ -362,11 +460,11 @@
         }
 
         .value-display-amount::placeholder {
-            color: rgba(16, 185, 129, 0.3);
+            color: rgba(16, 185, 129, 0.35);
         }
 
         .expense-mode .value-display-amount::placeholder {
-            color: rgba(239, 68, 68, 0.3);
+            color: rgba(239, 68, 68, 0.35);
         }
 
         /* Remove arrows from number input */
@@ -376,131 +474,138 @@
             margin: 0;
         }
 
-        @media(max-width:480px) {
-            #new-transaction .card {
-                padding: 1.1rem 1rem;
-                margin-bottom: 1rem;
-            }
+        /* CUSTOM DATE PILL */
+        .home-date-nav {
+            display: inline-flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 4px;
+            margin: 0;
+        }
 
-            #new-transaction .card h2.mb-2 {
-                font-size: 1.35rem;
-                margin-bottom: 0.6rem;
-            }
+        .home-date-arrow {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 26px;
+            height: 26px;
+            background: transparent;
+            border: none;
+            color: var(--dark-text-3);
+            cursor: pointer;
+            border-radius: 6px;
+            transition: all var(--transition);
+            padding: 0;
+        }
 
-            .value-display-amount {
-                font-size: 1.8rem;
-            }
+        .light .home-date-arrow {
+            color: var(--light-text-3);
+        }
 
-            .value-display-section {
-                padding: 0.4rem 0;
-                margin-bottom: 0.6rem;
-            }
+        .home-date-arrow svg {
+            width: 14px;
+            height: 14px;
+        }
 
-            .value-display-label {
-                font-size: 0.6rem;
-                margin-bottom: 0.08rem;
-                letter-spacing: 0.7px;
-            }
+        .home-date-arrow:hover {
+            color: var(--primary);
+            background: rgba(255, 255, 255, 0.06);
+        }
 
-            .segmented-control-container {
-                height: 40px;
-                margin-bottom: 0.85rem;
-                padding: 2px;
-            }
+        .light .home-date-arrow:hover {
+            background: rgba(0, 0, 0, 0.05);
+        }
 
-            .segmented-btn {
-                font-size: 0.85rem;
-                font-weight: 700;
-            }
+        .home-date-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            height: 26px;
+            padding: 0 10px;
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--dark-text);
+            border-radius: 50px;
+            font-size: 0.78rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+            transition: all var(--transition);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(8px);
+            -webkit-backdrop-filter: blur(8px);
+            letter-spacing: 0.3px;
+            white-space: nowrap;
+        }
 
-            .home-date-nav {
-                gap: 0.8rem;
-                margin-bottom: 0.75rem;
-            }
+        .dark .home-date-pill {
+            background: rgba(255, 255, 255, 0.08);
+            color: var(--dark-text);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+        }
 
-            .home-date-arrow {
-                width: 26px;
-                height: 26px;
-            }
+        .light .home-date-pill {
+            background: #ffffff;
+            color: var(--light-text);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+        }
 
-            .home-date-arrow svg {
-                width: 18px;
-                height: 18px;
-            }
+        .home-date-pill:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
 
-            .home-date-pill {
-                font-size: 0.9rem;
-                padding: 5px 12px;
-                gap: 5px;
-            }
+        .home-date-pill svg {
+            width: 13px;
+            height: 13px;
+            stroke-width: 2.2;
+        }
 
-            .home-date-pill svg {
-                width: 14px;
-                height: 14px;
-            }
+        /* FORM FIELDS ROW & INPUTS */
+        .new-tx-fields-row {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
 
-            .form-row-label {
-                font-size: 0.6rem;
-                margin-bottom: 0.12rem;
-                letter-spacing: 0.5px;
-                opacity: 0.7;
+        @media (min-width: 641px) {
+            .new-tx-fields-row {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 0.75rem;
             }
+        }
 
-            .form-row-styled {
-                padding: 0.6rem 0.75rem;
-                margin-bottom: 0.55rem;
-                gap: 7px;
-            }
+        .new-tx-field {
+            display: flex;
+            flex-direction: column;
+        }
 
-            .form-row-icon {
-                font-size: 1.1rem;
-            }
+        .form-row-label {
+            font-size: 0.65rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.6px;
+            color: var(--dark-text-3);
+            margin-bottom: 3px;
+            opacity: 0.85;
+        }
 
-            .favorite-row {
-                padding: 0.35rem 0;
-                margin-bottom: 0.35rem;
-                font-size: 0.8rem;
-                gap: 0.5rem;
-            }
-
-            .toggle-slider {
-                width: 38px;
-                height: 20px;
-            }
-
-            .toggle-slider::after {
-                width: 14px;
-                height: 14px;
-                top: 3px;
-                left: 3px;
-            }
-
-            .favorite-row input[type="checkbox"]:checked+.toggle-slider::after {
-                left: calc(100% - 17px);
-            }
-
-            .btn-save-transaction {
-                padding: 0.75rem 1rem;
-                font-size: 0.9rem;
-                gap: 0.4rem;
-                margin-top: 0.15rem;
-            }
-
-            .btn-save-transaction svg {
-                width: 16px;
-                height: 16px;
-            }
+        .light .form-row-label {
+            color: var(--light-text-2);
         }
 
         /* STYLED FORM ROW */
         .form-row-styled {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 0.8rem 1rem;
+            gap: 8px;
+            height: 42px;
+            min-height: 42px;
+            padding: 0 0.75rem;
             border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: var(--radius-sm);
-            margin-bottom: 0.85rem;
+            border-radius: 10px;
+            margin-bottom: 0.6rem;
             transition: all var(--transition);
             cursor: pointer;
         }
@@ -525,6 +630,7 @@
             flex-shrink: 0;
             display: flex;
             align-items: center;
+            font-size: 1rem;
         }
 
         .light .form-row-icon {
@@ -540,6 +646,15 @@
             box-shadow: none;
             flex: 1;
             min-width: 0;
+            font-size: 0.88rem;
+            font-family: inherit;
+            color: var(--dark-text);
+        }
+
+        .light .form-row-styled .form-input,
+        .light .form-row-styled .form-select,
+        .light .form-row-styled .form-textarea {
+            color: var(--light-text);
         }
 
         .form-row-styled .form-input:focus,
@@ -549,62 +664,38 @@
             border: none;
         }
 
-        .form-row-label {
-            font-size: 0.7rem;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.8px;
-            color: var(--dark-text-3);
-            margin-bottom: 0.35rem;
-        }
-
-        .light .form-row-label {
-            color: var(--light-text-2);
-        }
-
-        /* SAVE TRANSACTION BUTTON */
-        .btn-save-transaction {
-            width: 100%;
-            height: 48px;
-            padding: 0 1.25rem;
-            border: none;
-            border-radius: var(--radius-sm);
-            background: var(--primary);
-            color: white;
-            font-size: 0.98rem;
-            font-weight: 600;
-            letter-spacing: 0.2px;
-            cursor: pointer;
-            transition: all var(--transition);
-            font-family: inherit;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 0.6rem;
-            box-shadow: 0 4px 16px var(--primary-glow);
-            margin-top: 0.75rem;
-        }
-
-        .btn-save-transaction:hover {
-            background: var(--primary-light);
-            box-shadow: 0 6px 24px var(--primary-glow);
-            transform: translateY(-1px);
-        }
-
-        .btn-save-transaction:active {
-            transform: scale(0.98);
-        }
-
         /* FAVORITE ROW */
         .favorite-row {
             display: flex;
             align-items: center;
-            gap: 0.75rem;
-            padding: 0.65rem 0;
-            margin-bottom: 0.5rem;
+            justify-content: space-between;
+            padding: 0.45rem 0.75rem;
+            margin-bottom: 0.65rem;
+            background: rgba(255, 255, 255, 0.025);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            border-radius: 10px;
             cursor: pointer;
+            font-size: 0.84rem;
             font-weight: 500;
-            font-size: 0.9rem;
+            user-select: none;
+            -webkit-user-select: none;
+            transition: background var(--transition), border-color var(--transition);
+        }
+
+        .light .favorite-row {
+            background: rgba(0, 0, 0, 0.02);
+            border-color: rgba(0, 0, 0, 0.06);
+        }
+
+        .favorite-row-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .favorite-toggle-wrap {
+            display: inline-flex;
+            align-items: center;
         }
 
         .favorite-row input[type="checkbox"] {
@@ -614,19 +705,19 @@
         /* Toggle Slider */
         .toggle-slider {
             position: relative;
-            width: 44px;
-            height: 24px;
+            width: 36px;
+            height: 20px;
             flex-shrink: 0;
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.12);
             border-radius: 50px;
             transition: background var(--transition);
             cursor: pointer;
-            border: 1.5px solid rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.08);
         }
 
         .light .toggle-slider {
-            background: rgba(0, 0, 0, 0.08);
-            border-color: rgba(0, 0, 0, 0.1);
+            background: rgba(0, 0, 0, 0.1);
+            border-color: rgba(0, 0, 0, 0.12);
         }
 
         .toggle-slider::after {
@@ -634,100 +725,62 @@
             position: absolute;
             top: 2px;
             left: 2px;
-            width: 18px;
-            height: 18px;
+            width: 14px;
+            height: 14px;
             border-radius: 50%;
-            background: rgba(255, 255, 255, 0.4);
+            background: rgba(255, 255, 255, 0.6);
             transition: all var(--transition);
         }
 
         .light .toggle-slider::after {
-            background: rgba(0, 0, 0, 0.25);
+            background: rgba(0, 0, 0, 0.35);
         }
 
-        .favorite-row input[type="checkbox"]:checked+.toggle-slider {
+        .favorite-row input[type="checkbox"]:checked + .toggle-slider {
             background: var(--primary);
             border-color: var(--primary);
         }
 
-        .favorite-row input[type="checkbox"]:checked+.toggle-slider::after {
-            left: calc(100% - 20px);
+        .favorite-row input[type="checkbox"]:checked + .toggle-slider::after {
+            left: calc(100% - 16px);
             background: white;
         }
 
-        .light .favorite-row input[type="checkbox"]:checked+.toggle-slider::after {
+        .light .favorite-row input[type="checkbox"]:checked + .toggle-slider::after {
             background: white;
         }
 
-        /* CUSTOM DATE PILL */
-        .home-date-nav {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 1.5rem;
-            margin-bottom: 1.5rem;
-        }
-
-        .home-date-arrow {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            width: 32px;
-            height: 32px;
-            background: transparent;
+        /* SAVE TRANSACTION BUTTON */
+        .btn-save-transaction {
+            width: 100%;
+            height: 42px;
+            padding: 0 1rem;
             border: none;
-            color: var(--dark-text);
+            border-radius: 10px;
+            background: var(--primary);
+            color: white;
+            font-size: 0.92rem;
+            font-weight: 700;
+            letter-spacing: 0.2px;
             cursor: pointer;
             transition: all var(--transition);
-        }
-        .light .home-date-arrow {
-            color: var(--light-text);
-        }
-        .home-date-arrow svg {
-            width: 24px;
-            height: 24px;
-        }
-        .home-date-arrow:hover {
-            color: var(--primary);
-        }
-
-        .home-date-pill {
+            font-family: inherit;
             display: flex;
             align-items: center;
-            gap: 8px;
-            background: rgba(255, 255, 255, 0.08);
-            color: var(--dark-text);
-            border-radius: 50px;
-            padding: 7px 16px;
-            font-size: 0.95rem;
-            font-weight: 700;
-            cursor: pointer;
-            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.15);
-            transition: all var(--transition);
-            border: 1px solid rgba(255, 255, 255, 0.12);
-            backdrop-filter: blur(12px);
-            -webkit-backdrop-filter: blur(12px);
-            letter-spacing: 0.3px;
+            justify-content: center;
+            gap: 0.5rem;
+            box-shadow: 0 4px 14px var(--primary-glow);
+            margin-top: 0.15rem;
         }
-        .dark .home-date-pill {
-            background: rgba(255, 255, 255, 0.08);
-            color: var(--dark-text);
-            border: 1px solid rgba(255, 255, 255, 0.12);
+
+        .btn-save-transaction:hover {
+            background: var(--primary-light);
+            box-shadow: 0 6px 20px var(--primary-glow);
+            transform: translateY(-1px);
         }
-        .light .home-date-pill {
-            background: #ffffff;
-            color: var(--light-text);
-            border: 1px solid rgba(0, 0, 0, 0.08);
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        }
-        .home-date-pill:hover {
-            transform: scale(1.02);
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-        }
-        .home-date-pill svg {
-            width: 20px;
-            height: 20px;
-            stroke-width: 2.5;
+
+        .btn-save-transaction:active {
+            transform: scale(0.98);
         }
 
         /* CUSTOM CALENDAR MODAL */
@@ -1322,18 +1375,31 @@
             padding: 1rem 1.25rem;
             padding-left: max(1.25rem, env(safe-area-inset-left));
             padding-right: max(1.25rem, env(safe-area-inset-right));
-            padding-bottom: max(5.5rem, env(safe-area-inset-bottom));
+            padding-bottom: calc(88px + env(safe-area-inset-bottom, 16px));
             max-width: 960px;
             margin: 0 auto;
         }
 
         .tab-content {
             display: none;
-            animation: fadeInUp 0.35s ease;
+            opacity: 0;
+            will-change: transform, opacity;
         }
 
         .tab-content.active {
             display: block;
+            animation: appleTabFadeIn 0.22s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes appleTabFadeIn {
+            from {
+                opacity: 0;
+                transform: translate3d(0, 10px, 0);
+            }
+            to {
+                opacity: 1;
+                transform: translate3d(0, 0, 0);
+            }
         }
 
         /* CARDS */
@@ -3782,6 +3848,7 @@
 
             .main-content {
                 padding: 0.75rem;
+                padding-bottom: max(6rem, calc(env(safe-area-inset-bottom) + 5.5rem));
             }
 
             .stats-grid {
@@ -4498,32 +4565,32 @@
         .segmented-control-container {
             display: flex;
             background: rgba(0, 0, 0, 0.28);
-            padding: 4px;
+            padding: 3px;
             border-radius: 9999px;
             position: relative;
-            margin-bottom: 20px;
+            margin-bottom: 0.65rem;
             border: 1px solid rgba(255, 255, 255, 0.08);
             box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.25);
-            height: 48px;
+            height: 38px;
         }
 
         .segmented-background {
             position: absolute;
-            top: 4px;
-            left: 4px;
-            width: calc(50% - 4px);
-            height: calc(100% - 8px);
+            top: 3px;
+            left: 3px;
+            width: calc(50% - 3px);
+            height: calc(100% - 6px);
             background: #10b981;
             /* Green default */
             border-radius: 9999px;
             transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.25s ease;
             z-index: 1;
-            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+            box-shadow: 0 3px 10px rgba(16, 185, 129, 0.35);
         }
 
         .segmented-background.bg-expense {
             background: #ef4444;
-            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+            box-shadow: 0 3px 10px rgba(239, 68, 68, 0.35);
             /* Red expense */
         }
 
@@ -4538,7 +4605,7 @@
             border: none;
             color: var(--dark-text-3);
             font-weight: 600;
-            font-size: 0.95rem;
+            font-size: 0.88rem;
             cursor: pointer;
             transition: color 0.25s ease;
             letter-spacing: 0.2px;
@@ -5587,17 +5654,19 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1.25rem;
+            margin-bottom: 0.65rem;
         }
 
         .new-transaction-header h2 {
             margin-bottom: 0 !important;
+            font-size: 1.25rem;
+            font-weight: 700;
         }
 
         .btn-voice-header {
-            width: 38px;
-            height: 38px;
-            border-radius: 12px;
+            width: 34px;
+            height: 34px;
+            border-radius: 10px;
             background: rgba(16, 185, 129, 0.12);
             border: 1px solid rgba(16, 185, 129, 0.3);
             color: var(--primary);
@@ -6179,5 +6248,975 @@
             color: #ff6b6b;
             transform: scale(1.08);
         }
+
+        /* ==========================================================================
+           APPLE INSPIRATION UI/UX DESIGN SYSTEM & RESPONSIVE FLUIDITY
+           ========================================================================== */
+
+        /* Responsive Floating Action Buttons Over Apple Tab Bar */
+        @media (max-width: 768px) {
+            .floating-calc-btn {
+                right: 16px !important;
+                bottom: calc(76px + env(safe-area-inset-bottom, 8px)) !important;
+                width: 48px !important;
+                height: 48px !important;
+                border-radius: 16px !important;
+                box-shadow: 0 8px 24px rgba(0, 0, 0, 0.35) !important;
+            }
+            .fab-speed-dial-container {
+                right: 16px !important;
+                bottom: calc(134px + env(safe-area-inset-bottom, 8px)) !important;
+            }
+            .floating-receipt-btn {
+                right: 16px !important;
+                bottom: calc(134px + env(safe-area-inset-bottom, 8px)) !important;
+                width: 48px !important;
+                height: 48px !important;
+                border-radius: 16px !important;
+            }
+        }
+
+        /* Apple Bottom Tab Bar (iOS Native Style with Heavy Glassmorphism) */
+        .apple-tab-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: calc(64px + env(safe-area-inset-bottom, 0px));
+            padding-bottom: env(safe-area-inset-bottom, 0px);
+            background: rgba(10, 14, 23, 0.48);
+            backdrop-filter: blur(32px) saturate(220%) contrast(105%);
+            -webkit-backdrop-filter: blur(32px) saturate(220%) contrast(105%);
+            border-top: 1px solid rgba(255, 255, 255, 0.16);
+            box-shadow: 0 -10px 36px rgba(0, 0, 0, 0.38), inset 0 1px 0 rgba(255, 255, 255, 0.14);
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            z-index: 1200;
+            user-select: none;
+            -webkit-user-select: none;
+            transition: background var(--transition), border-color var(--transition);
+        }
+
+        .light .apple-tab-bar {
+            background: rgba(255, 255, 255, 0.52);
+            backdrop-filter: blur(32px) saturate(210%) contrast(102%);
+            -webkit-backdrop-filter: blur(32px) saturate(210%) contrast(102%);
+            border-top: 1px solid rgba(255, 255, 255, 0.75);
+            box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.07), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+        }
+
+        .apple-tab-item {
+            flex: 1;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 3px;
+            background: transparent;
+            border: none;
+            color: #94A3B8;
+            cursor: pointer;
+            padding: 4px 6px;
+            touch-action: manipulation;
+            transition: color 0.18s ease, transform 0.15s cubic-bezier(0.2, 0.8, 0.2, 1);
+            position: relative;
+            outline: none;
+            -webkit-tap-highlight-color: transparent;
+            border-radius: 18px;
+        }
+
+        .light .apple-tab-item {
+            color: #64748B;
+        }
+
+        .apple-tab-item:active {
+            transform: scale(0.92);
+        }
+
+        .apple-tab-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 28px;
+            height: 28px;
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .apple-tab-icon svg {
+            width: 22px;
+            height: 22px;
+            stroke-width: 2.1;
+            stroke: currentColor;
+            fill: none;
+            filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.45));
+            transition: stroke 0.2s ease, filter 0.2s ease;
+        }
+
+        .light .apple-tab-icon svg {
+            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.15));
+        }
+
+        .apple-tab-label {
+            font-size: 0.68rem;
+            font-weight: 600;
+            letter-spacing: -0.25px;
+            text-shadow: 0 1px 3px rgba(0, 0, 0, 0.65);
+            transition: color 0.18s ease, font-weight 0.18s ease;
+            white-space: nowrap;
+        }
+
+        .light .apple-tab-label {
+            text-shadow: 0 1px 2px rgba(255, 255, 255, 0.85);
+        }
+
+        .apple-tab-item.active {
+            color: #30D158;
+        }
+
+        .apple-tab-item.active .apple-tab-icon {
+            transform: translateY(-1px);
+        }
+
+        .apple-tab-item.active .apple-tab-icon svg {
+            filter: drop-shadow(0 2px 10px rgba(48, 209, 88, 0.65));
+            stroke-width: 2.4;
+        }
+
+        .apple-tab-item.active .apple-tab-label {
+            color: #30D158;
+            font-weight: 700;
+            text-shadow: 0 0 12px rgba(48, 209, 88, 0.4);
+        }
+
+        /* Apple Center Prominent Action Tab (Lançar) */
+        .apple-tab-item.apple-tab-item-center {
+            position: relative;
+            overflow: visible;
+            z-index: 10;
+        }
+
+        .apple-tab-item-center .apple-tab-center-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(48, 209, 88, 0.94), rgba(16, 185, 129, 0.92));
+            color: #FFFFFF;
+            margin-top: -18px;
+            margin-bottom: 2px;
+            border: 3.5px solid rgba(10, 14, 23, 0.55);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            box-shadow: 0 8px 24px rgba(48, 209, 88, 0.48), 0 2px 8px rgba(0, 0, 0, 0.35), inset 0 1px 0 rgba(255, 255, 255, 0.45);
+            transition: transform 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.2s ease, background 0.2s ease;
+        }
+
+        .light .apple-tab-item-center .apple-tab-center-icon {
+            border-color: rgba(255, 255, 255, 0.75);
+            box-shadow: 0 8px 24px rgba(48, 209, 88, 0.4), 0 2px 8px rgba(0, 0, 0, 0.08), inset 0 1px 0 rgba(255, 255, 255, 0.8);
+        }
+
+        .apple-tab-item-center .apple-tab-center-icon svg {
+            width: 25px;
+            height: 25px;
+            stroke: #FFFFFF !important;
+            stroke-width: 2.7;
+            filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.25));
+        }
+
+        .apple-tab-item-center:active .apple-tab-center-icon {
+            transform: scale(0.91) translateY(1px);
+            box-shadow: 0 2px 10px rgba(48, 209, 88, 0.5);
+        }
+
+        .apple-tab-item-center.active .apple-tab-center-icon {
+            background: linear-gradient(135deg, #34D399, #059669);
+            box-shadow: 0 10px 28px rgba(48, 209, 88, 0.65), 0 0 0 3.5px rgba(48, 209, 88, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.5);
+            transform: translateY(-2px);
+        }
+
+        .apple-tab-item-center.active .apple-tab-label {
+            color: #30D158;
+            font-weight: 800;
+        }
+
+
+        /* Apple Pro Analytics Dashboard */
+        .apple-chart-dashboard {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+            animation: fadeIn 0.25s ease;
+        }
+
+        .apple-chart-hero-card {
+            background: linear-gradient(145deg, rgba(20, 27, 41, 0.88), rgba(14, 19, 29, 0.95)) !important;
+            border: 1px solid rgba(255, 255, 255, 0.08) !important;
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.25) !important;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .light .apple-chart-hero-card {
+            background: linear-gradient(145deg, #FFFFFF, #F8FAFC) !important;
+            border: 1px solid rgba(0, 0, 0, 0.07) !important;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04) !important;
+        }
+
+        .apple-chart-hero-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1.25rem;
+            flex-wrap: wrap;
+        }
+
+        .apple-badge-pro {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 3px 10px;
+            border-radius: 9999px;
+            background: rgba(48, 209, 88, 0.12);
+            border: 1px solid rgba(48, 209, 88, 0.25);
+            color: #30D158;
+            font-size: 0.68rem;
+            font-weight: 800;
+            letter-spacing: 0.6px;
+            margin-bottom: 0.4rem;
+        }
+
+        .apple-badge-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: #30D158;
+            box-shadow: 0 0 8px #30D158;
+            animation: pulse-soft 2s infinite;
+        }
+
+        .apple-chart-title {
+            font-size: 1.45rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+            color: var(--dark-text);
+            margin-bottom: 2px;
+        }
+
+        .light .apple-chart-title {
+            color: var(--light-text);
+        }
+
+        .apple-chart-subtitle {
+            font-size: 0.88rem;
+            color: var(--dark-text-3);
+            line-height: 1.4;
+        }
+
+        .apple-btn-secondary {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 14px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.07);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--dark-text);
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            touch-action: manipulation;
+        }
+
+        .light .apple-btn-secondary {
+            background: rgba(0, 0, 0, 0.05);
+            border-color: rgba(0, 0, 0, 0.09);
+            color: var(--light-text);
+        }
+
+        .apple-btn-secondary:active {
+            transform: scale(0.96);
+        }
+
+        /* Apple Health/Wallet KPI Grid */
+        .apple-kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+            gap: 0.85rem;
+            margin-bottom: 1.25rem;
+        }
+
+        @media (max-width: 480px) {
+            .apple-kpi-grid {
+                grid-template-columns: 1fr 1fr;
+                gap: 0.65rem;
+            }
+        }
+
+        .apple-kpi-card {
+            padding: 1rem;
+            border-radius: 16px;
+            background: rgba(255, 255, 255, 0.035);
+            border: 1px solid rgba(255, 255, 255, 0.07);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            transition: transform 0.2s ease, border-color 0.2s ease;
+        }
+
+        .light .apple-kpi-card {
+            background: rgba(0, 0, 0, 0.025);
+            border-color: rgba(0, 0, 0, 0.06);
+        }
+
+        .apple-kpi-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .apple-kpi-header {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 2px;
+        }
+
+        .apple-kpi-icon {
+            font-size: 1.05rem;
+        }
+
+        .apple-kpi-label {
+            font-size: 0.76rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: var(--dark-text-3);
+        }
+
+        .apple-kpi-value {
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: -0.4px;
+            line-height: 1.2;
+        }
+
+        .apple-kpi-card.income .apple-kpi-value {
+            color: #30D158;
+        }
+
+        .apple-kpi-card.expense .apple-kpi-value {
+            color: #FF453A;
+        }
+
+        .apple-kpi-card.balance .apple-kpi-value {
+            color: #0A84FF;
+        }
+
+        .apple-kpi-card.savings .apple-kpi-value {
+            color: #BF5AF2;
+        }
+
+        .apple-kpi-sub {
+            font-size: 0.72rem;
+            color: var(--dark-text-3);
+            font-weight: 500;
+        }
+
+        /* Apple Insight Banner */
+        .apple-insight-banner {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            padding: 0.85rem 1.1rem;
+            border-radius: 14px;
+            background: rgba(10, 132, 255, 0.08);
+            border: 1px solid rgba(10, 132, 255, 0.2);
+            color: var(--dark-text);
+        }
+
+        .light .apple-insight-banner {
+            color: var(--light-text);
+        }
+
+        .apple-insight-icon {
+            font-size: 1.4rem;
+            flex-shrink: 0;
+        }
+
+        .apple-insight-text strong {
+            display: block;
+            font-size: 0.88rem;
+            font-weight: 700;
+            margin-bottom: 2px;
+            color: #0A84FF;
+        }
+
+        .apple-insight-text p {
+            font-size: 0.82rem;
+            line-height: 1.4;
+            color: var(--dark-text-2);
+            margin: 0;
+        }
+
+        .light .apple-insight-text p {
+            color: var(--light-text-2);
+        }
+
+        /* Apple Segmented Pills */
+        .apple-segmented-group {
+            margin-bottom: 1rem;
+        }
+
+        .apple-segmented-pills {
+            display: flex;
+            background: rgba(255, 255, 255, 0.06);
+            padding: 4px;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none;
+            gap: 4px;
+        }
+
+        .apple-segmented-pills::-webkit-scrollbar {
+            display: none;
+        }
+
+        .light .apple-segmented-pills {
+            background: rgba(0, 0, 0, 0.05);
+            border-color: rgba(0, 0, 0, 0.06);
+        }
+
+        .apple-pill-btn {
+            flex: 1;
+            min-width: 68px;
+            padding: 8px 12px;
+            border-radius: 10px;
+            border: none;
+            background: transparent;
+            color: var(--dark-text-2);
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+            white-space: nowrap;
+            touch-action: manipulation;
+        }
+
+        .light .apple-pill-btn {
+            color: var(--light-text-2);
+        }
+
+        .apple-pill-btn.active {
+            background: #FFFFFF;
+            color: #000000;
+            font-weight: 700;
+            box-shadow: 0 3px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        .apple-pill-btn:active {
+            transform: scale(0.96);
+        }
+
+        /* Dynamic Inputs */
+        .apple-period-inputs {
+            margin-bottom: 1rem;
+            padding: 0.85rem;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+        }
+
+        .apple-date-range-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .apple-range-sep {
+            color: var(--dark-text-3);
+            font-weight: 700;
+        }
+
+        .apple-input-wrapper {
+            flex: 1;
+        }
+
+        .apple-mini-label {
+            display: block;
+            font-size: 0.72rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            color: var(--dark-text-3);
+            margin-bottom: 4px;
+        }
+
+        /* Apple Chart Type Selector */
+        .apple-chart-types-wrapper {
+            margin-bottom: 1.1rem;
+        }
+
+        .apple-chart-type-selector {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            padding-bottom: 4px;
+            scrollbar-width: none;
+        }
+
+        .apple-chart-type-selector::-webkit-scrollbar {
+            display: none;
+        }
+
+        .apple-type-btn {
+            flex: 1;
+            min-width: 78px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 8px 12px;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            background: rgba(255, 255, 255, 0.04);
+            color: var(--dark-text-2);
+            font-size: 0.82rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+            touch-action: manipulation;
+            white-space: nowrap;
+        }
+
+        .light .apple-type-btn {
+            background: rgba(0, 0, 0, 0.035);
+            border-color: rgba(0, 0, 0, 0.07);
+            color: var(--light-text-2);
+        }
+
+        .apple-type-btn:hover {
+            border-color: rgba(255, 255, 255, 0.18);
+        }
+
+        .apple-type-btn.active {
+            background: linear-gradient(135deg, rgba(16, 185, 129, 0.18), rgba(5, 150, 105, 0.18));
+            border-color: #30D158;
+            color: #30D158;
+            font-weight: 700;
+            box-shadow: 0 0 16px rgba(48, 209, 88, 0.2);
+        }
+
+        .apple-type-btn:active {
+            transform: scale(0.95);
+        }
+
+        /* Secondary Filters Row */
+        .apple-filters-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .apple-select {
+            width: 100%;
+            font-size: 0.85rem;
+            padding: 8px 12px;
+            border-radius: 12px;
+        }
+
+        .apple-cat-btn {
+            width: 100%;
+            font-size: 0.82rem;
+            padding: 8px 12px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        /* Apple Canvas Container */
+        .apple-canvas-container {
+            position: relative;
+            min-height: 320px;
+            max-height: 440px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.5rem 0;
+        }
+
+        .apple-canvas-container canvas {
+            max-height: 420px;
+            width: 100% !important;
+        }
+
+        .apple-empty-icon {
+            font-size: 2.8rem;
+            margin-bottom: 0.5rem;
+            opacity: 0.7;
+        }
+
+        /* Category Breakdown Ranking Card */
+        .apple-breakdown-card {
+            border-radius: var(--radius);
+        }
+
+        .apple-breakdown-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.1rem;
+        }
+
+        .apple-breakdown-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            margin-bottom: 2px;
+        }
+
+        .apple-breakdown-subtitle {
+            font-size: 0.82rem;
+            color: var(--dark-text-3);
+        }
+
+        .apple-badge-sub {
+            padding: 4px 10px;
+            border-radius: 9999px;
+            background: rgba(255, 255, 255, 0.06);
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--dark-text-2);
+        }
+
+        .light .apple-badge-sub {
+            background: rgba(0, 0, 0, 0.05);
+            color: var(--light-text-2);
+        }
+
+        .apple-category-bars-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.85rem;
+        }
+
+        .apple-category-bar-item {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 8px 12px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.025);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: transform 0.15s ease, background 0.15s ease;
+        }
+
+        .light .apple-category-bar-item {
+            background: rgba(0, 0, 0, 0.02);
+            border-color: rgba(0, 0, 0, 0.05);
+        }
+
+        .apple-category-bar-item:hover {
+            transform: translateX(2px);
+            background: rgba(255, 255, 255, 0.04);
+        }
+
+        .apple-cat-row-top {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 0.88rem;
+        }
+
+        .apple-cat-name {
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .apple-cat-amounts {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .apple-cat-val {
+            font-weight: 700;
+        }
+
+        .apple-cat-pct {
+            font-size: 0.76rem;
+            font-weight: 600;
+            color: var(--dark-text-3);
+            min-width: 38px;
+            text-align: right;
+        }
+
+        .apple-cat-progress-track {
+            width: 100%;
+            height: 6px;
+            border-radius: 9999px;
+            background: rgba(255, 255, 255, 0.08);
+            overflow: hidden;
+        }
+
+        .light .apple-cat-progress-track {
+            background: rgba(0, 0, 0, 0.06);
+        }
+
+        .apple-cat-progress-fill {
+            height: 100%;
+            border-radius: 9999px;
+            transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* Apple Storage & Cache Cleanup Card */
+        .apple-storage-card {
+            border-radius: var(--radius);
+            margin-top: 1.25rem;
+            border: 1px solid rgba(48, 209, 88, 0.2) !important;
+            background: linear-gradient(145deg, rgba(16, 185, 129, 0.04), rgba(20, 27, 41, 0.78)) !important;
+        }
+
+        .light .apple-storage-card {
+            background: linear-gradient(145deg, rgba(16, 185, 129, 0.05), #FFFFFF) !important;
+            border: 1px solid rgba(16, 185, 129, 0.25) !important;
+        }
+
+        .apple-storage-header {
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .apple-storage-icon-circle {
+            width: 44px;
+            height: 44px;
+            border-radius: 14px;
+            background: rgba(48, 209, 88, 0.15);
+            color: #30D158;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .apple-storage-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 0.85rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .apple-storage-stat-item {
+            padding: 0.85rem;
+            border-radius: 14px;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid rgba(255, 255, 255, 0.06);
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .light .apple-storage-stat-item {
+            background: rgba(0, 0, 0, 0.03);
+            border-color: rgba(0, 0, 0, 0.06);
+        }
+
+        .apple-storage-stat-label {
+            font-size: 0.74rem;
+            font-weight: 600;
+            color: var(--dark-text-3);
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .apple-storage-stat-value {
+            font-size: 1.15rem;
+            font-weight: 800;
+            letter-spacing: -0.3px;
+        }
+
+        .apple-storage-actions {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+        }
+
+        .apple-clean-cache-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: linear-gradient(135deg, #10B981, #059669);
+            box-shadow: 0 4px 18px rgba(16, 185, 129, 0.35);
+            font-weight: 700;
+            border-radius: 14px;
+            padding: 10px 18px;
+        }
+
+        .apple-clean-cache-btn:active {
+            transform: scale(0.96);
+        }
+
+        /* Micro-interactions & Android touch responsiveness */
+        button, .apple-pill-btn, .apple-type-btn, .segmented-btn, .menu-item {
+            touch-action: manipulation;
+        }
+
+        /* ==========================================================================
+           MOBILE-OPTIMIZED TRANSACTION FORM (NOVA TRANSAÇÃO)
+           ========================================================================== */
+        @media (max-width: 600px) {
+            #new-transaction .card.new-transaction-card {
+                padding: 0.85rem 0.9rem !important;
+                margin-bottom: 0.75rem !important;
+                border-radius: 14px;
+            }
+
+            .new-transaction-header {
+                margin-bottom: 0.5rem !important;
+            }
+
+            .new-transaction-header h2 {
+                font-size: 1.15rem !important;
+            }
+
+            .btn-voice-header {
+                width: 32px !important;
+                height: 32px !important;
+                border-radius: 9px;
+            }
+
+            .segmented-control-container {
+                height: 36px !important;
+                margin-bottom: 0.55rem !important;
+                padding: 2px !important;
+            }
+
+            .segmented-background {
+                top: 2px !important;
+                left: 2px !important;
+                width: calc(50% - 2px) !important;
+                height: calc(100% - 4px) !important;
+                border-radius: 9999px;
+            }
+
+            .segmented-btn {
+                font-size: 0.84rem !important;
+                font-weight: 700 !important;
+            }
+
+            .value-display-section {
+                padding: 0.5rem 0.75rem !important;
+                margin-bottom: 0.55rem !important;
+                border-radius: 11px !important;
+            }
+
+            .value-display-label {
+                font-size: 0.62rem !important;
+                letter-spacing: 0.6px !important;
+            }
+
+            .value-display-amount {
+                font-size: 1.85rem !important;
+                line-height: 1.05 !important;
+            }
+
+            .home-date-nav {
+                gap: 2px !important;
+            }
+
+            .home-date-arrow {
+                width: 24px !important;
+                height: 24px !important;
+            }
+
+            .home-date-arrow svg {
+                width: 13px !important;
+                height: 13px !important;
+            }
+
+            .home-date-pill {
+                height: 24px !important;
+                padding: 0 8px !important;
+                font-size: 0.74rem !important;
+                gap: 4px !important;
+            }
+
+            .home-date-pill svg {
+                width: 11px !important;
+                height: 11px !important;
+            }
+
+            .form-row-label {
+                font-size: 0.62rem !important;
+                margin-bottom: 2px !important;
+                letter-spacing: 0.5px !important;
+            }
+
+            .form-row-styled {
+                height: 38px !important;
+                min-height: 38px !important;
+                padding: 0 0.65rem !important;
+                margin-bottom: 0.5rem !important;
+                border-radius: 9px !important;
+            }
+
+            .form-row-styled .form-input,
+            .form-row-styled .form-select {
+                font-size: 0.84rem !important;
+            }
+
+            .favorite-row {
+                padding: 0.35rem 0.65rem !important;
+                margin-bottom: 0.55rem !important;
+                font-size: 0.8rem !important;
+                border-radius: 9px !important;
+            }
+
+            .toggle-slider {
+                width: 34px !important;
+                height: 18px !important;
+            }
+
+            .toggle-slider::after {
+                width: 12px !important;
+                height: 12px !important;
+                top: 2px !important;
+                left: 2px !important;
+            }
+
+            .favorite-row input[type="checkbox"]:checked + .toggle-slider::after {
+                left: calc(100% - 14px) !important;
+            }
+
+            .btn-save-transaction {
+                height: 40px !important;
+                padding: 0 0.9rem !important;
+                font-size: 0.88rem !important;
+                gap: 0.45rem !important;
+                border-radius: 9px !important;
+                margin-top: 0.1rem !important;
+            }
+
+            .btn-save-transaction svg {
+                width: 16px !important;
+                height: 16px !important;
+            }
+        }
+
+
 
 
