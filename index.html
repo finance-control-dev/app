@@ -1755,6 +1755,27 @@
     </div>
     <input id="receiptUploadInput" type="file" accept="image/*,application/pdf" capture="environment" hidden onchange="handleReceiptFileSelection(event)">
 
+    <!-- Modal de Alerta Obrigatório de Orientação -->
+    <div class="modal-overlay" id="receiptOrientationNoticeModal" role="presentation" style="z-index: 2800;" onclick="if(event.target === this) dismissReceiptOrientationNotice()">
+        <div class="modal-content" style="max-width: 440px; text-align: center; padding: 26px 22px; border-radius: 24px; box-shadow: 0 24px 60px rgba(0,0,0,0.55); border: 1.5px solid rgba(239, 68, 68, 0.45); background: var(--modal-bg, #1e293b); color: inherit;">
+            <div style="width: 64px; height: 64px; margin: 0 auto 16px; border-radius: 50%; background: rgba(239, 68, 68, 0.15); display: flex; align-items: center; justify-content: center; font-size: 32px; border: 2px solid rgba(239, 68, 68, 0.45);">
+                ⚠️
+            </div>
+            <h3 style="font-size: 1.22rem; font-weight: 800; margin-bottom: 12px; color: #ef4444;">
+                Atenção: A Foto Precisa Estar em Pé!
+            </h3>
+            <p style="font-size: 0.92rem; line-height: 1.6; opacity: 0.92; margin-bottom: 14px; text-align: left;">
+                Para que a IA consiga identificar com precisão os dados do comprovante (valor, data e descrição), <strong>a imagem tem que estar obrigatoriamente na vertical (em pé)</strong>.
+            </p>
+            <p style="font-size: 0.88rem; line-height: 1.5; opacity: 0.88; margin-bottom: 22px; text-align: left; background: rgba(255, 255, 255, 0.05); padding: 12px; border-radius: 12px; border-left: 3px solid #ef4444;">
+                📸 Como o comprovante pode estar em diferentes posições, <strong>ajuste a orientação no aplicativo</strong> usando os botões de rotação livre até o comprovante ficar totalmente em pé antes de iniciar a leitura.
+            </p>
+            <button type="button" class="btn btn-primary" onclick="dismissReceiptOrientationNotice()" style="width: 100%; padding: 13px; font-weight: 700; font-size: 0.98rem; border-radius: 12px; justify-content: center; box-shadow: 0 4px 16px rgba(59, 130, 246, 0.4);">
+                Entendi, Vou Ajustar a Foto
+            </button>
+        </div>
+    </div>
+
     <div class="modal-overlay receipt-review-overlay" id="receiptReviewModal" role="presentation" onclick="if(event.target === this && !receiptSaving) closeReceiptReview()">
         <section class="receipt-review-dialog" role="dialog" aria-modal="true" aria-labelledby="receiptReviewTitle">
             <header class="receipt-review-header">
@@ -1771,12 +1792,32 @@
                         <img id="receiptPreviewImage" alt="Prévia do comprovante" hidden>
                         <iframe id="receiptPreviewPdf" title="Prévia do comprovante PDF" hidden></iframe>
                     </div>
-                    <div id="receiptPreviewControls" class="receipt-preview-controls" style="display: flex; gap: 8px; margin-top: 10px; justify-content: center;">
-                        <button type="button" class="btn btn-primary" id="receiptRotateBtn" onclick="rotateUploadedReceipt()" style="font-size: 0.9rem; padding: 9px 18px; display: inline-flex; align-items: center; gap: 8px; border-radius: 12px; font-weight: 700; box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35);">
-                            <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-                                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
-                            </svg>
-                            <span>Girar Imagem 90°</span>
+                    <div style="margin-top: 10px; display: flex; flex-direction: column; gap: 8px; align-items: center;">
+                        <div id="receiptOrientationStatus" style="font-size: 0.82rem; font-weight: 600; display: flex; align-items: center; gap: 6px;">
+                            <span id="receiptOrientationBadge" style="background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.35); padding: 4px 12px; border-radius: 20px;">Orientação da imagem</span>
+                        </div>
+                        <div id="receiptPreviewControls" class="receipt-preview-controls" style="display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; width: 100%;">
+                            <button type="button" class="btn btn-secondary" id="receiptRotateLeftBtn" onclick="rotateUploadedReceipt(-90)" title="Girar 90° para a esquerda (anti-horário)" style="font-size: 0.82rem; padding: 8px 12px; display: inline-flex; align-items: center; gap: 6px; border-radius: 10px; font-weight: 600;">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M2.5 2v6h6M2.66 15.57a10 10 0 1 0 .57-8.38L-2.44 1.52"/>
+                                </svg>
+                                <span>↺ 90° Esquerda</span>
+                            </button>
+                            <button type="button" class="btn btn-primary" id="receiptRotateRightBtn" onclick="rotateUploadedReceipt(90)" title="Girar 90° para a direita (horário)" style="font-size: 0.82rem; padding: 8px 12px; display: inline-flex; align-items: center; gap: 6px; border-radius: 10px; font-weight: 600; box-shadow: 0 4px 14px rgba(59, 130, 246, 0.35);">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+                                </svg>
+                                <span>↻ 90° Direita</span>
+                            </button>
+                            <button type="button" class="btn btn-secondary" id="receiptRotate180Btn" onclick="rotateUploadedReceipt(180)" title="Inverter 180° (cabeça para baixo)" style="font-size: 0.82rem; padding: 8px 12px; display: inline-flex; align-items: center; gap: 6px; border-radius: 10px; font-weight: 600;">
+                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
+                                    <path d="M7 16V4m0 0L3 8m4-4l4 4m6 4v12m0 0l4-4m-4 4l-4-4"/>
+                                </svg>
+                                <span>🔃 180° Inverter</span>
+                            </button>
+                        </div>
+                        <button type="button" id="receiptConfirmOrientationUprightBtn" onclick="confirmReceiptOrientationUpright()" class="btn btn-secondary" style="font-size: 0.82rem; padding: 6px 14px; border-radius: 8px; opacity: 0.95; display: none; background: rgba(16, 185, 129, 0.15); border: 1px solid rgba(16, 185, 129, 0.4); color: #34d399; font-weight: 600;">
+                            ✓ Minha foto já está em pé
                         </button>
                     </div>
                     <div id="receiptLoading" class="receipt-loading" role="status" hidden><span id="receiptProgressLabel">Preparando leitura…</span><strong id="receiptProgressPercent">0%</strong><div class="receipt-progress-track" role="progressbar" aria-label="Progresso da leitura" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div id="receiptProgressFill" class="receipt-progress-fill"></div></div></div>
@@ -1787,7 +1828,7 @@
                             <span id="receiptOrientationAlertIcon" style="font-size: 1.4rem; line-height: 1;">⚠️</span>
                             <div>
                                 <strong id="receiptOrientationAlertTitle" style="color: #fecaca; display: block; font-size: 0.95rem; margin-bottom: 3px;">Ação Obrigatória: Ajuste a Orientação</strong>
-                                <span id="receiptOrientationAlertMsg">A IA não iniciará a leitura até você ajustar a orientação. Use o botão <b>Girar Imagem 90°</b> para deixar o comprovante <b>em pé</b> e liberar a leitura.</span>
+                                <span id="receiptOrientationAlertMsg">A IA não iniciará a leitura até você ajustar a orientação. Use os botões de rotação acima para deixar o comprovante <b>em pé</b> e liberar a leitura.</span>
                             </div>
                         </div>
                     </div>
@@ -1797,7 +1838,7 @@
                                 <circle cx="11" cy="11" r="8"></circle>
                                 <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
                             </svg>
-                            <span id="receiptStartOcrBtnLabel">Gire a imagem para liberar a leitura</span>
+                            <span id="receiptStartOcrBtnLabel">Gire a foto para liberar a leitura</span>
                         </button>
                     </div>
                     <div id="receiptAnalysisMessage" class="receipt-review-message" role="status" hidden></div>
