@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finance-pwa-v5';
+const CACHE_NAME = 'finance-pwa-v6';
 const SHARED_RECEIPTS_CACHE = 'finance-shared-receipts-v1';
 
 const STATIC_PRECACHE = [
