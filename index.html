@@ -21,7 +21,625 @@
     <script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
-    <link rel="stylesheet" href="./css/styles.css?v=20261101_19">
+    <link rel="stylesheet" href="./css/styles.css?v=20261101_20">
+    <style id="dashboard-dx-critical-css">
+/* ==========================================================================
+   DASHBOARD v3 (#dashboard .dx) — 100% mobile-first e responsivo
+   Todas as classes usam o prefixo .dx-* (sem dependência de .card global).
+   Carregada depois de styles.css.
+   ========================================================================== */
+
+#dashboard .dx {
+    --x-text: #F8FAFC;
+    --x-muted: rgba(203, 213, 225, 0.68);
+    --x-surface: #121A2A;
+    --x-surface-2: rgba(255, 255, 255, 0.05);
+    --x-line: rgba(255, 255, 255, 0.08);
+    --x-pos: #34D399;
+    --x-neg: #F87171;
+    --x-warn: #FBBF24;
+    --x-brand: #10B981;
+    --x-brand-soft: rgba(16, 185, 129, 0.15);
+    --x-track: rgba(255, 255, 255, 0.1);
+    --x-hero: linear-gradient(145deg, #0F3D33 0%, #12263F 100%);
+    --x-hero-text: #F8FAFC;
+    --x-hero-muted: rgba(226, 232, 240, 0.72);
+    --x-hero-chip: rgba(255, 255, 255, 0.09);
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 100%;
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 8px 0 calc(96px + env(safe-area-inset-bottom, 0px));
+    box-sizing: border-box;
+    color: var(--x-text);
+    font-size: 15px;
+    line-height: 1.35;
+    -webkit-text-size-adjust: 100%;
+}
+
+body.light #dashboard .dx {
+    --x-text: #0F172A;
+    --x-muted: #64748B;
+    --x-surface: #FFFFFF;
+    --x-surface-2: #F1F5F9;
+    --x-line: rgba(15, 23, 42, 0.08);
+    --x-pos: #059669;
+    --x-neg: #DC2626;
+    --x-warn: #D97706;
+    --x-brand-soft: rgba(16, 185, 129, 0.12);
+    --x-track: rgba(15, 23, 42, 0.08);
+    --x-hero: linear-gradient(145deg, #059669 0%, #0E7490 100%);
+}
+
+#dashboard .dx *,
+#dashboard .dx *::before,
+#dashboard .dx *::after {
+    box-sizing: border-box;
+}
+
+#dashboard .dx > * { min-width: 0; }
+
+#dashboard .dx button {
+    appearance: none;
+    -webkit-appearance: none;
+    font: inherit;
+    color: inherit;
+    margin: 0;
+    background: none;
+    border: 0;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+}
+
+#dashboard .dx button:active { opacity: 0.7; }
+
+/* ---------- Mês | Geral ---------- */
+#dashboard .dx-seg {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    padding: 4px;
+    border-radius: 14px;
+    background: var(--x-surface);
+    border: 1px solid var(--x-line);
+}
+
+#dashboard .dx-seg-btn {
+    height: 40px;
+    border-radius: 10px;
+    font-weight: 700;
+    font-size: 0.9rem;
+    color: var(--x-muted);
+}
+
+#dashboard .dx-seg-btn.active {
+    background: var(--x-brand);
+    color: #fff;
+}
+
+/* ---------- Hero ---------- */
+#dashboard .dx-hero {
+    padding: 18px 16px;
+    border-radius: 24px;
+    background: var(--x-hero);
+    color: var(--x-hero-text);
+    box-shadow: 0 14px 30px -14px rgba(0, 0, 0, 0.55);
+}
+
+#dashboard .dx-month {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 18px;
+}
+
+#dashboard .dx-month-arrow {
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--x-hero-chip);
+    font-size: 1.6rem;
+    line-height: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 0 3px;
+}
+
+#dashboard .dx-month-label {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 44px;
+    padding: 0 12px;
+    border-radius: 22px;
+    background: var(--x-hero-chip);
+    font-weight: 700;
+    font-size: 1rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+#dashboard .dx-month-label > span {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#dashboard .dx-month-chev {
+    font-style: normal;
+    font-size: 0.8rem;
+    opacity: 0.8;
+    transition: transform 0.2s;
+}
+
+#dashboard .dx-month-label.open .dx-month-chev { transform: rotate(180deg); }
+
+#dashboard .dx-hero-caption {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--x-hero-muted);
+}
+
+#dashboard .dx-hero-amount {
+    margin: 4px 0 10px;
+    font-size: clamp(1.8rem, 9.5vw, 2.6rem);
+    font-weight: 800;
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+    color: #fff;
+}
+
+#dashboard .dx-hero-amount.negative { color: #FECACA; }
+
+#dashboard .dx-hero-badge {
+    display: inline-block;
+    max-width: 100%;
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    background: rgba(52, 211, 153, 0.22);
+    color: #D1FAE5;
+}
+
+#dashboard .dx-hero-badge.negative { background: rgba(248, 113, 113, 0.25); color: #FEE2E2; }
+#dashboard .dx-hero-badge.neutral { background: var(--x-hero-chip); color: var(--x-hero-muted); }
+
+#dashboard .dx-flow {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin-top: 18px;
+}
+
+#dashboard .dx-flow-item {
+    min-width: 0;
+    padding: 12px;
+    border-radius: 16px;
+    background: var(--x-hero-chip);
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+#dashboard .dx-flow-label {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--x-hero-muted);
+}
+
+#dashboard .dx-flow-label b { font-weight: 800; }
+#dashboard .dx-flow-item.in .dx-flow-label b { color: #6EE7B7; }
+#dashboard .dx-flow-item.out .dx-flow-label b { color: #FCA5A5; }
+
+#dashboard .dx-flow-item strong {
+    font-size: clamp(0.95rem, 4.6vw, 1.2rem);
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+    overflow-wrap: anywhere;
+    line-height: 1.2;
+}
+
+#dashboard .dx-flow-item small {
+    font-size: 0.68rem;
+    color: var(--x-hero-muted);
+}
+
+#dashboard .dx-commit { margin-top: 16px; }
+
+#dashboard .dx-commit-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 7px;
+    font-size: 0.76rem;
+    font-weight: 600;
+    color: var(--x-hero-muted);
+}
+
+#dashboard .dx-commit-row strong { color: #fff; font-size: 0.85rem; }
+
+/* ---------- Barras ---------- */
+#dashboard .dx-bar {
+    height: 8px;
+    border-radius: 999px;
+    overflow: hidden;
+    background: rgba(255, 255, 255, 0.18);
+}
+
+#dashboard .dx-bar.thin {
+    height: 6px;
+    background: var(--x-track);
+}
+
+#dashboard .dx-bar-fill {
+    height: 100%;
+    max-width: 100%;
+    border-radius: 999px;
+    background: #6EE7B7;
+    transition: width 0.4s ease;
+}
+
+#dashboard .dx-bar.thin .dx-bar-fill { background: var(--x-brand); }
+#dashboard .dx-bar-fill.warn { background: #FCD34D; }
+#dashboard .dx-bar-fill.danger { background: #F87171; }
+#dashboard .dx-bar-fill.cat { background: linear-gradient(90deg, #A78BFA, #F87171); }
+
+/* ---------- Ações rápidas ---------- */
+#dashboard .dx-actions {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+#dashboard .dx .dx-action {
+    min-width: 0;
+    padding: 14px 4px 12px;
+    border-radius: 18px;
+    background: var(--x-surface);
+    border: 1px solid var(--x-line);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.82rem;
+    font-weight: 700;
+}
+
+#dashboard .dx-action-ico {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    font-weight: 800;
+    line-height: 1;
+}
+
+#dashboard .dx-action-ico.a1 { background: var(--x-brand); color: #fff; font-size: 1.6rem; padding-bottom: 2px; }
+#dashboard .dx-action-ico.a2 { background: #0d3832; border: 1px solid rgba(16, 185, 129, 0.4); color: #10b981; border-radius: 14px; }
+#dashboard .dx-action-ico svg { width: 22px; height: 22px; }
+#dashboard .dx-action-ico.a3 { background: #172a50; border: 1px solid rgba(59, 130, 246, 0.4); color: #3b82f6; border-radius: 14px; }
+
+/* ---------- Seções ---------- */
+#dashboard .dx-section {
+    padding: 16px;
+    border-radius: 22px;
+    background: var(--x-surface);
+    border: 1px solid var(--x-line);
+}
+
+#dashboard .dx-section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+}
+
+#dashboard .dx-section-head h3 {
+    margin: 0;
+    padding: 0;
+    display: block;
+    min-width: 0;
+    font-size: 1.02rem;
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    color: var(--x-text);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#dashboard .dx .dx-link {
+    flex: 0 0 auto;
+    padding: 8px 4px 8px 12px;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--x-brand);
+}
+
+#dashboard .dx-list {
+    display: flex;
+    flex-direction: column;
+}
+
+/* Linhas de lista (contas / movimentações) */
+#dashboard .dx .dx-row {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 11px 0;
+    text-align: left;
+    border-top: 1px solid var(--x-line);
+}
+
+#dashboard .dx-list > .dx-row:first-child { border-top: 0; padding-top: 4px; }
+
+#dashboard .dx-row-ico {
+    flex: 0 0 40px;
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.1rem;
+    font-weight: 800;
+    background: var(--x-surface-2);
+}
+
+#dashboard .dx-row-ico.in { background: rgba(52, 211, 153, 0.16); }
+#dashboard .dx-row-ico.out { background: rgba(248, 113, 113, 0.14); }
+#dashboard .dx-row-ico.due { background: rgba(245, 158, 11, 0.16); color: var(--x-warn); font-size: 0.95rem; }
+
+#dashboard .dx-row-main {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+#dashboard .dx-row-main b {
+    font-weight: 700;
+    font-size: 0.92rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#dashboard .dx-row-main small {
+    font-size: 0.74rem;
+    color: var(--x-muted);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#dashboard .dx-row-val {
+    flex: 0 0 auto;
+    max-width: 45%;
+    font-weight: 800;
+    font-size: 0.92rem;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+}
+
+#dashboard .dx-row-val.in { color: var(--x-pos); }
+#dashboard .dx-row-val.out { color: var(--x-neg); }
+
+/* Contas: resumo */
+#dashboard .dx-bills-sum {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+#dashboard .dx-bills-sum small {
+    display: block;
+    font-size: 0.74rem;
+    color: var(--x-muted);
+    font-weight: 600;
+}
+
+#dashboard .dx-bills-sum strong {
+    font-size: 1.35rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    font-variant-numeric: tabular-nums;
+}
+
+#dashboard .dx-bills-count {
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-size: 0.72rem;
+    font-weight: 700;
+    background: var(--x-brand-soft);
+    color: var(--x-brand);
+    white-space: nowrap;
+}
+
+#dashboard .dx-bills-sum + .dx-bar { margin-bottom: 8px; }
+
+#dashboard .dx-ok {
+    padding: 12px;
+    border-radius: 14px;
+    background: var(--x-brand-soft);
+    color: var(--x-pos);
+    font-size: 0.85rem;
+    font-weight: 700;
+    text-align: center;
+}
+
+/* Categorias */
+#dashboard .dx-cat {
+    padding: 10px 0;
+    border-top: 1px solid var(--x-line);
+}
+
+#dashboard .dx-list > .dx-cat:first-child { border-top: 0; padding-top: 2px; }
+
+#dashboard .dx-cat-top {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 7px;
+}
+
+#dashboard .dx-cat-name {
+    min-width: 0;
+    font-weight: 700;
+    font-size: 0.9rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#dashboard .dx-cat-val {
+    flex: 0 0 auto;
+    font-weight: 800;
+    font-size: 0.88rem;
+    font-variant-numeric: tabular-nums;
+}
+
+#dashboard .dx-cat-val em {
+    margin-left: 4px;
+    font-style: normal;
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--x-muted);
+}
+
+/* Vazio */
+#dashboard .dx-empty {
+    padding: 18px 12px;
+    border-radius: 16px;
+    background: var(--x-surface-2);
+    text-align: center;
+}
+
+#dashboard .dx-empty p {
+    margin: 0 0 10px;
+    font-size: 0.85rem;
+    color: var(--x-muted);
+}
+
+#dashboard .dx-empty p:last-child { margin-bottom: 0; }
+
+#dashboard .dx .dx-empty-btn {
+    min-height: 40px;
+    padding: 0 18px;
+    border-radius: 999px;
+    background: var(--x-brand-soft);
+    color: var(--x-brand);
+    font-weight: 700;
+    font-size: 0.84rem;
+}
+
+/* ---------- Bottom sheet de mês ---------- */
+#dashboard .dx-sheet {
+    position: fixed;
+    inset: 0;
+    z-index: 100000;
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+    background: rgba(0, 0, 0, 0.55);
+}
+
+#dashboard .dx-sheet-panel {
+    width: 100%;
+    max-width: 480px;
+    padding: 10px 16px calc(20px + env(safe-area-inset-bottom, 0px));
+    border-radius: 24px 24px 0 0;
+    background: var(--x-surface);
+    color: var(--x-text);
+    box-shadow: 0 -12px 40px rgba(0, 0, 0, 0.4);
+}
+
+#dashboard .dx-sheet-grip {
+    width: 40px;
+    height: 4px;
+    margin: 0 auto 14px;
+    border-radius: 4px;
+    background: var(--x-track);
+}
+
+#dashboard .dx-sheet-year {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+
+#dashboard .dx-sheet-year strong { font-size: 1.15rem; font-weight: 800; }
+
+#dashboard .dx-sheet-year button {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--x-surface-2);
+    font-size: 1.5rem;
+    line-height: 1;
+    padding-bottom: 3px;
+}
+
+#dashboard .dx-sheet-months {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+}
+
+#dashboard .dx-sheet-month {
+    height: 48px;
+    border-radius: 14px;
+    background: var(--x-surface-2);
+    font-weight: 700;
+    font-size: 0.95rem;
+}
+
+#dashboard .dx-sheet-month.selected {
+    background: var(--x-brand);
+    color: #fff;
+}
+
+/* ---------- Telas maiores ---------- */
+@media (min-width: 700px) {
+    #dashboard .dx { max-width: 760px; gap: 20px; font-size: 16px; }
+    #dashboard .dx-hero { padding: 24px; }
+    #dashboard .dx-section { padding: 20px; }
+    #dashboard .dx-sheet { align-items: center; }
+    #dashboard .dx-sheet-panel { border-radius: 24px; }
+}
+
+/* ---------- Telas muito estreitas ---------- */
+@media (max-width: 340px) {
+    #dashboard .dx { gap: 12px; }
+    #dashboard .dx-hero { padding: 14px 12px; border-radius: 20px; }
+    #dashboard .dx-section { padding: 12px; border-radius: 18px; }
+    #dashboard .dx-flow { gap: 8px; }
+    #dashboard .dx-flow-item { padding: 10px; }
+    #dashboard .dx-row-ico { flex-basis: 36px; width: 36px; height: 36px; }
+}
+    </style>
 </head>
 
 <body class="dark">
@@ -2320,7 +2938,411 @@
         </button>
     </nav>
 
-    <script defer src="./js/app.js?v=20261101_15"></script>
+    <script defer src="./js/app.js?v=20261101_20"></script>
+    <script id="dashboard-dx-runtime">
+    (function() {
+        window.dashFilterMode = window.dashFilterMode || 'month';
+        window.dashSelectedYearMonth = window.dashSelectedYearMonth || null;
+        window.dashMonthPopoverOpen = Boolean(window.dashMonthPopoverOpen);
+
+        try {
+            if ('caches' in window) {
+                caches.keys().then(function(keys) {
+                    keys.forEach(function(k) {
+                        if (k.indexOf('finance-pwa-v') === 0 && k !== 'finance-pwa-v20') {
+                            caches.delete(k).catch(function(){});
+                        }
+                    });
+                }).catch(function(){});
+            }
+            if ('serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(function(regs) {
+                    regs.forEach(function(r) { try { r.update(); } catch (_) {} });
+                }).catch(function(){});
+            }
+        } catch (_) {}
+
+        function dxEnsureYM() {
+            var ym = window.dashSelectedYearMonth;
+            if (!ym || typeof ym !== 'string' || !/^\d{4}-\d{2}$/.test(ym)) {
+                try {
+                    ym = (typeof window.getTodayInBrasiliaISO === 'function' ? window.getTodayInBrasiliaISO() : new Date().toISOString()).slice(0, 7);
+                } catch (_) {
+                    var now = new Date();
+                    ym = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+                }
+            }
+            window.dashSelectedYearMonth = ym;
+            if (typeof dashSelectedYearMonth !== 'undefined') { try { dashSelectedYearMonth = ym; } catch (_) {} }
+            return ym;
+        }
+
+        function dxSetFilterMode(mode) {
+            window.dashFilterMode = mode === 'all' ? 'all' : 'month';
+            if (typeof dashFilterMode !== 'undefined') { try { dashFilterMode = window.dashFilterMode; } catch (_) {} }
+            if (window.dashFilterMode !== 'month') {
+                window.dashMonthPopoverOpen = false;
+                if (typeof dashMonthPopoverOpen !== 'undefined') { try { dashMonthPopoverOpen = false; } catch (_) {} }
+            }
+            if (navigator.vibrate) { try { navigator.vibrate(6); } catch (_) {} }
+            dxUpdateDashboard();
+        }
+
+        function dxShiftMonth(deltaMonths) {
+            var currentYM = dxEnsureYM();
+            var parts = currentYM.split('-');
+            var d = new Date(parseInt(parts[0], 10), parseInt(parts[1], 10) - 1 + deltaMonths, 1);
+            var nextYM = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+            window.dashSelectedYearMonth = nextYM;
+            window.dashFilterMode = 'month';
+            if (typeof dashSelectedYearMonth !== 'undefined') { try { dashSelectedYearMonth = nextYM; } catch (_) {} }
+            if (typeof dashFilterMode !== 'undefined') { try { dashFilterMode = 'month'; } catch (_) {} }
+            if (navigator.vibrate) { try { navigator.vibrate(6); } catch (_) {} }
+            dxUpdateDashboard();
+        }
+
+        function dxShiftYear(deltaYears) {
+            var currentYM = dxEnsureYM();
+            var parts = currentYM.split('-');
+            var nextYM = (parseInt(parts[0], 10) + deltaYears) + '-' + parts[1];
+            window.dashSelectedYearMonth = nextYM;
+            if (typeof dashSelectedYearMonth !== 'undefined') { try { dashSelectedYearMonth = nextYM; } catch (_) {} }
+            if (navigator.vibrate) { try { navigator.vibrate(6); } catch (_) {} }
+            dxUpdateDashboard();
+        }
+
+        function dxTogglePopover(event) {
+            if (event) {
+                try { event.preventDefault(); event.stopPropagation(); } catch (_) {}
+            }
+            window.dashMonthPopoverOpen = !window.dashMonthPopoverOpen;
+            if (typeof dashMonthPopoverOpen !== 'undefined') { try { dashMonthPopoverOpen = window.dashMonthPopoverOpen; } catch (_) {} }
+            if (navigator.vibrate) { try { navigator.vibrate(6); } catch (_) {} }
+            dxUpdateDashboard();
+        }
+
+        function dxSelectMonth(month1Based) {
+            var currentYM = dxEnsureYM();
+            var yStr = currentYM.slice(0, 4);
+            var nextYM = yStr + '-' + String(month1Based).padStart(2, '0');
+            window.dashSelectedYearMonth = nextYM;
+            window.dashFilterMode = 'month';
+            window.dashMonthPopoverOpen = false;
+            if (typeof dashSelectedYearMonth !== 'undefined') { try { dashSelectedYearMonth = nextYM; } catch (_) {} }
+            if (typeof dashFilterMode !== 'undefined') { try { dashFilterMode = 'month'; } catch (_) {} }
+            if (typeof dashMonthPopoverOpen !== 'undefined') { try { dashMonthPopoverOpen = false; } catch (_) {} }
+            if (navigator.vibrate) { try { navigator.vibrate(8); } catch (_) {} }
+            dxUpdateDashboard();
+        }
+
+        var fallbackCats = {
+            alimentacao: '🍽️ Alimentação',
+            mercado: '🛒 Mercado',
+            combustivel: '⛽ Combustível',
+            manutencao_veiculo: '🔧 Manutenção Veículo',
+            transporte: '🚗 Transporte',
+            moradia: '🏠 Moradia',
+            saude: '🏥 Saúde',
+            educacao: '📚 Educação',
+            lazer: '🎮 Lazer',
+            salario: '💼 Salário',
+            freelance: '💻 Freelance',
+            investimentos: '📈 Investimentos',
+            outros: '📦 Outros'
+        };
+
+        function dxMoney(v) {
+            if (typeof window.formatCurrency === 'function') return window.formatCurrency(v);
+            return 'R$ ' + Number(v || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        }
+
+        function dxEsc(s) {
+            if (typeof window.escapeHtml === 'function') return window.escapeHtml(String(s ?? ''));
+            return String(s ?? '').replace(/[&<>"']/g, function(c) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+            });
+        }
+
+        function dxCatLabel(cat) {
+            if (typeof window.getCategoryLabel === 'function') {
+                try { return window.getCategoryLabel(cat); } catch (_) {}
+            }
+            return fallbackCats[cat] || cat || 'Outros';
+        }
+
+        function dxGetActiveTxs() {
+            try {
+                if (typeof window.getActiveTransactions === 'function') {
+                    var res = window.getActiveTransactions();
+                    if (Array.isArray(res)) return res;
+                }
+                if (typeof transactions !== 'undefined' && Array.isArray(transactions)) {
+                    return transactions.filter(function(t) { return t && !t.deleted; });
+                }
+            } catch (_) {}
+            return [];
+        }
+
+        function dxGetContasFixas() {
+            try {
+                if (typeof contasFixas !== 'undefined' && Array.isArray(contasFixas)) return contasFixas;
+                if (Array.isArray(window.contasFixas)) return window.contasFixas;
+            } catch (_) {}
+            return [];
+        }
+
+        function dxUpdateDashboard() {
+            var dashEl = document.getElementById('dashboard');
+            if (!dashEl) return;
+
+            try {
+                var mode = window.dashFilterMode === 'all' ? 'all' : 'month';
+                window.dashFilterMode = mode;
+
+                var lang = 'pt-BR';
+                try {
+                    lang = (typeof currentLang !== 'undefined' && currentLang) ? currentLang : (localStorage.getItem('lang') || 'pt-BR');
+                } catch (_) {}
+                var isEn = lang === 'en';
+                var isEs = lang === 'es';
+
+                function setText(id, v) {
+                    var el = document.getElementById(id);
+                    if (el) el.textContent = v;
+                    return el;
+                }
+                function plural(n) {
+                    return n + ' ' + (n === 1 ? 'lançamento' : 'lançamentos');
+                }
+
+                var selectedYM = dxEnsureYM();
+                var parts = selectedYM.split('-');
+                var selYear = parseInt(parts[0], 10);
+                var selMonth = parseInt(parts[1], 10);
+
+                var monthNamesPt = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+                var monthNamesEn = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+                var monthNamesEs = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+                var shortPt = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
+                var shortEn = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                var shortEs = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+                var mList = isEn ? monthNamesEn : (isEs ? monthNamesEs : monthNamesPt);
+                var shortList = isEn ? shortEn : (isEs ? shortEs : shortPt);
+
+                var segMonthBtn = document.getElementById('dashSegMonthBtn');
+                var segAllBtn = document.getElementById('dashSegAllBtn');
+                if (segMonthBtn) segMonthBtn.classList.toggle('active', mode === 'month');
+                if (segAllBtn) segAllBtn.classList.toggle('active', mode === 'all');
+
+                var monthBar = document.getElementById('dashMonthBar');
+                var pillBtn = document.getElementById('dashMonthPillBtn');
+                var popoverEl = document.getElementById('dashMonthPopover');
+                setText('dashCurrentMonthBadge', (mList[selMonth - 1] || '') + ' ' + selYear);
+                if (monthBar) monthBar.style.display = mode === 'month' ? 'flex' : 'none';
+                if (pillBtn) pillBtn.classList.toggle('open', !!window.dashMonthPopoverOpen);
+                if (popoverEl) {
+                    var showPop = mode === 'month' && !!window.dashMonthPopoverOpen;
+                    popoverEl.style.display = showPop ? 'flex' : 'none';
+                    if (showPop) {
+                        setText('dashPopoverYearLabel', String(selYear));
+                        var grid = document.getElementById('dashPopoverMonthsGrid');
+                        if (grid) {
+                            grid.innerHTML = shortList.map(function(m, idx) {
+                                return '<button type="button" class="dx-sheet-month' + (idx + 1 === selMonth ? ' selected' : '') + '" onclick="selectDashboardMonthIndex(' + (idx + 1) + ')">' + m + '</button>';
+                            }).join('');
+                        }
+                    }
+                }
+
+                var activeTxs = dxGetActiveTxs();
+                var filteredTxs = mode === 'all'
+                    ? activeTxs
+                    : activeTxs.filter(function(t) { return t && t.date && String(t.date).indexOf(selectedYM) === 0; });
+
+                var income = 0, expense = 0, incomeCount = 0, expenseCount = 0;
+                var categoryMap = {};
+                filteredTxs.forEach(function(tx) {
+                    var val = Number(tx.value) || 0;
+                    if (tx.type === 'income') {
+                        income += val;
+                        incomeCount++;
+                    } else {
+                        expense += val;
+                        expenseCount++;
+                        var cat = tx.category || 'outros';
+                        categoryMap[cat] = (categoryMap[cat] || 0) + val;
+                    }
+                });
+                var balance = income - expense;
+
+                setText('dashBalanceCaption', mode === 'all'
+                    ? (isEn ? 'All-Time Net Balance' : (isEs ? 'Balance General Acumulado' : 'Resultado Geral Acumulado'))
+                    : (isEn ? 'Monthly Net Result' : (isEs ? 'Resultado del Mes' : 'Resultado do Mês')));
+                var balEl = setText('dashMonthBalance', (balance < 0 ? '-' : '') + dxMoney(Math.abs(balance)));
+                if (balEl) {
+                    balEl.classList.toggle('negative', balance < 0);
+                    balEl.classList.toggle('positive', balance >= 0);
+                }
+                var badge = setText('dashMonthBalanceSub', '');
+                if (badge) {
+                    badge.classList.remove('positive', 'negative', 'neutral');
+                    if (income === 0 && expense === 0) {
+                        badge.textContent = mode === 'all' ? 'Sem registros' : 'Sem registros no mês';
+                        badge.classList.add('neutral');
+                    } else if (balance >= 0) {
+                        var freePct = income > 0 ? Math.round((balance / income) * 100) : 0;
+                        badge.textContent = freePct > 0 ? ('Superávit • ' + freePct + '% livre') : 'Saldo Positivo';
+                        badge.classList.add('positive');
+                    } else {
+                        badge.textContent = 'Déficit no Período';
+                        badge.classList.add('negative');
+                    }
+                }
+                setText('dashMonthIncome', dxMoney(income));
+                setText('dashMonthIncomeSub', plural(incomeCount));
+                setText('dashMonthExpense', dxMoney(expense));
+                setText('dashMonthExpenseSub', plural(expenseCount));
+
+                var ratio = income > 0 ? Math.round((expense / income) * 100) : (expense > 0 ? 100 : 0);
+                setText('dashHealthPercent', ratio + '%');
+                var fill = document.getElementById('dashHealthFill');
+                if (fill) {
+                    fill.style.width = Math.min(ratio, 100) + '%';
+                    fill.classList.remove('warn', 'danger');
+                    if (ratio > 95) fill.classList.add('danger');
+                    else if (ratio >= 75) fill.classList.add('warn');
+                }
+
+                var billsEl = document.getElementById('dashBillsSummaryContent');
+                if (billsEl) {
+                    var allCf = dxGetContasFixas();
+                    var monthBills = allCf.filter(function(cf) {
+                        if (!cf || cf.deleted) return false;
+                        var isInst = !!cf.isInstallment || (cf.dueMonth && cf.dueYear);
+                        if (!isInst) return true;
+                        return Number(cf.dueMonth) === selMonth && Number(cf.dueYear) === selYear;
+                    });
+                    if (monthBills.length === 0) {
+                        billsEl.innerHTML = '<div class="dx-empty"><p>Nenhuma conta cadastrada neste mês.</p><button type="button" class="dx-empty-btn" onclick="showTab(\'contas-fixas\')">+ Cadastrar conta</button></div>';
+                    } else {
+                        var pending = monthBills.filter(function(b) { return !b.paid; }).sort(function(a, b) { return (Number(a.dueDay) || 99) - (Number(b.dueDay) || 99); });
+                        var paidCount = monthBills.length - pending.length;
+                        var pendingTotal = pending.reduce(function(s, b) { return s + (Number(b.value) || 0); }, 0);
+                        var pct = Math.round((paidCount / monthBills.length) * 100);
+                        var rows = pending.slice(0, 3).map(function(b) {
+                            return '<button type="button" class="dx-row" onclick="showTab(\'contas-fixas\')">' +
+                                '<span class="dx-row-ico due">' + dxEsc(String(b.dueDay || '?')) + '</span>' +
+                                '<span class="dx-row-main"><b>' + dxEsc(b.name || '') + '</b><small>Vence dia ' + dxEsc(String(b.dueDay || '?')) + '</small></span>' +
+                                '<span class="dx-row-val">' + dxMoney(b.value || 0) + '</span>' +
+                            '</button>';
+                        }).join('');
+                        billsEl.innerHTML =
+                            '<div class="dx-bills-sum">' +
+                                '<div><small>A pagar</small><strong>' + dxMoney(pendingTotal) + '</strong></div>' +
+                                '<div class="dx-bills-count">' + paidCount + '/' + monthBills.length + ' pagas</div>' +
+                            '</div>' +
+                            '<div class="dx-bar thin"><div class="dx-bar-fill" style="width:' + pct + '%"></div></div>' +
+                            (pending.length === 0 ? '<div class="dx-ok">✅ Todas as contas do mês foram pagas!</div>' : '<div class="dx-list">' + rows + '</div>');
+                    }
+                }
+
+                var catsEl = document.getElementById('dashTopCategoriesContent');
+                if (catsEl) {
+                    var sorted = Object.entries(categoryMap).filter(function(e) { return e[1] > 0; }).sort(function(a, b) { return b[1] - a[1]; }).slice(0, 4);
+                    if (sorted.length === 0) {
+                        catsEl.innerHTML = '<div class="dx-empty"><p>Nenhuma despesa registrada neste período.</p></div>';
+                    } else {
+                        catsEl.innerHTML = '<div class="dx-list">' + sorted.map(function(entry) {
+                            var cat = entry[0], val = entry[1];
+                            var pct = expense > 0 ? Math.round((val / expense) * 100) : 0;
+                            return '<div class="dx-cat">' +
+                                '<div class="dx-cat-top">' +
+                                    '<span class="dx-cat-name">' + dxCatLabel(cat) + '</span>' +
+                                    '<span class="dx-cat-val">' + dxMoney(val) + ' <em>' + pct + '%</em></span>' +
+                                '</div>' +
+                                '<div class="dx-bar thin"><div class="dx-bar-fill cat" style="width:' + Math.max(pct, 3) + '%"></div></div>' +
+                            '</div>';
+                        }).join('') + '</div>';
+                    }
+                }
+
+                var recentEl = document.getElementById('dashRecentTransactionsList');
+                if (recentEl) {
+                    if (filteredTxs.length === 0) {
+                        recentEl.innerHTML = '<div class="dx-empty"><p>Nenhuma movimentação neste período.</p><button type="button" class="dx-empty-btn" onclick="showTab(\'new-transaction\')">+ Novo lançamento</button></div>';
+                    } else {
+                        var recent = filteredTxs.slice().sort(function(a, b) {
+                            var d = String(b.date || '').localeCompare(String(a.date || ''));
+                            return d !== 0 ? d : String(b.time || '').localeCompare(String(a.time || ''));
+                        }).slice(0, 5);
+                        recentEl.innerHTML = '<div class="dx-list">' + recent.map(function(tx) {
+                            var isIn = tx.type === 'income';
+                            var p = String(tx.date || '').split('-');
+                            var dateTxt = p.length === 3 ? (p[2] + '/' + p[1]) : '';
+                            var label = String(dxCatLabel(tx.category || 'outros'));
+                            var sp = label.indexOf(' ');
+                            var emoji = sp > 0 ? label.slice(0, sp) : '•';
+                            var catName = sp > 0 ? label.slice(sp + 1) : label;
+                            return '<button type="button" class="dx-row" onclick="showTab(\'transactions\')">' +
+                                '<span class="dx-row-ico ' + (isIn ? 'in' : 'out') + '">' + emoji + '</span>' +
+                                '<span class="dx-row-main"><b>' + dxEsc(tx.description || catName) + '</b><small>' + dxEsc(catName) + (dateTxt ? ' • ' + dateTxt : '') + '</small></span>' +
+                                '<span class="dx-row-val ' + (isIn ? 'in' : 'out') + '">' + (isIn ? '+' : '-') + dxMoney(Number(tx.value) || 0) + '</span>' +
+                            '</button>';
+                        }).join('') + '</div>';
+                    }
+                }
+            } catch (err) {
+                console.error('Erro em dxUpdateDashboard:', err);
+            }
+        }
+
+        function exportGlobals() {
+            window.ensureDashSelectedYearMonth = dxEnsureYM;
+            window.setDashboardFilterMode = dxSetFilterMode;
+            window.shiftDashboardMonth = dxShiftMonth;
+            window.shiftDashboardYear = dxShiftYear;
+            window.toggleDashboardMonthPopover = dxTogglePopover;
+            window.selectDashboardMonthIndex = dxSelectMonth;
+            window.updateDashboard = dxUpdateDashboard;
+        }
+
+        function hookAppFunctions() {
+            exportGlobals();
+            ['updateAllViews', 'cfUpdateViews', 'updateHeaderBalance', 'showTab', 'switchAppleTab', 'setLanguage'].forEach(function(fnName) {
+                var orig = window[fnName];
+                if (typeof orig === 'function' && !orig._dxHooked) {
+                    var wrapped = function() {
+                        var res = orig.apply(this, arguments);
+                        try { dxUpdateDashboard(); } catch (_) {}
+                        return res;
+                    };
+                    wrapped._dxHooked = true;
+                    window[fnName] = wrapped;
+                }
+            });
+            dxUpdateDashboard();
+        }
+
+        exportGlobals();
+        dxUpdateDashboard();
+        document.addEventListener('DOMContentLoaded', hookAppFunctions);
+        window.addEventListener('load', hookAppFunctions);
+
+        var lastSig = '';
+        setInterval(function() {
+            try {
+                exportGlobals();
+                var txs = dxGetActiveTxs();
+                var cfs = dxGetContasFixas();
+                var sig = txs.length + ':' + (txs[0] ? txs[0].id + '_' + txs[0].value : '') + ':' + cfs.length + ':' + cfs.filter(function(c){return c && c.paid;}).length + ':' + window.dashSelectedYearMonth + ':' + window.dashFilterMode;
+                if (sig !== lastSig) {
+                    lastSig = sig;
+                    dxUpdateDashboard();
+                }
+            } catch (_) {}
+        }, 500);
+    })();
+    </script>
 </body>
 
 </html>
