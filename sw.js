@@ -1,4 +1,4 @@
-const CACHE_NAME = 'finance-pwa-v7';
+const CACHE_NAME = 'finance-pwa-v12';
 const SHARED_RECEIPTS_CACHE = 'finance-shared-receipts-v1';
 
 const STATIC_PRECACHE = [
@@ -67,10 +67,10 @@ self.addEventListener('fetch', event => {
         return;
     }
 
-    // HTML / Navigation: Network-First with Cache fallback for instant offline support
+    // HTML / Navigation: Network-First with no-store to guarantee fresh HTML on mobile
     if (request.mode === 'navigate' || request.headers.get('accept')?.includes('text/html')) {
         event.respondWith(
-            fetch(request).then(response => {
+            fetch(request, { cache: 'no-store' }).then(response => {
                 if (response && response.status === 200) {
                     const clone = response.clone();
                     caches.open(CACHE_NAME).then(cache => cache.put(request, clone));
@@ -83,10 +83,10 @@ self.addEventListener('fetch', event => {
         return;
     }
 
-    // Code assets (JS, CSS): Network-First to guarantee immediate updates and prevent stale cache
+    // Code assets (JS, CSS): Network-First with no-store to guarantee immediate updates and prevent stale cache
     if (url.pathname.endsWith('.js') || url.pathname.endsWith('.css') || url.search.includes('v=')) {
         event.respondWith(
-            fetch(request).then(networkResponse => {
+            fetch(request, { cache: 'no-store' }).then(networkResponse => {
                 if (networkResponse && networkResponse.status === 200) {
                     const clone = networkResponse.clone();
                     caches.open(CACHE_NAME).then(cache => cache.put(request, clone));
