@@ -21,7 +21,7 @@
     <script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
-    <link rel="stylesheet" href="./css/styles.css?v=20261101_13">
+    <link rel="stylesheet" href="./css/styles.css?v=20261101_14">
     <style id="dashboard-cards-critical-css">
         /* ==========================================================================
            MOBILE-FIRST PROFESSIONAL CARDS DASHBOARD (#dashboard)
@@ -1205,6 +1205,124 @@
         body.light #dashboard .pro-dash-empty-cta {
             background: #ECFDF5;
             color: #047857;
+        }
+
+        #dashboard .pro-dash-grid,
+        #dashboard .pro-dash-grid > *,
+        #dashboard .pro-dash-kpi-bento,
+        #dashboard .pro-dash-actions-grid {
+            min-width: 0;
+            max-width: 100%;
+        }
+
+        #dashboard .pro-dash-kpi-bento {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        @media (max-width: 600px) {
+            #dashboard .pro-dash-header-top {
+                display: grid;
+                grid-template-columns: minmax(0, 1fr);
+                align-items: stretch;
+                gap: 0.75rem;
+            }
+            #dashboard .pro-dash-brand {
+                width: 100%;
+            }
+            #dashboard .pro-dash-seg-control {
+                display: grid;
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+                width: 100%;
+                min-width: 0;
+            }
+            #dashboard .pro-dash-seg-btn {
+                min-width: 0;
+                min-height: 44px;
+                padding: 0.6rem 0.5rem;
+                font-size: 0.9rem;
+            }
+            #dashboard .pro-dash-month-bar {
+                min-width: 0;
+                gap: 0.35rem;
+                padding: 0.35rem;
+            }
+            #dashboard .pro-dash-month-arrow {
+                width: 44px;
+                min-width: 44px;
+                min-height: 44px;
+            }
+            #dashboard .pro-dash-month-pill {
+                min-width: 0;
+                min-height: 44px;
+            }
+            #dashboard .pro-kpi-hero-card,
+            #dashboard .pro-kpi-mini-card,
+            #dashboard .pro-section-title-group > div {
+                min-width: 0;
+            }
+            #dashboard .pro-kpi-hero-caption {
+                line-height: 1.4;
+                overflow-wrap: anywhere;
+            }
+            #dashboard .pro-kpi-status-badge {
+                white-space: normal;
+                text-align: center;
+            }
+            #dashboard .pro-kpi-mini-top {
+                flex-wrap: wrap;
+            }
+            #dashboard .pro-kpi-mini-val {
+                font-size: clamp(0.9rem, 4.2vw, 1.35rem);
+            }
+            #dashboard .pro-kpi-mini-sub {
+                overflow-wrap: anywhere;
+            }
+            #dashboard .pro-dash-actions-grid {
+                grid-template-columns: repeat(3, minmax(0, 1fr));
+            }
+            #dashboard .pro-action-card,
+            #dashboard .pro-action-text {
+                min-width: 0;
+            }
+            #dashboard .pro-action-text strong {
+                overflow-wrap: anywhere;
+            }
+            #dashboard .pro-section-header {
+                align-items: flex-start;
+            }
+            #dashboard .pro-section-title-group {
+                flex: 1 1 auto;
+                min-width: 0;
+            }
+            #dashboard .pro-section-title {
+                overflow-wrap: anywhere;
+            }
+            #dashboard .pro-section-pill-btn {
+                min-height: 40px;
+                padding: 0.45rem 0.7rem;
+            }
+        }
+
+        @media (max-width: 359px) {
+            #dashboard .pro-dash-kpi-bento {
+                grid-template-columns: minmax(0, 1fr);
+            }
+            #dashboard .pro-kpi-hero-card {
+                grid-column: 1;
+            }
+            #dashboard .pro-dash-month-arrow {
+                width: 42px;
+                min-width: 42px;
+            }
+            #dashboard .pro-section-header {
+                flex-wrap: wrap;
+            }
+            #dashboard .pro-section-title-group {
+                flex-basis: 100%;
+            }
+            #dashboard .pro-section-pill-btn {
+                margin-left: auto;
+            }
         }
 
         @media (max-width: 420px) {
@@ -3618,7 +3736,7 @@
         </button>
     </nav>
 
-    <script defer src="./js/app.js?v=20261101_13"></script>
+    <script defer src="./js/app.js?v=20261101_14"></script>
 </body>
 
 </html>
