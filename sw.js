@@ -2,7 +2,7 @@
  * ============================================================================
  * SERVICE WORKER - CONTROLE FINANCEIRO PWA
  * ============================================================================
- * Versão do Cache Ativo: finance-pwa-v14
+ * Versão do Cache Ativo: finance-pwa-v15
  * 
  * ARQUITETURA DE ARMAZENAMENTO E RESILIÊNCIA OFFLINE:
  * 1. TIER 1 - Navegação e Código Fonte (HTML, JS, CSS):
@@ -26,7 +26,7 @@
  * ============================================================================
  */
 
-const CACHE_NAME = 'finance-pwa-v14';
+const CACHE_NAME = 'finance-pwa-v15';
 const SHARED_RECEIPTS_CACHE = 'finance-shared-receipts-v1';
 
 /** Lista de ativos essenciais para o funcionamento mínimo do App Shell offline */

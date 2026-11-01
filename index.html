@@ -21,8 +21,8 @@
     <script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
-    <link rel="stylesheet" href="./css/styles.css?v=20261101_16">
-    <link rel="stylesheet" href="./css/dashboard.css?v=20261101_16">
+    <link rel="stylesheet" href="./css/styles.css?v=20261101_17">
+    <link rel="stylesheet" href="./css/dashboard.css?v=20261101_17">
 </head>
 
 <body class="dark">
@@ -320,194 +320,101 @@
              Cards de Receita, Despesa, Saldo Líquido e Ações Rápidas
              ================================================================== -->
         <div id="dashboard" class="tab-content active">
-            <div class="pro-dash-grid">
+            <div class="dx">
 
-                <!-- 1. Card Principal: Resumo Financeiro + Bento KPIs + Ações Rápidas -->
-                <div class="card pro-dash-card">
-                    <div class="pro-dash-header-top">
-                        <div class="pro-dash-brand">
-                            <div class="pro-dash-brand-icon">
-                                <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round">
-                                    <rect x="3" y="3" width="7.5" height="7.5" rx="2"></rect>
-                                    <rect x="13.5" y="3" width="7.5" height="7.5" rx="2"></rect>
-                                    <rect x="3" y="13.5" width="7.5" height="7.5" rx="2"></rect>
-                                    <rect x="13.5" y="13.5" width="7.5" height="7.5" rx="2"></rect>
-                                </svg>
-                            </div>
-                            <div class="pro-dash-brand-text">
-                                <span class="pro-dash-eyebrow" data-i18n="dashEyebrow">VISÃO EXECUTIVA</span>
-                                <h2 class="pro-dash-main-title" data-i18n="dashTitle">Resumo Financeiro</h2>
-                            </div>
+                <!-- Período: Mês | Geral -->
+                <div class="dx-seg" role="tablist" aria-label="Período">
+                    <button type="button" class="dx-seg-btn active" id="dashSegMonthBtn" onclick="setDashboardFilterMode('month')">Mês</button>
+                    <button type="button" class="dx-seg-btn" id="dashSegAllBtn" onclick="setDashboardFilterMode('all')">Geral</button>
+                </div>
+
+                <!-- Hero: saldo -->
+                <section class="dx-hero">
+                    <div class="dx-month" id="dashMonthBar">
+                        <button type="button" class="dx-month-arrow" onclick="shiftDashboardMonth(-1)" aria-label="Mês anterior">&#8249;</button>
+                        <button type="button" class="dx-month-label" id="dashMonthPillBtn" onclick="toggleDashboardMonthPopover(event)" aria-haspopup="dialog">
+                            <span id="dashCurrentMonthBadge">--</span><i class="dx-month-chev" aria-hidden="true">&#9662;</i>
+                        </button>
+                        <button type="button" class="dx-month-arrow" onclick="shiftDashboardMonth(1)" aria-label="Próximo mês">&#8250;</button>
+                    </div>
+
+                    <div class="dx-hero-caption" id="dashBalanceCaption">Resultado do Mês</div>
+                    <div class="dx-hero-amount positive" id="dashMonthBalance">R$ 0,00</div>
+                    <div class="dx-hero-badge neutral" id="dashMonthBalanceSub">Balanço líquido</div>
+
+                    <div class="dx-flow">
+                        <div class="dx-flow-item in">
+                            <span class="dx-flow-label"><b aria-hidden="true">&#8599;</b> Entradas</span>
+                            <strong id="dashMonthIncome">R$ 0,00</strong>
+                            <small id="dashMonthIncomeSub">0 lançamentos</small>
                         </div>
-
-                        <!-- Apple Segmented Toggle: Mês vs Geral -->
-                        <div class="pro-dash-seg-control" role="tablist" aria-label="Filtro de Período">
-                            <button type="button" class="pro-dash-seg-btn active" id="dashSegMonthBtn" onclick="setDashboardFilterMode('month')">Mês</button>
-                            <button type="button" class="pro-dash-seg-btn" id="dashSegAllBtn" onclick="setDashboardFilterMode('all')">Geral</button>
+                        <div class="dx-flow-item out">
+                            <span class="dx-flow-label"><b aria-hidden="true">&#8600;</b> Saídas</span>
+                            <strong id="dashMonthExpense">R$ 0,00</strong>
+                            <small id="dashMonthExpenseSub">0 lançamentos</small>
                         </div>
                     </div>
 
-                    <!-- Apple Month Scrubber (Visible when "Mês" is active) -->
-                    <div class="pro-dash-month-bar" id="dashMonthBar">
-                        <button type="button" class="pro-dash-month-arrow" onclick="shiftDashboardMonth(-1)" aria-label="Mês anterior">
-                            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-                        </button>
-                        <button type="button" class="pro-dash-month-pill" id="dashMonthPillBtn" onclick="toggleDashboardMonthPopover(event)">
-                            <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="3"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                            <span id="dashCurrentMonthBadge">--</span>
-                            <svg class="pro-dash-month-chev" viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-                        </button>
-                        <button type="button" class="pro-dash-month-arrow" onclick="shiftDashboardMonth(1)" aria-label="Próximo mês">
-                            <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-                        </button>
+                    <div class="dx-commit">
+                        <div class="dx-commit-row">
+                            <span id="dashHealthLabel">Comprometimento da receita</span>
+                            <strong id="dashHealthPercent">0%</strong>
+                        </div>
+                        <div class="dx-bar"><div class="dx-bar-fill" id="dashHealthFill" style="width:0%"></div></div>
                     </div>
+                </section>
 
-                    <!-- Expandable Apple Month Grid Popover -->
-                    <div class="pro-dash-month-popover" id="dashMonthPopover" style="display: none;">
-                        <div class="pro-dash-pop-year-row">
-                            <button type="button" class="pro-dash-pop-year-btn" onclick="shiftDashboardYear(-1)">‹</button>
+                <!-- Ações rápidas -->
+                <nav class="dx-actions" aria-label="Ações rápidas">
+                    <button type="button" class="dx-action" onclick="showTab('new-transaction')">
+                        <span class="dx-action-ico a1" aria-hidden="true">+</span><span>Lançar</span>
+                    </button>
+                    <button type="button" class="dx-action" onclick="openVoiceTransactionModal()">
+                        <span class="dx-action-ico a2" aria-hidden="true">&#127908;</span><span>Voz</span>
+                    </button>
+                    <button type="button" class="dx-action" onclick="openReceiptPicker()">
+                        <span class="dx-action-ico a3" aria-hidden="true">&#128247;</span><span>Recibo</span>
+                    </button>
+                </nav>
+
+                <!-- Contas do mês -->
+                <section class="dx-section">
+                    <header class="dx-section-head">
+                        <h3>Contas do Mês</h3>
+                        <button type="button" class="dx-link" onclick="showTab('contas-fixas')">Ver todas</button>
+                    </header>
+                    <div id="dashBillsSummaryContent"></div>
+                </section>
+
+                <!-- Maiores gastos -->
+                <section class="dx-section">
+                    <header class="dx-section-head">
+                        <h3>Maiores Gastos</h3>
+                        <button type="button" class="dx-link" onclick="showTab('charts')">Gráficos</button>
+                    </header>
+                    <div id="dashTopCategoriesContent"></div>
+                </section>
+
+                <!-- Últimas movimentações -->
+                <section class="dx-section">
+                    <header class="dx-section-head">
+                        <h3>Últimas Movimentações</h3>
+                        <button type="button" class="dx-link" onclick="showTab('transactions')">Extrato</button>
+                    </header>
+                    <div id="dashRecentTransactionsList"></div>
+                </section>
+
+                <!-- Seletor de mês (bottom sheet) -->
+                <div class="dx-sheet" id="dashMonthPopover" style="display:none;" onclick="if(event.target===this)toggleDashboardMonthPopover(event)">
+                    <div class="dx-sheet-panel" role="dialog" aria-label="Escolher mês">
+                        <div class="dx-sheet-grip" aria-hidden="true"></div>
+                        <div class="dx-sheet-year">
+                            <button type="button" onclick="shiftDashboardYear(-1)" aria-label="Ano anterior">&#8249;</button>
                             <strong id="dashPopoverYearLabel">2026</strong>
-                            <button type="button" class="pro-dash-pop-year-btn" onclick="shiftDashboardYear(1)">›</button>
+                            <button type="button" onclick="shiftDashboardYear(1)" aria-label="Próximo ano">&#8250;</button>
                         </div>
-                        <div class="pro-dash-pop-months-grid" id="dashPopoverMonthsGrid"></div>
+                        <div class="dx-sheet-months" id="dashPopoverMonthsGrid"></div>
                     </div>
-
-                    <!-- Bento KPI Sub-Cards (Resultado + Entradas + Saídas) -->
-                    <div class="pro-dash-kpi-bento">
-                        <!-- Sub-Card Destaque: Resultado Líquido + Saúde da Receita -->
-                        <div class="pro-kpi-hero-card">
-                            <div class="pro-kpi-hero-top">
-                                <div class="pro-kpi-hero-label-group">
-                                    <span class="pro-kpi-hero-dot"></span>
-                                    <span class="pro-kpi-hero-caption" id="dashBalanceCaption">Resultado do Mês</span>
-                                </div>
-                                <span class="pro-kpi-status-badge positive" id="dashMonthBalanceSub">Balanço líquido</span>
-                            </div>
-
-                            <div class="pro-kpi-hero-amount positive" id="dashMonthBalance">R$ 0,00</div>
-
-                            <div class="pro-kpi-commit-box">
-                                <div class="pro-kpi-commit-row">
-                                    <span id="dashHealthLabel">Comprometimento da receita</span>
-                                    <strong id="dashHealthPercent">0%</strong>
-                                </div>
-                                <div class="pro-kpi-commit-track">
-                                    <div class="pro-kpi-commit-fill" id="dashHealthFill" style="width: 0%;"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Sub-Card Entradas -->
-                        <div class="pro-kpi-mini-card income">
-                            <div class="pro-kpi-mini-top">
-                                <div class="pro-kpi-mini-icon income">
-                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><line x1="7" y1="17" x2="17" y2="7"></line><polyline points="7 7 17 7 17 17"></polyline></svg>
-                                </div>
-                                <span class="pro-kpi-mini-label">Entradas</span>
-                            </div>
-                            <div class="pro-kpi-mini-val income" id="dashMonthIncome">R$ 0,00</div>
-                            <div class="pro-kpi-mini-sub" id="dashMonthIncomeSub">0 lançamentos</div>
-                        </div>
-
-                        <!-- Sub-Card Saídas -->
-                        <div class="pro-kpi-mini-card expense">
-                            <div class="pro-kpi-mini-top">
-                                <div class="pro-kpi-mini-icon expense">
-                                    <svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><line x1="17" y1="7" x2="7" y2="17"></line><polyline points="17 17 7 17 7 7"></polyline></svg>
-                                </div>
-                                <span class="pro-kpi-mini-label">Saídas</span>
-                            </div>
-                            <div class="pro-kpi-mini-val expense" id="dashMonthExpense">R$ 0,00</div>
-                            <div class="pro-kpi-mini-sub" id="dashMonthExpenseSub">0 lançamentos</div>
-                        </div>
-                    </div>
-
-                    <!-- Atalhos de Ação Rápida em Cards -->
-                    <div class="pro-dash-actions-grid">
-                        <button type="button" class="pro-action-card primary" onclick="showTab('new-transaction')">
-                            <div class="pro-action-icon primary">
-                                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-                            </div>
-                            <div class="pro-action-text">
-                                <strong>Lançar</strong>
-                                <span>Manual</span>
-                            </div>
-                        </button>
-
-                        <button type="button" class="pro-action-card" onclick="openVoiceTransactionModal()">
-                            <div class="pro-action-icon voice">
-                                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path><path d="M19 10v2a7 7 0 0 1-14 0v-2"></path><line x1="12" y1="19" x2="12" y2="23"></line></svg>
-                            </div>
-                            <div class="pro-action-text">
-                                <strong>Por Voz</strong>
-                                <span>Áudio IA</span>
-                            </div>
-                        </button>
-
-                        <button type="button" class="pro-action-card" onclick="openReceiptPicker()">
-                            <div class="pro-action-icon receipt">
-                                <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></svg>
-                            </div>
-                            <div class="pro-action-text">
-                                <strong>Recibo</strong>
-                                <span>Foto / PDF</span>
-                            </div>
-                        </button>
-                    </div>
-                </div>
-
-                <!-- 2. Grid de Cards Analíticos: Contas do Mês & Maiores Gastos -->
-                <div class="pro-dash-middle-grid">
-                    <!-- Card: Contas do Mês -->
-                    <div class="card pro-dash-card pro-section-card">
-                        <div class="pro-section-header">
-                            <div class="pro-section-title-group">
-                                <div class="pro-section-icon bills">
-                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2.5"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                                </div>
-                                <div>
-                                    <h3 class="pro-section-title">Contas do Mês</h3>
-                                    <span class="pro-section-sub">Fixas e parceladas</span>
-                                </div>
-                            </div>
-                            <button type="button" class="pro-section-pill-btn" onclick="showTab('contas-fixas')">Ver todas ›</button>
-                        </div>
-                        <div id="dashBillsSummaryContent"></div>
-                    </div>
-
-                    <!-- Card: Maiores Gastos -->
-                    <div class="card pro-dash-card pro-section-card">
-                        <div class="pro-section-header">
-                            <div class="pro-section-title-group">
-                                <div class="pro-section-icon categories">
-                                    <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-                                </div>
-                                <div>
-                                    <h3 class="pro-section-title">Maiores Gastos</h3>
-                                    <span class="pro-section-sub">Ranking por categoria</span>
-                                </div>
-                            </div>
-                            <button type="button" class="pro-section-pill-btn" onclick="showTab('charts')">Gráficos ›</button>
-                        </div>
-                        <div id="dashTopCategoriesContent"></div>
-                    </div>
-                </div>
-
-                <!-- 3. Card: Últimas Movimentações -->
-                <div class="card pro-dash-card pro-section-card">
-                    <div class="pro-section-header">
-                        <div class="pro-section-title-group">
-                            <div class="pro-section-icon recent">
-                                <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
-                            </div>
-                            <div>
-                                <h3 class="pro-section-title">Últimas Movimentações</h3>
-                                <span class="pro-section-sub">Lançamentos do período</span>
-                            </div>
-                        </div>
-                        <button type="button" class="pro-section-pill-btn" onclick="showTab('transactions')">Extrato ›</button>
-                    </div>
-                    <div class="pro-dash-tx-list" id="dashRecentTransactionsList"></div>
                 </div>
 
             </div>
