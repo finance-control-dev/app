@@ -21,7 +21,7 @@
     <script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
-    <link rel="stylesheet" href="./css/styles.css?v=20261031_12">
+    <link rel="stylesheet" href="./css/styles.css?v=20261101_13">
     <style id="dashboard-cards-critical-css">
         /* ==========================================================================
            MOBILE-FIRST PROFESSIONAL CARDS DASHBOARD (#dashboard)
@@ -132,6 +132,12 @@
             padding: 3px;
             gap: 2px;
             flex-shrink: 0;
+            position: relative;
+            z-index: 5;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
         body.light #dashboard .pro-dash-seg-control {
@@ -146,13 +152,27 @@
             background: transparent;
             color: #94A3B8;
             font-family: inherit;
-            font-size: 0.72rem;
+            font-size: 0.78rem;
             font-weight: 700;
-            padding: 0.3rem 0.7rem;
+            min-height: 38px;
+            padding: 0.45rem 1rem;
             border-radius: 999px;
             cursor: pointer;
-            transition: all 0.2s ease;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
+            transition: all 0.2s ease, transform 0.1s ease;
             white-space: nowrap;
+            position: relative;
+            z-index: 5;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #dashboard .pro-dash-seg-btn:active {
+            transform: scale(0.95);
         }
 
         body.light #dashboard .pro-dash-seg-btn {
@@ -170,12 +190,16 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 0.4rem;
+            gap: 0.45rem;
             margin-bottom: 0.85rem;
-            padding: 0.28rem 0.35rem;
-            border-radius: 13px;
+            padding: 0.32rem 0.45rem;
+            border-radius: 14px;
             background: rgba(255, 255, 255, 0.04);
             border: 1px solid rgba(255, 255, 255, 0.075);
+            position: relative;
+            z-index: 5;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body.light #dashboard .pro-dash-month-bar {
@@ -186,9 +210,11 @@
         #dashboard .pro-dash-month-arrow {
             appearance: none;
             -webkit-appearance: none;
-            width: 30px;
-            height: 30px;
-            border-radius: 9px;
+            width: 42px;
+            min-width: 42px;
+            height: 38px;
+            min-height: 38px;
+            border-radius: 11px;
             border: 1px solid rgba(255, 255, 255, 0.08);
             background: rgba(255, 255, 255, 0.05);
             color: #F8FAFC;
@@ -198,32 +224,62 @@
             cursor: pointer;
             flex-shrink: 0;
             padding: 0;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
+            transition: all 0.15s ease, transform 0.1s ease;
+            position: relative;
+            z-index: 5;
+        }
+
+        #dashboard .pro-dash-month-arrow:active {
+            transform: scale(0.92);
+            background: rgba(255, 255, 255, 0.12);
         }
 
         body.light #dashboard .pro-dash-month-arrow {
             background: #FFFFFF;
             border-color: rgba(15, 23, 42, 0.08);
             color: #0F172A;
+            box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+        }
+
+        body.light #dashboard .pro-dash-month-arrow:active {
+            background: #F1F5F9;
         }
 
         #dashboard .pro-dash-month-pill {
             appearance: none;
             -webkit-appearance: none;
             flex: 1;
-            height: 30px;
+            height: 38px;
+            min-height: 38px;
             border: none;
             background: transparent;
             color: #34D399;
             font-family: inherit;
-            font-size: 0.82rem;
+            font-size: 0.86rem;
             font-weight: 700;
             display: inline-flex;
             align-items: center;
             justify-content: center;
-            gap: 0.4rem;
+            gap: 0.5rem;
             cursor: pointer;
             text-transform: capitalize;
-            padding: 0 0.4rem;
+            padding: 0 0.5rem;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
+            transition: all 0.15s ease, transform 0.1s ease;
+            position: relative;
+            z-index: 5;
+        }
+
+        #dashboard .pro-dash-month-pill:active {
+            transform: scale(0.97);
+            opacity: 0.85;
         }
 
         body.light #dashboard .pro-dash-month-pill {
@@ -238,13 +294,22 @@
             transform: rotate(180deg);
         }
 
+        /* Prevent child elements (svg, polyline, path, span) from intercepting touch/clicks */
+        #dashboard .pro-dash-seg-btn *,
+        #dashboard .pro-dash-month-bar button *,
+        #dashboard .pro-dash-month-popover button * {
+            pointer-events: none;
+        }
+
         /* Month Popover Grid */
         #dashboard .pro-dash-month-popover {
             margin-bottom: 0.85rem;
             padding: 0.75rem;
-            border-radius: 15px;
-            background: rgba(11, 17, 29, 0.95);
+            border-radius: 16px;
+            background: rgba(11, 17, 29, 0.96);
             border: 1px solid rgba(255, 255, 255, 0.12);
+            position: relative;
+            z-index: 10;
         }
 
         body.light #dashboard .pro-dash-month-popover {
@@ -256,52 +321,77 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            margin-bottom: 0.5rem;
+            margin-bottom: 0.6rem;
             padding: 0 0.2rem;
         }
 
         #dashboard .pro-dash-pop-year-btn {
             appearance: none;
             -webkit-appearance: none;
-            width: 28px;
-            height: 28px;
-            border-radius: 8px;
+            width: 40px;
+            min-width: 40px;
+            height: 38px;
+            min-height: 38px;
+            border-radius: 10px;
             border: 1px solid rgba(255, 255, 255, 0.1);
             background: rgba(255, 255, 255, 0.06);
             color: inherit;
-            font-size: 1rem;
+            font-size: 1.15rem;
             font-weight: 700;
             cursor: pointer;
             display: inline-flex;
             align-items: center;
             justify-content: center;
             padding: 0;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
+            transition: transform 0.1s ease;
+        }
+
+        #dashboard .pro-dash-pop-year-btn:active {
+            transform: scale(0.92);
         }
 
         body.light #dashboard .pro-dash-pop-year-btn {
             background: #FFFFFF;
             border-color: rgba(15, 23, 42, 0.08);
+            color: #0F172A;
         }
 
         #dashboard .pro-dash-pop-months-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
-            gap: 0.38rem;
+            gap: 0.45rem;
         }
 
         #dashboard .pro-dash-month-cell {
             appearance: none;
             -webkit-appearance: none;
-            height: 32px;
-            border-radius: 9px;
+            height: 38px;
+            min-height: 38px;
+            border-radius: 10px;
             border: 1px solid rgba(255, 255, 255, 0.07);
             background: rgba(255, 255, 255, 0.04);
             color: #CBD5E1;
             font-family: inherit;
-            font-size: 0.74rem;
+            font-size: 0.78rem;
             font-weight: 700;
             cursor: pointer;
             padding: 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            touch-action: manipulation;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+            -webkit-user-select: none;
+            transition: all 0.15s ease, transform 0.1s ease;
+        }
+
+        #dashboard .pro-dash-month-cell:active {
+            transform: scale(0.93);
         }
 
         body.light #dashboard .pro-dash-month-cell {
@@ -314,6 +404,28 @@
             background: linear-gradient(135deg, #10B981, #059669);
             border-color: transparent;
             color: #FFFFFF;
+            box-shadow: 0 2px 8px rgba(16, 185, 129, 0.35);
+        }
+
+        /* Mobile layout for <= 420px: header wraps and segmented control becomes full width */
+        @media (max-width: 420px) {
+            #dashboard .pro-dash-header-top {
+                flex-wrap: wrap;
+                row-gap: 0.65rem;
+            }
+            #dashboard .pro-dash-brand {
+                flex: 1 1 auto;
+                min-width: 0;
+            }
+            #dashboard .pro-dash-seg-control {
+                width: 100%;
+                display: flex;
+            }
+            #dashboard .pro-dash-seg-btn {
+                flex: 1;
+                text-align: center;
+                padding: 0.5rem 0.5rem;
+            }
         }
 
         /* Bento KPI Sub-Cards inside Summary Card */
@@ -1402,9 +1514,15 @@
         </div>
     </nav>
 
-    <!-- Main Content -->
+    <!-- ======================================================================
+         CORPO PRINCIPAL DA APLICAÇÃO (CONTEÚDO DAS ABAS)
+         ====================================================================== -->
     <main class="main-content">
-        <!-- Dashboard Tab (Initial Home Page - Modern Professional Bento Cards) -->
+        <!-- ==================================================================
+             [VIEW 1] DASHBOARD EXECUTIVA APPLE (#dashboard)
+             Cards Bento modulares, Visão Executiva, Alternador Mês/Geral,
+             Cards de Receita, Despesa, Saldo Líquido e Ações Rápidas
+             ================================================================== -->
         <div id="dashboard" class="tab-content active">
             <div class="pro-dash-grid">
 
@@ -1599,7 +1717,11 @@
             </div>
         </div>
 
-        <!-- New Transaction Tab -->
+        <!-- ==================================================================
+             [VIEW 2] NOVA TRANSAÇÃO (#new-transaction)
+             Formulário de lançamento rápido com botão por voz (Web Speech),
+             seletor segmentado Ganho/Gasto e lista de lançamentos do dia
+             ================================================================== -->
         <div id="new-transaction" class="tab-content">
             <div class="card new-transaction-card">
                 <div class="new-transaction-header">
@@ -1662,7 +1784,11 @@
             </div>
         </div>
 
-        <!-- Transactions Tab -->
+        <!-- ==================================================================
+             [VIEW 3] TODAS AS TRANSAÇÕES (#transactions)
+             Listagem histórica geral com filtros rápidos de busca textual,
+             tipo (Receita/Despesa) e seletor de mês
+             ================================================================== -->
         <div id="transactions" class="tab-content">
             <div class="card">
                 <h2 class="mb-2" data-i18n="allTransactions">Todas as Transacoes</h2>
@@ -1681,7 +1807,11 @@
             </div>
         </div>
 
-        <!-- Search Tab -->
+        <!-- ==================================================================
+             [VIEW 4] BUSCA E FILTROS AVANÇADOS (#search)
+             Mecanismo de pesquisa multi-critério: período rápido, multi-mês,
+             categorias combinadas e exportação direta para Excel
+             ================================================================== -->
         <div id="search" class="tab-content">
             <div class="card">
                 <h2 class="mb-2" data-i18n="searchTransactions">Buscar Transacoes</h2>
@@ -1729,7 +1859,11 @@
             </div>
         </div>
 
-        <!-- Charts Tab (Apple Pro Financial Intelligence Dashboard) -->
+        <!-- ==================================================================
+             [VIEW 5] INTELIGÊNCIA FINANCEIRA & GRÁFICOS (#charts)
+             Analytics Pro estilo Apple Health: Gráficos Chart.js interativos,
+             KPIs consolidados, diagnóstico financeiro e barras de categoria
+             ================================================================== -->
         <div id="charts" class="tab-content">
             <div class="apple-chart-dashboard">
                 <!-- Apple Pro Analytics Hero Card -->
@@ -1937,7 +2071,11 @@
             </div>
         </div>
 
-        <!-- Summaries Tab -->
+        <!-- ==================================================================
+             [VIEW 6] RESUMOS PERIÓDICOS (#summaries)
+             Painéis retráteis sanfonados para análise Diária, Semanal,
+             Mensal e Anual com detalhamento por categorias
+             ================================================================== -->
         <div id="summaries" class="tab-content">
             <div class="summary-section">
                 <div class="summary-header" onclick="toggleSummary('daily')">
@@ -2112,7 +2250,11 @@
             </div>
         </div>
 
-        <!-- Goals Tab -->
+        <!-- ==================================================================
+             [VIEW 7] METAS FINANCEIRAS (#goals)
+             Acompanhamento de objetivos com barras de progresso percentuais,
+             valores acumulados e ordenação por arraste/subir/descer
+             ================================================================== -->
         <div id="goals" class="tab-content">
             <div class="card">
                 <div class="flex justify-between items-center mb-2">
@@ -2127,7 +2269,11 @@
             </div>
         </div>
 
-        <!-- Contas Fixas Tab -->
+        <!-- ==================================================================
+             [VIEW 8] CONTAS FIXAS & PARCELADAS (#contas-fixas)
+             Despesas recorrentes, vencimentos mensais, carnês/parcelamentos,
+             configuração de notificações push e saldo disponível para quitação
+             ================================================================== -->
         <div id="contas-fixas" class="tab-content">
                 <div class="card">
                     <div class="cf-header-top">
@@ -2235,7 +2381,11 @@
             </div>
         </div>
 
-        <!-- Trash Tab -->
+        <!-- ==================================================================
+             [VIEW 9] LIXEIRA & RECUPERAÇÃO (#trash)
+             Exclusão lógica (Soft Delete): restauração de itens deletados
+             ou exclusão permanente definitiva em lote (Firestore Batch)
+             ================================================================== -->
         <div id="trash" class="tab-content">
             <div class="card">
                 <div class="flex justify-between items-center mb-2"><button type="button" class="btn btn-danger"
@@ -3392,7 +3542,17 @@
         </div>
     </div>
 
-    <!-- Apple Bottom Tab Bar (Liquid Glass Edition) -->
+    <!-- ======================================================================
+         BARRA INFERIOR DE NAVEGAÇÃO APPLE (LIQUID GLASS DOCK)
+         ======================================================================
+         Efeito de vidro líquido translúcido, física de gota deslizante
+         (appleLiquidDroplet) e layout mobile-first:
+         1. Início (Dashboard Executiva)
+         2. Buscar (Pesquisa e filtros)
+         3. (+) Botão Central em Destaque (Nova Transação)
+         4. Contas (Contas Fixas & Parceladas)
+         5. Menu (Acesso às demais abas e configurações)
+         ====================================================================== -->
     <nav class="apple-tab-bar apple-liquid-glass-bar" id="appleTabBar" role="navigation" aria-label="Navegação Principal">
         <!-- Gota Deslizante Liquid Glass -->
         <div class="apple-liquid-droplet" id="appleLiquidDroplet" aria-hidden="true">
@@ -3458,7 +3618,7 @@
         </button>
     </nav>
 
-    <script defer src="./js/app.js?v=20261031_12"></script>
+    <script defer src="./js/app.js?v=20261101_13"></script>
 </body>
 
 </html>

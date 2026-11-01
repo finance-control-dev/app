@@ -1,6 +1,35 @@
-const CACHE_NAME = 'finance-pwa-v12';
+/**
+ * ============================================================================
+ * SERVICE WORKER - CONTROLE FINANCEIRO PWA
+ * ============================================================================
+ * Versão do Cache Ativo: finance-pwa-v13
+ * 
+ * ARQUITETURA DE ARMAZENAMENTO E RESILIÊNCIA OFFLINE:
+ * 1. TIER 1 - Navegação e Código Fonte (HTML, JS, CSS):
+ *    - Estratégia: Network-First com bypass de cache ('no-store')
+ *    - Objetivo: Garantir que atualizações de código e novos componentes visuais
+ *      sejam carregados imediatamente no celular do usuário sem retenção em cache zumbi.
+ *    - Fallback: Em caso de ausência de rede (offline total), serve a versão em cache.
+ * 
+ * 2. TIER 2 - Ativos Estáticos (Fontes, Ícones, Imagens PNG/SVG):
+ *    - Estratégia: Stale-While-Revalidate
+ *    - Objetivo: Velocidade instantânea de abertura (0ms) enquanto revalida em segundo plano.
+ * 
+ * 3. TIER 3 - Tráfego de API e Banco de Dados em Nuvem (Firebase / Firestore / Auth):
+ *    - Estratégia: Bypass Total do Cache
+ *    - Objetivo: Nunca interceptar dados dinâmicos do Firestore ou tokens de autenticação,
+ *      preservando a sincronização em tempo real nativa do Firebase SDK.
+ * 
+ * 4. RECURSO NATIVO ANDROID: Web Share Target API:
+ *    - Intercepta requisições POST para '/share-target' disparadas pelo menu 'Compartilhar' do Android.
+ *    - Grava o arquivo de comprovante (imagem/PDF) em cache isolado e abre o app com o ID compartilhado.
+ * ============================================================================
+ */
+
+const CACHE_NAME = 'finance-pwa-v13';
 const SHARED_RECEIPTS_CACHE = 'finance-shared-receipts-v1';
 
+/** Lista de ativos essenciais para o funcionamento mínimo do App Shell offline */
 const STATIC_PRECACHE = [
     './',
     './index.html',
@@ -18,6 +47,10 @@ const STATIC_PRECACHE = [
     './assets/icons/icon.png'
 ];
 
+/**
+ * CICLO DE VIDA: INSTALAÇÃO
+ * Grava o precache do shell da aplicação e ativa imediatamente via skipWaiting().
+ */
 self.addEventListener('install', event => {
     event.waitUntil(
         caches.open(CACHE_NAME).then(cache => {
@@ -28,11 +61,16 @@ self.addEventListener('install', event => {
     );
 });
 
+/**
+ * CICLO DE VIDA: ATIVAÇÃO
+ * Remove caches legados de versões antigas e assume o controle de todas as abas abertas.
+ */
 self.addEventListener('activate', event => {
     event.waitUntil(
         caches.keys().then(keys => {
             return Promise.all(
                 keys.map(key => {
+                    // Preserva apenas a versão atual e o cache de comprovantes compartilhados
                     if (key !== CACHE_NAME && key !== SHARED_RECEIPTS_CACHE) {
                         return caches.delete(key);
                     }
@@ -42,10 +80,13 @@ self.addEventListener('activate', event => {
     );
 });
 
+/**
+ * CICLO DE VIDA: INTERCEPTAÇÃO DE REQUISIÇÕES (FETCH)
+ */
 self.addEventListener('fetch', event => {
     const request = event.request;
 
-    // Handle Android PWA Share Target POST
+    // 1. Suporte a Compartilhamento Direto de Comprovantes via Android (Share Target POST)
     if (request.method === 'POST') {
         const sharePath = new URL('share-target', self.registration.scope).pathname;
         if (new URL(request.url).pathname === sharePath) {
@@ -58,7 +99,7 @@ self.addEventListener('fetch', event => {
 
     const url = new URL(request.url);
 
-    // Bypass Firebase API/Firestore/Auth calls and Cloud Storage
+    // 2. Bypass de chamadas do Firebase Auth, Firestore, APIs do Google e Cloud Storage
     if (url.origin.includes('googleapis.com') ||
         url.origin.includes('firebaseio.com') ||
         url.origin.includes('firestore.googleapis.com') ||
@@ -67,7 +108,7 @@ self.addEventListener('fetch', event => {
         return;
     }
 
-    // HTML / Navigation: Network-First with no-store to guarantee fresh HTML on mobile
+    // 3. Documento HTML / Navegação: Network-First com no-store para evitar cache preso no mobile
     if (request.mode === 'navigate' || request.headers.get('accept')?.includes('text/html')) {
         event.respondWith(
             fetch(request, { cache: 'no-store' }).then(response => {
@@ -83,7 +124,7 @@ self.addEventListener('fetch', event => {
         return;
     }
 
-    // Code assets (JS, CSS): Network-First with no-store to guarantee immediate updates and prevent stale cache
+    // 4. Scripts e Estilos (JS, CSS): Network-First para atualização imediata de patches de código
     if (url.pathname.endsWith('.js') || url.pathname.endsWith('.css') || url.search.includes('v=')) {
         event.respondWith(
             fetch(request, { cache: 'no-store' }).then(networkResponse => {
@@ -97,7 +138,7 @@ self.addEventListener('fetch', event => {
         return;
     }
 
-    // Static Assets (Fonts, Images): Stale-While-Revalidate for maximum speed
+    // 5. Ativos Estáticos (Fontes, Imagens, Ícones): Stale-While-Revalidate para abertura instantânea
     event.respondWith(
         caches.match(request).then(cachedResponse => {
             const fetchPromise = fetch(request).then(networkResponse => {
@@ -113,6 +154,12 @@ self.addEventListener('fetch', event => {
     );
 });
 
+/**
+ * Processa arquivos de comprovantes recebidos do Android através da Web Share Target API.
+ * Armazena temporariamente o Blob no cache SHARED_RECEIPTS_CACHE e redireciona para o app com ?sharedReceipt=UUID.
+ * @param {Request} request Requisição POST com multipart/form-data
+ * @returns {Promise<Response>} Redirecionamento HTTP 303 para a interface do app
+ */
 async function receiveSharedReceipt(request) {
     const appUrl = new URL(self.registration.scope);
     try {
@@ -139,12 +186,15 @@ async function receiveSharedReceipt(request) {
         const launchUrl = new URL(`?sharedReceipt=${encodeURIComponent(shareId)}`, appUrl);
         return Response.redirect(launchUrl, 303);
     } catch (error) {
-        console.error('Unable to receive shared receipt', error);
+        console.error('Falha ao processar comprovante compartilhado:', error);
         return Response.redirect(new URL('?sharedReceiptError=unavailable', appUrl), 303);
     }
 }
 
-// Memory & Cache Cleanup Message Listener
+/**
+ * GERENCIADOR DE MENSAGENS INTER-PROCESSO (postMessage)
+ * Permite que a interface do usuário solicite a limpeza de caches obsoletos e arquivos temporários > 24h.
+ */
 self.addEventListener('message', async event => {
     if (event.data && event.data.action === 'CLEAR_CACHES') {
         try {
@@ -155,7 +205,7 @@ self.addEventListener('message', async event => {
                 }
             }
 
-            // Prune shared receipts older than 24h
+            // Expurga comprovantes compartilhados temporários com mais de 24 horas de existência
             const sharedCache = await caches.open(SHARED_RECEIPTS_CACHE);
             const sharedKeys = await sharedCache.keys();
             const now = Date.now();
@@ -167,7 +217,7 @@ self.addEventListener('message', async event => {
                 }
             }
 
-            // Re-cache fresh app shell
+            // Recarrega o shell da versão atual no cache
             const currentCache = await caches.open(CACHE_NAME);
             await currentCache.addAll(STATIC_PRECACHE).catch(() => {});
 
@@ -182,6 +232,10 @@ self.addEventListener('message', async event => {
     }
 });
 
+/**
+ * CLIQUE EM NOTIFICAÇÕES PUSH
+ * Ao tocar na notificação de vencimento de conta, foca na janela ativa ou abre uma nova.
+ */
 self.addEventListener('notificationclick', event => {
     event.notification.close();
     event.waitUntil(
