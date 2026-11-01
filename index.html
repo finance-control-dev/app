@@ -21,7 +21,7 @@
     <script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
     <script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore-compat.js"></script>
     <script defer src="https://www.gstatic.com/firebasejs/10.8.0/firebase-storage-compat.js"></script>
-    <link rel="stylesheet" href="./css/styles.css?v=20261101_22">
+    <link rel="stylesheet" href="./css/styles.css?v=20261101_23">
     <style id="dashboard-dx-critical-css">
 /* ==========================================================================
    DASHBOARD v3 (#dashboard .dx) — 100% mobile-first e responsivo
@@ -718,7 +718,7 @@ body.light .apple-liquid-glass-bar .apple-tab-item {
     display: none !important;
 }
 
-/* CÃ¡psula Deslizante de Vidro LÃ­quido */
+/* Cápsula Deslizante de Vidro Líquido */
 .apple-liquid-droplet {
     grid-column: 1 / -1;
     grid-row: 1;
@@ -882,7 +882,7 @@ body.light .apple-tab-item.active {
     }
 }
     
-/* BotÃµes Flutuantes Menores e Mais Sutis no Mobile (+ e Calculadora) */
+/* Botões Flutuantes Menores e Mais Sutis no Mobile (+ e Calculadora) */
 @media (max-width: 768px) {
     .floating-calc-btn {
         right: 12px !important;
@@ -3257,7 +3257,7 @@ body.light .apple-tab-item.active {
         </button>
     </nav>
 
-    <script defer src="./js/app.js?v=20261101_22"></script>
+    <script defer src="./js/app.js?v=20261101_23"></script>
     <script id="dashboard-dx-runtime">
     (function() {
         window.dashFilterMode = window.dashFilterMode || 'month';
@@ -3268,7 +3268,7 @@ body.light .apple-tab-item.active {
             if ('caches' in window) {
                 caches.keys().then(function(keys) {
                     keys.forEach(function(k) {
-                        if (k.indexOf('finance-pwa-v') === 0 && k !== 'finance-pwa-v22') {
+                        if (k.indexOf('finance-pwa-v') === 0 && k !== 'finance-pwa-v23') {
                             caches.delete(k).catch(function(){});
                         }
                     });
@@ -3453,19 +3453,19 @@ body.light .apple-tab-item.active {
         }
 
         var fallbackCats = {
-            alimentacao: 'ðŸ½ï¸ AlimentaÃ§Ã£o',
-            mercado: 'ðŸ›’ Mercado',
-            combustivel: 'â›½ CombustÃ­vel',
-            manutencao_veiculo: 'ðŸ”§ ManutenÃ§Ã£o VeÃ­culo',
-            transporte: 'ðŸš— Transporte',
-            moradia: 'ðŸ  Moradia',
-            saude: 'ðŸ¥ SaÃºde',
-            educacao: 'ðŸ“š EducaÃ§Ã£o',
-            lazer: 'ðŸŽ® Lazer',
-            salario: 'ðŸ’¼ SalÃ¡rio',
-            freelance: 'ðŸ’» Freelance',
-            investimentos: 'ðŸ“ˆ Investimentos',
-            outros: 'ðŸ“¦ Outros'
+            alimentacao: '\uD83C\uDF7D\uFE0F Alimenta\u00E7\u00E3o',
+            mercado: '\uD83D\uDED2 Mercado',
+            combustivel: '\u26FD Combust\u00EDvel',
+            manutencao_veiculo: '\uD83D\uDD27 Manuten\u00E7\u00E3o Ve\u00EDculo',
+            transporte: '\uD83D\uDE97 Transporte',
+            moradia: '\uD83C\uDFE0 Moradia',
+            saude: '\uD83C\uDFE5 Sa\u00FAde',
+            educacao: '\uD83D\uDCDA Educa\u00E7\u00E3o',
+            lazer: '\uD83C\uDFAE Lazer',
+            salario: '\uD83D\uDCBC Sal\u00E1rio',
+            freelance: '\uD83D\uDCBB Freelance',
+            investimentos: '\uD83D\uDCC8 Investimentos',
+            outros: '\uD83D\uDCE6 Outros'
         };
 
         function dxMoney(v) {
@@ -3529,7 +3529,7 @@ body.light .apple-tab-item.active {
                     return el;
                 }
                 function plural(n) {
-                    return n + ' ' + (n === 1 ? 'lanÃ§amento' : 'lanÃ§amentos');
+                    return n + ' ' + (n === 1 ? 'lan\u00E7amento' : 'lan\u00E7amentos');
                 }
 
                 var selectedYM = dxEnsureYM();
@@ -3537,7 +3537,7 @@ body.light .apple-tab-item.active {
                 var selYear = parseInt(parts[0], 10);
                 var selMonth = parseInt(parts[1], 10);
 
-                var monthNamesPt = ['Janeiro', 'Fevereiro', 'MarÃ§o', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+                var monthNamesPt = ['Janeiro', 'Fevereiro', 'Mar\u00E7o', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
                 var monthNamesEn = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
                 var monthNamesEs = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
                 var shortPt = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez'];
@@ -3594,7 +3594,7 @@ body.light .apple-tab-item.active {
 
                 setText('dashBalanceCaption', mode === 'all'
                     ? (isEn ? 'All-Time Net Balance' : (isEs ? 'Balance General Acumulado' : 'Resultado Geral Acumulado'))
-                    : (isEn ? 'Monthly Net Result' : (isEs ? 'Resultado del Mes' : 'Resultado do MÃªs')));
+                    : (isEn ? 'Monthly Net Result' : (isEs ? 'Resultado del Mes' : 'Resultado do M\u00EAs')));
                 var balEl = setText('dashMonthBalance', (balance < 0 ? '-' : '') + dxMoney(Math.abs(balance)));
                 if (balEl) {
                     balEl.classList.toggle('negative', balance < 0);
@@ -3604,14 +3604,14 @@ body.light .apple-tab-item.active {
                 if (badge) {
                     badge.classList.remove('positive', 'negative', 'neutral');
                     if (income === 0 && expense === 0) {
-                        badge.textContent = mode === 'all' ? 'Sem registros' : 'Sem registros no mÃªs';
+                        badge.textContent = mode === 'all' ? 'Sem registros' : 'Sem registros no m\u00EAs';
                         badge.classList.add('neutral');
                     } else if (balance >= 0) {
                         var freePct = income > 0 ? Math.round((balance / income) * 100) : 0;
-                        badge.textContent = freePct > 0 ? ('SuperÃ¡vit â€¢ ' + freePct + '% livre') : 'Saldo Positivo';
+                        badge.textContent = freePct > 0 ? ('Super\u00E1vit \u2022 ' + freePct + '% livre') : 'Saldo Positivo';
                         badge.classList.add('positive');
                     } else {
-                        badge.textContent = 'DÃ©ficit no PerÃ­odo';
+                        badge.textContent = 'D\u00E9ficit no Per\u00EDodo';
                         badge.classList.add('negative');
                     }
                 }
@@ -3640,7 +3640,7 @@ body.light .apple-tab-item.active {
                         return Number(cf.dueMonth) === selMonth && Number(cf.dueYear) === selYear;
                     });
                     if (monthBills.length === 0) {
-                        billsEl.innerHTML = '<div class="dx-empty"><p>Nenhuma conta cadastrada neste mÃªs.</p><button type="button" class="dx-empty-btn" onclick="showTab(\'contas-fixas\')">+ Cadastrar conta</button></div>';
+                        billsEl.innerHTML = '<div class="dx-empty"><p>Nenhuma conta cadastrada neste m\u00EAs.</p><button type="button" class="dx-empty-btn" onclick="showTab(\'contas-fixas\')">+ Cadastrar conta</button></div>';
                     } else {
                         var pending = monthBills.filter(function(b) { return !b.paid; }).sort(function(a, b) { return (Number(a.dueDay) || 99) - (Number(b.dueDay) || 99); });
                         var paidCount = monthBills.length - pending.length;
@@ -3659,7 +3659,7 @@ body.light .apple-tab-item.active {
                                 '<div class="dx-bills-count">' + paidCount + '/' + monthBills.length + ' pagas</div>' +
                             '</div>' +
                             '<div class="dx-bar thin"><div class="dx-bar-fill" style="width:' + pct + '%"></div></div>' +
-                            (pending.length === 0 ? '<div class="dx-ok">âœ… Todas as contas do mÃªs foram pagas!</div>' : '<div class="dx-list">' + rows + '</div>');
+                            (pending.length === 0 ? '<div class="dx-ok">\u2705 Todas as contas do m\u00EAs foram pagas!</div>' : '<div class="dx-list">' + rows + '</div>');
                     }
                 }
 
@@ -3667,7 +3667,7 @@ body.light .apple-tab-item.active {
                 if (catsEl) {
                     var sorted = Object.entries(categoryMap).filter(function(e) { return e[1] > 0; }).sort(function(a, b) { return b[1] - a[1]; }).slice(0, 4);
                     if (sorted.length === 0) {
-                        catsEl.innerHTML = '<div class="dx-empty"><p>Nenhuma despesa registrada neste perÃ­odo.</p></div>';
+                        catsEl.innerHTML = '<div class="dx-empty"><p>Nenhuma despesa registrada neste per\u00EDodo.</p></div>';
                     } else {
                         catsEl.innerHTML = '<div class="dx-list">' + sorted.map(function(entry) {
                             var cat = entry[0], val = entry[1];
@@ -3686,7 +3686,7 @@ body.light .apple-tab-item.active {
                 var recentEl = document.getElementById('dashRecentTransactionsList');
                 if (recentEl) {
                     if (filteredTxs.length === 0) {
-                        recentEl.innerHTML = '<div class="dx-empty"><p>Nenhuma movimentaÃ§Ã£o neste perÃ­odo.</p><button type="button" class="dx-empty-btn" onclick="showTab(\'new-transaction\')">+ Novo lanÃ§amento</button></div>';
+                        recentEl.innerHTML = '<div class="dx-empty"><p>Nenhuma movimenta\u00E7\u00E3o neste per\u00EDodo.</p><button type="button" class="dx-empty-btn" onclick="showTab(\'new-transaction\')">+ Novo lan\u00E7amento</button></div>';
                     } else {
                         var recent = filteredTxs.slice().sort(function(a, b) {
                             var d = String(b.date || '').localeCompare(String(a.date || ''));
@@ -3698,11 +3698,11 @@ body.light .apple-tab-item.active {
                             var dateTxt = p.length === 3 ? (p[2] + '/' + p[1]) : '';
                             var label = String(dxCatLabel(tx.category || 'outros'));
                             var sp = label.indexOf(' ');
-                            var emoji = sp > 0 ? label.slice(0, sp) : 'â€¢';
+                            var emoji = sp > 0 ? label.slice(0, sp) : '\u2022';
                             var catName = sp > 0 ? label.slice(sp + 1) : label;
                             return '<button type="button" class="dx-row" onclick="showTab(\'transactions\')">' +
                                 '<span class="dx-row-ico ' + (isIn ? 'in' : 'out') + '">' + emoji + '</span>' +
-                                '<span class="dx-row-main"><b>' + dxEsc(tx.description || catName) + '</b><small>' + dxEsc(catName) + (dateTxt ? ' â€¢ ' + dateTxt : '') + '</small></span>' +
+                                '<span class="dx-row-main"><b>' + dxEsc(tx.description || catName) + '</b><small>' + dxEsc(catName) + (dateTxt ? ' \u2022 ' + dateTxt : '') + '</small></span>' +
                                 '<span class="dx-row-val ' + (isIn ? 'in' : 'out') + '">' + (isIn ? '+' : '-') + dxMoney(Number(tx.value) || 0) + '</span>' +
                             '</button>';
                         }).join('') + '</div>';
